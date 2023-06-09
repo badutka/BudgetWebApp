@@ -1,0 +1,103 @@
+{% load static %}
+
+<h1>Budget Entry List</h1>
+
+<a href="{% url 'budget:budget_entry_add' %}" class="btn btn-primary bi bi-plus"></a>
+
+<div class="table-responsive">
+    <table class="table table-dark table-hover table-striped align-middle">
+        <thead>
+        <tr>
+            <th></th>
+            <th>Date</th>
+            <th>Main Category</th>
+            <th>Subcategory</th>
+            <th>Category</th>
+            <th>Amount</th>
+            <th>Origin</th>
+            <th>Destination</th>
+            <th>Type</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for entry in page_obj %}
+        <tr>
+            <td style="width: 1%; font-size: 8px; vertical-align:middle">{{ entry.year }}</td>
+            <td>{{ entry.date }}</td>
+            <td>{{ entry.main_category }}</td>
+            <td>{{ entry.subcategory }}</td>
+            <td>{{ entry.category }}</td>
+            <td>{{ entry.amount }}</td>
+            <td>{{ entry.origin }}</td>
+            <td>{{ entry.destination }}</td>
+            <td>
+                {% if entry.transaction_type == 'INCOMING' %}
+                    <i class="fas fa-arrow-down text-success"></i>  <!-- Incoming transaction -->
+                {% elif entry.transaction_type == 'OUTGOING' %}
+                    <i class="fas fa-arrow-up text-danger"></i>  <!-- Outgoing transaction -->
+                {% elif entry.transaction_type == 'INNER' %}
+                    <i class="fas fa-arrows-alt-h text-primary"></i>  <!-- Inner transaction -->
+                {% else %}
+                    <i class="fas fa-question-circle"></i>  <!-- None-->
+                {% endif %}
+            </td>
+            <td>
+                <a href="{% url 'budget:budget_entry_edit' entry.id %}" class="btn btn-outline-primary bi bi-pen" style="font-size: 10px;"></a>
+                <a href="{% url 'budget:budget_entry_remove' entry.id %}" class="btn btn-outline-danger bi bi-trash" style="font-size: 10px; margin-left: 10px;"></a>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!--    &lt;!&ndash; Pagination links &ndash;&gt;-->
+<!--    <div class="pagination">-->
+<!--        <span class="step-links">-->
+<!--            {% if page_obj.has_previous %}-->
+<!--                <a href="?page=1">&laquo; first</a>-->
+<!--                <a href="?page={{ page_obj.previous_page_number }}">previous</a>-->
+<!--            {% endif %}-->
+
+<!--            <span class="current-page">{{ page_obj.number }}</span>-->
+
+<!--            {% if page_obj.has_next %}-->
+<!--                <a href="?page={{ page_obj.next_page_number }}">next</a>-->
+<!--                <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>-->
+<!--            {% endif %}-->
+<!--        </span>-->
+<!--    </div>-->
+
+<!-- Pagination links -->
+<nav aria-label="Page navigation example">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page=1">&laquo; First</a></li>
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+        {% else %}
+            <li class="page-item disabled">
+                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">&laquo; First</a>
+            </li>
+            <li class="page-item disabled">
+                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+            </li>
+        {% endif %}
+
+        <li class="page-item active" aria-current="page">
+            <span class="page-link">{{ page_obj.number }}</span>
+        </li>
+
+        {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last &raquo;</a></li>
+        {% else %}
+            <li class="page-item disabled">
+                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Next</a>
+            </li>
+            <li class="page-item disabled">
+                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Last &raquo;</a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
