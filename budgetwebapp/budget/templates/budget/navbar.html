@@ -18,7 +18,16 @@
           <a class="nav-link active" aria-current="page" href="{% url 'budget:outgoing_transactions' %}">Outgoing Transactions</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link active" aria-current="page" href="{% url 'budget:yearly_summary' %}">Summary</a>
+          <a class="nav-link active" aria-current="page" href="{% url 'budget:monthly_expense_summary' %}">Monthly Expense Summary</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="{% url 'budget:monthly_income_summary' %}">Monthly Income Summary</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="{% url 'budget:yearly_expense_summary' %}">Yearly Expense Summary</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="{% url 'budget:chart_summary' %}">Charts Summary</a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="#">Link</a>

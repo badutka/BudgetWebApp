@@ -1,0 +1,164 @@
+{% extends "budget/base.html" %}
+{% load humanize %}
+
+{% block content %}
+
+    <div style="width: 70%; margin-left: 15%;" class="table-responsive">
+        <table class="table table-bordered table-dark table-hover table-striped align-middle table_morecondensed">
+
+            <thead>
+                <tr>
+                    <th colspan="14" class="text-center">
+                       <span class="badge bg-success">2023</span>
+                    </th>
+                </tr>
+                <tr class="text-center">
+                    <th></th>
+                    {% for month, value in summary.monthly_expenses.items %}
+                        <th><span class="badge bg-success">{{ month }}</span></th>
+                    {% endfor %}
+                    <th><span class="badge bg-danger">Total</span></th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+                <tr>
+                    <th>Income</th>
+                    {% for month, value in summary.monthly_income.items %}
+                        <th>{{ value|floatformat:2|intcomma }} PLN</th>
+                    {% endfor %}
+                    <th>{{ totals.total_income|floatformat:2|intcomma }} PLN</th>
+                </tr>
+
+                <tr>
+                    <th>Expenses</th>
+                    {% for month, value in summary.monthly_expenses.items %}
+                        <th>{{ value|floatformat:2|intcomma }} PLN</th>
+                    {% endfor %}
+                    <th>{{ totals.total_expenses|floatformat:2|intcomma }} PLN</th>
+                </tr>
+
+                <tr>
+                    <th>Net Savings</th>
+                    {% for month, value in summary.monthly_net_savings.items %}
+                        <th>{{ value|floatformat:2|intcomma }} PLN</th>
+                    {% endfor %}
+                    <th>{{ totals.total_net_savings|floatformat:2|intcomma }} PLN</th>
+                </tr>
+
+                <tr>
+                    <th><span class="badge bg-danger">Ending Balance</span> <i class="bi bi-arrow-right"></i></th>
+                    {% for month, value in summary.monthly_ending_balance.items %}
+                        <th>{{ value|floatformat:2|intcomma }} PLN</th>
+                    {% endfor %}
+                    <th>{{ totals.total_ending_balance|floatformat:2|intcomma }} PLN</th>
+                </tr>
+
+            </tbody>
+
+        </table>
+
+        <table class="table table-bordered table-dark table-hover table-striped align-middle table_morecondensed">
+
+            <thead>
+                <tr>
+                    <th colspan="14" class="text-center">
+                       <span class="badge bg-success">2023</span>
+                    </th>
+                </tr>
+                <tr class="text-center">
+                    <th></th>
+                    {% for month, value in summary.monthly_expenses.items %}
+                        <th><span class="badge bg-success">{{ month }}</span></th>
+                    {% endfor %}
+                    <th><span class="badge bg-danger">Total</span></th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+                {% for main_category, subcategories in expense_summary_detailed.items %}
+                <tr>
+                    <th> <span class="badge rounded-pill bg-primary">{{ main_category }}</span> <i class="bi bi-arrow-right"></i></th>
+                    {% with subcategories|last as totals_per_month %}
+                        <th>{{ totals_per_month.total_per_month.January|floatformat:2|intcomma }} PLN</th>
+                        <th>{{ totals_per_month.total_per_month.February|floatformat:2|intcomma }} PLN</th>
+                        <th>{{ totals_per_month.total_per_month.March|floatformat:2|intcomma }} PLN</th>
+                        <th>{{ totals_per_month.total_per_month.April|floatformat:2|intcomma }} PLN</th>
+                        <th>{{ totals_per_month.total_per_month.May|floatformat:2|intcomma }} PLN</th>
+                        <th>{{ totals_per_month.total_per_month.June|floatformat:2|intcomma }} PLN</th>
+                        <th>{{ totals_per_month.total_per_month.July|floatformat:2|intcomma }} PLN</th>
+                        <th>{{ totals_per_month.total_per_month.August|floatformat:2|intcomma }} PLN</th>
+                        <th>{{ totals_per_month.total_per_month.September|floatformat:2|intcomma }} PLN</th>
+                        <th>{{ totals_per_month.total_per_month.October|floatformat:2|intcomma }} PLN</th>
+                        <th>{{ totals_per_month.total_per_month.November|floatformat:2|intcomma }} PLN</th>
+                        <th>{{ totals_per_month.total_per_month.December|floatformat:2|intcomma }} PLN</th>
+                    {% endwith %}
+                    {% for main_cat, total_amount_for_cat in total_expense_summary_detailed.items %}
+                        {% if main_cat == main_category %}
+                            <th>{{ total_amount_for_cat|floatformat:2|intcomma }} PLN</th>
+                        {% endif %}
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+        <table class="table table-bordered table-dark table-hover table-striped align-middle table_morecondensed">
+
+            <thead>
+                <tr>
+                    <th colspan="14" class="text-center">
+                       <span class="badge bg-success">2023</span>
+                    </th>
+                </tr>
+                <tr class="text-center">
+                    <th></th>
+                    {% for month, value in summary.monthly_income.items %}
+                        <th><span class="badge bg-success">{{ month }}</span></th>
+                    {% endfor %}
+                    <th><span class="badge bg-danger">Total</span></th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+                {% for main_category, subcategories in income_summary_detailed.items %}
+                <tr>
+                    <th class="text-end"> <span class="badge rounded-pill bg-primary">{{ main_category }}</span> <i class="bi bi-arrow-right"></i></th>
+                    {% with subcategories|last as totals_per_month %}
+                        <th>{{ totals_per_month.total_per_month.January|floatformat:2|intcomma }} PLN</th>
+                        <th>{{ totals_per_month.total_per_month.February|floatformat:2|intcomma }} PLN</th>
+                        <th>{{ totals_per_month.total_per_month.March|floatformat:2|intcomma }} PLN</th>
+                        <th>{{ totals_per_month.total_per_month.April|floatformat:2|intcomma }} PLN</th>
+                        <th>{{ totals_per_month.total_per_month.May|floatformat:2|intcomma }} PLN</th>
+                        <th>{{ totals_per_month.total_per_month.June|floatformat:2|intcomma }} PLN</th>
+                        <th>{{ totals_per_month.total_per_month.July|floatformat:2|intcomma }} PLN</th>
+                        <th>{{ totals_per_month.total_per_month.August|floatformat:2|intcomma }} PLN</th>
+                        <th>{{ totals_per_month.total_per_month.September|floatformat:2|intcomma }} PLN</th>
+                        <th>{{ totals_per_month.total_per_month.October|floatformat:2|intcomma }} PLN</th>
+                        <th>{{ totals_per_month.total_per_month.November|floatformat:2|intcomma }} PLN</th>
+                        <th>{{ totals_per_month.total_per_month.December|floatformat:2|intcomma }} PLN</th>
+                    {% endwith %}
+                    {% for main_cat, total_amount_for_cat in total_income_summary_detailed.items %}
+                        {% if main_cat == main_category %}
+                            <th>{{ total_amount_for_cat|floatformat:2|intcomma }} PLN</th>
+                        {% endif %}
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+    <div>
+
+    </div>
+
+{% endblock content %}

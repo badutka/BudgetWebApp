@@ -1,0 +1,91 @@
+{% load humanize %}
+
+<div style="width: 70%; margin-left: 15%;" class="table-responsive">
+    <table class="table table-bordered table-dark table-hover table-striped align-middle table_morecondensed">
+
+        <thead>
+            <tr>
+                <th colspan="14" class="text-center">
+                   <span class="badge bg-success">{{ header }} 2023</span>
+                </th>
+            </tr>
+            <tr class="text-center">
+<!--                <th>Category</th>-->
+                <th></th>
+                <th><span class="badge bg-success">January</span></th>
+                <th><span class="badge bg-success">February</span></th>
+                <th><span class="badge bg-success">March</span></th>
+                <th><span class="badge bg-success">April</span></th>
+                <th><span class="badge bg-success">May</span></th>
+                <th><span class="badge bg-success">June</span></th>
+                <th><span class="badge bg-success">July</span></th>
+                <th><span class="badge bg-success">August</span></th>
+                <th><span class="badge bg-success">September</span></th>
+                <th><span class="badge bg-success">October</span></th>
+                <th><span class="badge bg-success">November</span></th>
+                <th><span class="badge bg-success">December</span></th>
+                <th><span class="badge bg-danger">Total</span></th>
+            </tr>
+
+        </thead>
+
+        <tbody>
+            {% for main_category, subcategories in summary_table.items %}
+
+                <tr>
+                    <th colspan="14" class="text-center">
+                        <i class="bi bi-arrow-down"></i> <span class="badge rounded-pill bg-primary">{{ main_category }}</span> <i class="bi bi-arrow-down"></i>
+                    </th>
+                </tr>
+                <tr>
+
+                    <th><span class="badge bg-danger">Monthly totals:</span></th>
+
+                    {% with subcategories|last as totals_per_month %}
+                        <th>{{ totals_per_month.total_per_month.January|floatformat:2|intcomma }} PLN</th>
+                        <th>{{ totals_per_month.total_per_month.February|floatformat:2|intcomma }} PLN</th>
+                        <th>{{ totals_per_month.total_per_month.March|floatformat:2|intcomma }} PLN</th>
+                        <th>{{ totals_per_month.total_per_month.April|floatformat:2|intcomma }} PLN</th>
+                        <th>{{ totals_per_month.total_per_month.May|floatformat:2|intcomma }} PLN</th>
+                        <th>{{ totals_per_month.total_per_month.June|floatformat:2|intcomma }} PLN</th>
+                        <th>{{ totals_per_month.total_per_month.July|floatformat:2|intcomma }} PLN</th>
+                        <th>{{ totals_per_month.total_per_month.August|floatformat:2|intcomma }} PLN</th>
+                        <th>{{ totals_per_month.total_per_month.September|floatformat:2|intcomma }} PLN</th>
+                        <th>{{ totals_per_month.total_per_month.October|floatformat:2|intcomma }} PLN</th>
+                        <th>{{ totals_per_month.total_per_month.November|floatformat:2|intcomma }} PLN</th>
+                        <th>{{ totals_per_month.total_per_month.December|floatformat:2|intcomma }} PLN</th>
+                    {% endwith %}
+
+                    {% for main_cat, total_amount_for_cat in summary_table_total.items %}
+                        {% if main_cat == main_category %}
+                            <th>{{ total_amount_for_cat|floatformat:2|intcomma }} PLN</th>
+                        {% endif %}
+                    {% endfor %}
+
+                </tr>
+
+                {% for subcategory in subcategories %}
+                    {% if "subcategory" in subcategory %}
+                    <tr>
+                        <td><span class="badge rounded-pill bg-secondary">{{ subcategory.subcategory }}</span></td>
+                        <td>{{ subcategory.summary.January|floatformat:2|intcomma }} PLN</td>
+                        <td>{{ subcategory.summary.February|floatformat:2|intcomma }} PLN</td>
+                        <td>{{ subcategory.summary.March|floatformat:2|intcomma }} PLN</td>
+                        <td>{{ subcategory.summary.April|floatformat:2|intcomma }} PLN</td>
+                        <td>{{ subcategory.summary.May|floatformat:2|intcomma }} PLN</td>
+                        <td>{{ subcategory.summary.June|floatformat:2|intcomma }} PLN</td>
+                        <td>{{ subcategory.summary.July|floatformat:2|intcomma }} PLN</td>
+                        <td>{{ subcategory.summary.August|floatformat:2|intcomma }} PLN</td>
+                        <td>{{ subcategory.summary.September|floatformat:2|intcomma }} PLN</td>
+                        <td>{{ subcategory.summary.October|floatformat:2|intcomma }} PLN</td>
+                        <td>{{ subcategory.summary.November|floatformat:2|intcomma }} PLN</td>
+                        <td>{{ subcategory.summary.December|floatformat:2|intcomma }} PLN</td>
+                        <td>{{ subcategory.summary.Total_for_sub|floatformat:2|intcomma }} PLN</td>
+                    </tr>
+                    {% endif %}
+                {% endfor %}
+            {% endfor %}
+
+        </tbody>
+    </table>
+</div>

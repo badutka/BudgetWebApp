@@ -1,0 +1,7 @@
+{% extends "budget/base.html" %}
+
+{% block content %}
+
+    {% include 'budget/monthly_summary_table.html' with summary_table=summary_table summary_table_total=summary_table_total header="MONTHLY INCOME FOR YEAR"%}
+
+{% endblock content %}
