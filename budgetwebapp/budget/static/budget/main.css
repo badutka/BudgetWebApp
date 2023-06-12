@@ -1,0 +1,6 @@
+.table_morecondensed>thead>tr>th,
+.table_morecondensed>tbody>tr>th,
+.table_morecondensed>tfoot>tr>th,
+.table_morecondensed>thead>tr>td,
+.table_morecondensed>tbody>tr>td,
+.table_morecondensed>tfoot>tr>td{ padding: 5px; }
