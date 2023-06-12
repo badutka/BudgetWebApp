@@ -1,25 +1,69 @@
-from django.shortcuts import render
-from django.http import HttpResponse
-from django.views.generic.edit import CreateView
 from django.shortcuts import render, redirect
 from django.core.paginator import Paginator
 
-from .models import BudgetExpenseEntry
 from .forms import BudgetExpenseEntryForm
+from .models import BudgetExpenseEntry
+from .summary import create_summary_table, create_yearly_summary
 
-from django.views.generic import ListView
-from .models import BudgetExpenseEntry, create_summary_table
 
-def yearly_summary_view(request):
+def chart_summary(request):
+    summary, totals = create_yearly_summary(2023)
 
-    summary_table, summary_table_total = create_summary_table(2023)
+    # Prepare the data for the line graph
+    labels = list(summary["monthly_expenses"].keys())
+    expenses_data = [float(val) for val in summary["monthly_expenses"].values()]
+    income_data = [float(val) for val in summary["monthly_income"].values()]
+    balance_data = [float(val) for val in summary["monthly_ending_balance"].values()]
+
+    context = {
+        'labels': labels,
+        'expenses_data': expenses_data,
+        'income_data': income_data,
+        'balance_data': balance_data,
+    }
+
+    # return render(request, 'budget/chart_summary.html')
+    return render(request, 'budget/chart_summary.html', context)
+
+
+def yearly_expense_summary_view(request):
+    summary, totals = create_yearly_summary(2023)
+    expense_summary_detailed, total_expense_summary_detailed = create_summary_table(2023, "expense")
+    income_summary_detailed, total_income_summary_detailed = create_summary_table(2023, "income")
+
+    context = {
+        'summary': summary,
+        'totals': totals,
+        'expense_summary_detailed': expense_summary_detailed,
+        'total_expense_summary_detailed': total_expense_summary_detailed,
+        'income_summary_detailed': income_summary_detailed,
+        'total_income_summary_detailed': total_income_summary_detailed
+    }
+
+    return render(request, 'budget/yearly_expense_summary.html', context)
+
+
+def monthly_expense_summary_view(request):
+    summary_table, summary_table_total = create_summary_table(2023, "expense")
 
     context = {
         'summary_table': summary_table,
         'summary_table_total': summary_table_total
     }
 
-    return render(request, 'budget/yearly_summary.html', context)
+    return render(request, 'budget/monthly_expense_summary.html', context)
+
+
+def monthly_income_summary_view(request):
+    summary_table, summary_table_total = create_summary_table(2023, "income")
+
+    context = {
+        'summary_table': summary_table,
+        'summary_table_total': summary_table_total
+    }
+
+    return render(request, 'budget/monthly_income_summary.html', context)
+
 
 def outgoing_transaction_list_view(request):
     entries = BudgetExpenseEntry.objects.filter(transaction_type__in=['OUTGOING', 'INNER']).order_by('date')
