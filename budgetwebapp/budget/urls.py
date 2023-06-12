@@ -6,7 +6,10 @@ from .views import (
     budget_entry_remove,
     incoming_transaction_list_view,
     outgoing_transaction_list_view,
-    yearly_summary_view,
+    monthly_expense_summary_view,
+    monthly_income_summary_view,
+    yearly_expense_summary_view,
+    chart_summary,
 )
 
 urlpatterns = [
@@ -16,6 +19,9 @@ urlpatterns = [
     path('remove/<int:entry_id>/', budget_entry_remove, name='budget_entry_remove'),
     path('transactions/incoming/', incoming_transaction_list_view, name='incoming_transactions'),
     path('transactions/outgoing/', outgoing_transaction_list_view, name='outgoing_transactions'),
-    path('transactions/summary/', yearly_summary_view, name='yearly_summary'),
+    path('transactions/monthly-expense-summary/', monthly_expense_summary_view, name='monthly_expense_summary'),
+    path('transactions/monthly-income-summary/', monthly_income_summary_view, name='monthly_income_summary'),
+    path('transactions/yearly-expense-summary/', yearly_expense_summary_view, name='yearly_expense_summary'),
+    path('transactions/chart-summary/', chart_summary, name='chart_summary'),
     # path('transactions/outgoing/', OutgoingTransactionListView.as_view(), name='outgoing_transactions'),
 ]
