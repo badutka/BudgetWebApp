@@ -1,28 +1,48 @@
+import requests
 from django.shortcuts import render, redirect
 from django.core.paginator import Paginator
+
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from .forms import BudgetExpenseEntryForm
 from .models import BudgetExpenseEntry
 from .summary import create_summary_table, create_yearly_summary
+from .serializers import ChartDataSerializer
+
+
+class ChartDataAPIView(APIView):
+    def get(self, request, format=None):
+        summary, totals = create_yearly_summary(2023)
+
+        # Prepare the data for the line graph
+        labels = list(summary["monthly_expenses"].keys())
+        expenses_data = [float(val) for val in summary["monthly_expenses"].values()]
+        income_data = [float(val) for val in summary["monthly_income"].values()]
+        balance_data = [float(val) for val in summary["monthly_ending_balance"].values()]
+
+        data = {
+            'labels': labels,
+            'expenses_data': expenses_data,
+            'income_data': income_data,
+            'balance_data': balance_data,
+        }
+
+        serializer = ChartDataSerializer(data)
+        return Response(serializer.data)
 
 
 def chart_summary(request):
-    summary, totals = create_yearly_summary(2023)
+    api_url = r"http://127.0.0.1:8000/api/chart-data/"
 
-    # Prepare the data for the line graph
-    labels = list(summary["monthly_expenses"].keys())
-    expenses_data = [float(val) for val in summary["monthly_expenses"].values()]
-    income_data = [float(val) for val in summary["monthly_income"].values()]
-    balance_data = [float(val) for val in summary["monthly_ending_balance"].values()]
+    # Fetch the chart data from the API endpoint
+    response = requests.get(api_url)
+    data = response.json()
 
     context = {
-        'labels': labels,
-        'expenses_data': expenses_data,
-        'income_data': income_data,
-        'balance_data': balance_data,
+        'chart_data': data,
     }
 
-    # return render(request, 'budget/chart_summary.html')
     return render(request, 'budget/chart_summary.html', context)
 
 

@@ -21,11 +21,14 @@
     };
 
     document.addEventListener('DOMContentLoaded', function() {
-        // Retrieve the data from the context passed by the view
-        var labels = {{ labels|safe }};
-        var expensesData = {{ expenses_data|safe }};
-        var incomeData = {{ income_data|safe }};
-        var balanceData = {{ balance_data|safe }};
+        fetch('/api/chart-data/')
+                .then(response => response.json())
+                .then(data => {
+                    // Retrieve the data from the API response
+                    var labels = data.labels;
+                    var expensesData = data.expenses_data;
+                    var incomeData = data.income_data;
+                    var balanceData = data.balance_data;
 
         // Create the line graph
         var ctx = document.getElementById('lineGraph').getContext('2d');
@@ -107,7 +110,7 @@
                         }
                     },
                     backgroundColor: 'rgba(0, 0, 0, 0.8)', // Set tooltip background color to dark
-                    titleFontColor: '#2c2c2c', // Set font color of tooltip title to white
+                    titleFontColor: '#fff', // Set font color of tooltip title to white
                     bodyFontColor: '#fff' // Set font color of tooltip body to white
                 },
                 hover: {
@@ -117,7 +120,10 @@
             },
             plugins: [plugin],
         });
-
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
     });
 
     
