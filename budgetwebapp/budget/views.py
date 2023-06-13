@@ -15,32 +15,14 @@ class ChartDataAPIView(APIView):
     def get(self, request, format=None):
         summary, totals = create_yearly_summary(2023)
 
-        # Prepare the data for the line graph
-        labels = list(summary["monthly_expenses"].keys())
-        expenses_data = [float(val) for val in summary["monthly_expenses"].values()]
-        income_data = [float(val) for val in summary["monthly_income"].values()]
-        balance_data = [float(val) for val in summary["monthly_ending_balance"].values()]
+        serializer = ChartDataSerializer(summary)
 
-        data = {
-            'labels': labels,
-            'expenses_data': expenses_data,
-            'income_data': income_data,
-            'balance_data': balance_data,
-        }
-
-        serializer = ChartDataSerializer(data)
         return Response(serializer.data)
 
 
 def chart_summary(request):
-    api_url = r"http://127.0.0.1:8000/api/chart-data/"
-
-    # Fetch the chart data from the API endpoint
-    response = requests.get(api_url)
-    data = response.json()
-
     context = {
-        'chart_data': data,
+
     }
 
     return render(request, 'budget/chart_summary.html', context)
