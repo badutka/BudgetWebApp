@@ -19,7 +19,7 @@
         </thead>
         <tbody>
         {% for entry in page_obj %}
-        <tr>
+        <tr data-bs-toggle="tooltip" data-bs-placement="top" title="Description: {{ entry.description }}">
             <td class="text-center narrow-column font-size-small">{{ entry.year }}</td>
             <td class="text-center narrow-column font-size-medium">{{ forloop.counter }}</td>
             <td class="nowrap">{{ entry.date }}</td>
