@@ -2,7 +2,7 @@
 
 <h1>Budget Entry List</h1>
 
-<div class="table-responsive">
+<div class="table-responsive border rounded-2">
     <table class="table table-dark table-hover table-striped align-middle">
         <thead>
         <tr class="align-middle">
@@ -31,9 +31,9 @@
                 {% if entry.transaction_type == 'INCOMING' %}
                     <i class="fas fa-arrow-down text-success"></i>  <!-- Incoming transaction -->
                 {% elif entry.transaction_type == 'OUTGOING' %}
-                    <i class="fas fa-arrow-up text-danger"></i>  <!-- Outgoing transaction -->
+                    <i class="fas fa-arrow-up text-warning"></i>  <!-- Outgoing transaction -->
                 {% elif entry.transaction_type == 'INNER' %}
-                    <i class="fas fa-arrows-alt-h text-primary"></i>  <!-- Inner transaction -->
+                    <i class="fas fa-arrows-alt-h text-light"></i>  <!-- Inner transaction -->
                 {% else %}
                     <i class="fas fa-question-circle"></i>  <!-- None-->
                 {% endif %}
