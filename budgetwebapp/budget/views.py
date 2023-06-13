@@ -98,7 +98,7 @@ def incoming_transaction_list_view(request):
 def budget_expense_entry_list(request):
     entries = BudgetExpenseEntry.objects.all().order_by('date')
 
-    paginator = Paginator(entries, 5)  # 10 entries per page
+    paginator = Paginator(entries, 999)  # 10 entries per page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
