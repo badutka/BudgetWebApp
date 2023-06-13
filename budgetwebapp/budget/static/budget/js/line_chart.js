@@ -37,8 +37,8 @@ customOptions = {
             text: 'Summary Line Graph',
             font: {
                 weight: 'bold',
-                color: '#fff' // Set font color of title to white
-            }
+            },
+            color: '#fff', // Set font color of title to white
         },
         legend: {
             position: 'bottom',
