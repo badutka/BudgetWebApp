@@ -9,8 +9,6 @@
             <th><a href="{% url 'budget:budget_entry_add' %}" class="btn btn-primary bi bi-plus"></a></th>
             <th>Index</th>
             <th>Date</th>
-            <th>Main Category</th>
-            <th>Subcategory</th>
             <th>Category</th>
             <th>Amount</th>
             <th>Origin</th>
@@ -22,11 +20,9 @@
         <tbody>
         {% for entry in page_obj %}
         <tr>
-            <td style="width: 1%; font-size: 8px; vertical-align:middle" class="text-center">{{ entry.year }}</td>
-            <td style="width: 1%; font-size: 12px; vertical-align:middle" class="text-center">{{ forloop.counter }}</td>
-            <td>{{ entry.date }}</td>
-            <td>{{ entry.main_category }}</td>
-            <td>{{ entry.subcategory }}</td>
+            <td class="text-center narrow-column font-size-small">{{ entry.year }}</td>
+            <td class="text-center narrow-column font-size-medium">{{ forloop.counter }}</td>
+            <td class="nowrap">{{ entry.date }}</td>
             <td>{{ entry.category }}</td>
             <td>{{ entry.amount }}</td>
             <td>{{ entry.origin }}</td>
@@ -42,7 +38,7 @@
                     <i class="fas fa-question-circle"></i>  <!-- None-->
                 {% endif %}
             </td>
-            <td>
+            <td class="nowrap">
                 <a href="{% url 'budget:budget_entry_edit' entry.id %}" class="btn btn-outline-primary bi bi-pen" style="font-size: 10px;"></a>
                 <a href="{% url 'budget:budget_entry_remove' entry.id %}" class="btn btn-outline-danger bi bi-trash" style="font-size: 10px; margin-left: 10px;"></a>
             </td>
