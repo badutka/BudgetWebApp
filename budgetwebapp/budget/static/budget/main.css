@@ -3,4 +3,10 @@
 .table_morecondensed>tfoot>tr>th,
 .table_morecondensed>thead>tr>td,
 .table_morecondensed>tbody>tr>td,
-.table_morecondensed>tfoot>tr>td{ padding: 5px; }
+.table_morecondensed>tfoot>tr>td{ 
+    padding: 5px;
+}
+
+body {
+    background-color: #010409;
+}
