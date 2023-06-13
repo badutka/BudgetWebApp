@@ -82,6 +82,7 @@ class BudgetExpenseEntry(BaseModel):
     destination = models.CharField(max_length=255, choices=ORIGIN_CHOICES)
     year = models.PositiveIntegerField(blank=True, null=True)
     transaction_type = models.CharField(max_length=255, choices=TRANSFER_CHOICES, blank=True, null=True)
+    description = models.CharField(max_length=255, null=True)
 
     def save(self, *args, **kwargs):
         if self.category:
@@ -92,29 +93,40 @@ class BudgetExpenseEntry(BaseModel):
             # Get the previous amount before updating
             previous_entry = BudgetExpenseEntry.objects.get(pk=self.pk)
             previous_amount = previous_entry.amount
+            # Get the previous origin and destination
+            previous_origin = previous_entry.origin
+            previous_destination = previous_entry.destination
         else:
+            previous_origin = ''
+            previous_destination = ''
+            previous_amount = 0
+
+        def update_account(account_name, amount):
+            account = MoneyAccount.objects.get(name=account_name)
+            account.balance += amount
+            account.save()
+
+        # rollback existing changes
+        if self.pk is not None:
+            if previous_origin != 'OUT':
+                update_account(previous_origin, previous_amount)
+            if previous_destination != 'OUT':
+                update_account(previous_destination, -previous_amount)
+            # if roll back was done then balance will have the previous amount already subtracted from it, so the new amount will be distributed accordingly
             previous_amount = 0
 
         if self.origin == 'OUT':
             # Transfer from outside, increase amount on destination account
-            destination_account = MoneyAccount.objects.get(name=self.destination)
-            destination_account.balance += (self.amount - previous_amount)
-            destination_account.save()
+            update_account(self.destination, self.amount - previous_amount)  # add the difference of amounts +(105 - 100) = +5, or +105 if +100 already rolled back
             self.transaction_type = 'INCOMING'
         elif self.destination == 'OUT':
             # Transfer to outside, decrease amount on origin account
-            origin_account = MoneyAccount.objects.get(name=self.origin)
-            origin_account.balance -= (self.amount - previous_amount)
-            origin_account.save()
+            update_account(self.origin, -(self.amount - previous_amount))  # subtract the difference of amounts -(105 - 100) = -5, or -105 if -100 already rolled back
             self.transaction_type = 'OUTGOING'
         else:
             # Transfer between accounts, adjust origin and destination balances
-            origin_account = MoneyAccount.objects.get(name=self.origin)
-            destination_account = MoneyAccount.objects.get(name=self.destination)
-            origin_account.balance -= (self.amount - previous_amount)
-            destination_account.balance += (self.amount - previous_amount)
-            origin_account.save()
-            destination_account.save()
+            update_account(self.origin, -(self.amount - previous_amount))
+            update_account(self.destination, self.amount - previous_amount)
             self.transaction_type = 'INNER'
 
         self.year = self.date.year
