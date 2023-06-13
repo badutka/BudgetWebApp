@@ -70,7 +70,7 @@ def monthly_income_summary_view(request):
 def outgoing_transaction_list_view(request):
     entries = BudgetExpenseEntry.objects.filter(transaction_type__in=['OUTGOING', 'INNER']).order_by('date')
 
-    paginator = Paginator(entries, 5)  # 10 entries per page
+    paginator = Paginator(entries, 999)  # 10 entries per page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
@@ -84,7 +84,7 @@ def outgoing_transaction_list_view(request):
 def incoming_transaction_list_view(request):
     entries = BudgetExpenseEntry.objects.filter(transaction_type__in=['INCOMING', 'INNER']).order_by('date')
 
-    paginator = Paginator(entries, 5)  # 10 entries per page
+    paginator = Paginator(entries, 999)  # 10 entries per page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
