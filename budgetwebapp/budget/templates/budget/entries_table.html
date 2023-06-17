@@ -1,4 +1,5 @@
 {% load static %}
+{% load humanize %}
 
 <h1>Budget Entry List</h1>
 
@@ -9,6 +10,8 @@
             <th><a href="{% url 'budget:budget_entry_add' %}" class="btn btn-primary bi bi-plus"></a></th>
             <th>Index</th>
             <th>Date</th>
+            <th>Created at</th>
+            <th>Updated at</th>
             <th>Category</th>
             <th>Amount</th>
             <th>Origin</th>
@@ -23,6 +26,8 @@
             <td class="text-center narrow-column font-size-small">{{ entry.year }}</td>
             <td class="text-center narrow-column font-size-medium">{{ forloop.counter }}</td>
             <td class="nowrap">{{ entry.date }}</td>
+            <td class="nowrap">{{ entry.created_at|date:'N d, Y H:i A' }}</td>
+            <td class="nowrap">{{ entry.updated_at|date:'N d, Y H:i A' }}</td>
             <td>{{ entry.category }}</td>
             <td>{{ entry.amount }}</td>
             <td>{{ entry.origin }}</td>
