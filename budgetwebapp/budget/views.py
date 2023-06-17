@@ -21,7 +21,7 @@ class BalanceHistoryView(ListView):
         context = super().get_context_data(**kwargs)
         money_account_name = self.kwargs['money_account_name']
         money_account = MoneyAccount.objects.get(name=money_account_name)
-        balance_history = BalanceHistory.objects.filter(money_account=money_account).order_by('-timestamp')
+        balance_history = BalanceHistory.objects.filter(money_account=money_account).order_by('-created_at')
         context['money_account_name'] = money_account_name
         context['balance_history'] = balance_history
         return context
