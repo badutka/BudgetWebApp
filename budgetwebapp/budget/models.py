@@ -22,16 +22,6 @@ class MoneyAccount(BaseModel):
         verbose_name_plural = "MoneyAccounts"
 
 
-class BalanceHistory(models.Model):
-    money_account = models.ForeignKey(MoneyAccount, on_delete=models.CASCADE)
-    balance = models.DecimalField(max_digits=10, decimal_places=2)
-    timestamp = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        verbose_name_plural = "BalanceHistories"
-        ordering = ['timestamp']
-
-
 class MainCategory(BaseModel):
     name = models.CharField(max_length=255, unique=True)
 
@@ -146,18 +136,20 @@ class BudgetExpenseEntry(BaseModel):
 
         self.year = self.date.year
 
+        super().save(*args, **kwargs)
+
+        # After budget entry is saved we can now save balance history entry
         def update_balance_history(account_name):
             money_account = MoneyAccount.objects.get(name=account_name)
-            balance_history = BalanceHistory(money_account=money_account, balance=money_account.balance)
+            balance_history = BalanceHistory(money_account=money_account, balance=money_account.balance, created_at=self.created_at, budget_entry=self)
             balance_history.save()
 
-        # Update the balance history for MoneyAccounts
-        if self.origin in ["CASH", "PKO", "ING"]:
-            update_balance_history(self.origin)
-        if self.destination in ["CASH", "PKO", "ING"]:
-            update_balance_history(self.destination)
+            # Update the balance history for MoneyAccounts
 
-        super().save(*args, **kwargs)
+        if self.origin != 'OUT':
+            update_balance_history(self.origin)
+        if self.destination != 'OUT':
+            update_balance_history(self.destination)
 
     def delete(self, *args, **kwargs):
         if self.origin != 'OUT':
@@ -182,3 +174,14 @@ class BudgetExpenseEntry(BaseModel):
 
     class Meta:
         verbose_name_plural = "BudgetEntries"
+
+
+class BalanceHistory(models.Model):
+    money_account = models.ForeignKey(MoneyAccount, on_delete=models.CASCADE)
+    balance = models.DecimalField(max_digits=10, decimal_places=2)
+    created_at = models.DateTimeField(null=True, blank=True)  # , editable=False
+    budget_entry = models.ForeignKey(BudgetExpenseEntry, on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name_plural = "BalanceHistories"
+        ordering = ['created_at']
