@@ -1,0 +1,28 @@
+{% extends "budget/base.html" %}
+{% load static %}
+
+{% block content %}
+
+<h1>Balance History for {{ money_account_name }}</h1>
+<div style="width: 50%; margin-left: 5%; margin-top: 1%;">
+    <div class="table-responsive border rounded-2">
+        <table class="table table-dark table-hover table-striped align-middle">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Balance</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in balance_history %}
+                <tr>
+                    <td>{{ entry.timestamp }}</td>
+                    <td>{{ entry.balance }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock content %}
