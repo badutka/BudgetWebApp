@@ -1,5 +1,6 @@
 from decimal import Decimal, ROUND_DOWN
 from django.core.management.base import BaseCommand
+from django.utils import timezone
 
 import pandas as pd
 from datetime import datetime
@@ -50,6 +51,12 @@ def get_or_create_category(main_category_name, subcategory_name, origin, destina
 
 
 def populate_budget_entries(excel_file_path):
+    # Disable auto_now_add and auto_now
+    created_at_field = BudgetExpenseEntry._meta.get_field('created_at')
+    created_at_field.auto_now_add = False
+    updated_at_field = BudgetExpenseEntry._meta.get_field('updated_at')
+    updated_at_field.auto_now = False
+
     # Read the Excel file using pandas
     df = pd.read_excel(excel_file_path)
 
@@ -57,6 +64,8 @@ def populate_budget_entries(excel_file_path):
     for index, row in df.iterrows():
         # Extract the data from the row
         date = row['Date'].strftime('%Y-%m-%d')
+        created_at = timezone.make_aware(row['Created at'])
+        updated_at = timezone.make_aware(row['Updated at'])
         category_name = row['Category']
         main_category_name = category_name.split(' - ')[0]
         subcategory_name = category_name.split(' - ')[1]
@@ -67,10 +76,12 @@ def populate_budget_entries(excel_file_path):
 
         category = get_or_create_category(main_category_name, subcategory_name, origin, destination)
 
-        # Create a BudgetExpenseEntry object
+        # # Create a BudgetExpenseEntry object
         entry = BudgetExpenseEntry()
         entry.date = datetime.strptime(date, '%Y-%m-%d').date()
-        entry.category = category  # You need to implement this utility function
+        entry.created_at = created_at
+        entry.updated_at = updated_at
+        entry.category = category
         entry.amount = amount
         entry.origin = origin
         entry.destination = destination
@@ -81,6 +92,10 @@ def populate_budget_entries(excel_file_path):
 
         print(f"Created new expense entry: {{Date: {entry.date}, Category: {entry.category}, Amount: {entry.amount}, Origin: {entry.origin}, Destination: {entry.destination}}}.\n{10 * '-'}")
     print(f"\nPopulated {len(df)} records.\n")
+
+    # Re-enable auto_now_add and auto_now
+    created_at_field.auto_now_add = True
+    updated_at_field.auto_now = True
 
 
 class Command(BaseCommand):
