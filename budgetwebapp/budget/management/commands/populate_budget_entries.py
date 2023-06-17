@@ -3,7 +3,7 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, time
 from budget.models import BudgetExpenseEntry
 
 from budget.models import SubCategory, MainCategory, Category
@@ -64,8 +64,8 @@ def populate_budget_entries(excel_file_path):
     for index, row in df.iterrows():
         # Extract the data from the row
         date = row['Date'].strftime('%Y-%m-%d')
-        created_at = timezone.make_aware(row['Created at'])
-        updated_at = timezone.make_aware(row['Updated at'])
+        created_at = row['Created at']
+        updated_at = row['Updated at']
         category_name = row['Category']
         main_category_name = category_name.split(' - ')[0]
         subcategory_name = category_name.split(' - ')[1]
@@ -79,8 +79,17 @@ def populate_budget_entries(excel_file_path):
         # # Create a BudgetExpenseEntry object
         entry = BudgetExpenseEntry()
         entry.date = datetime.strptime(date, '%Y-%m-%d').date()
-        entry.created_at = created_at
-        entry.updated_at = updated_at
+
+        if created_at is not None:
+            entry.created_at = timezone.make_aware(created_at)
+        else:
+            entry.created_at = timezone.make_aware(datetime.combine(entry.date, time(12, 0)))
+
+        if updated_at is not None:
+            entry.updated_at = timezone.make_aware(updated_at)
+        else:
+            entry.updated_at = timezone.make_aware(datetime.combine(entry.date, time(12, 0)))
+
         entry.category = category
         entry.amount = amount
         entry.origin = origin
