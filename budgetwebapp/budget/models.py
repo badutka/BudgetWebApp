@@ -1,3 +1,4 @@
+from django.utils import timezone
 from django.db import models
 from django.core.exceptions import ValidationError
 
@@ -19,6 +20,16 @@ class MoneyAccount(BaseModel):
 
     class Meta:
         verbose_name_plural = "MoneyAccounts"
+
+
+class BalanceHistory(models.Model):
+    money_account = models.ForeignKey(MoneyAccount, on_delete=models.CASCADE)
+    balance = models.DecimalField(max_digits=10, decimal_places=2)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name_plural = "BalanceHistories"
+        ordering = ['timestamp']
 
 
 class MainCategory(BaseModel):
@@ -76,6 +87,10 @@ class BudgetExpenseEntry(BaseModel):
     ]
 
     date = models.DateField()
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+    # created_at = models.DateTimeField(null=True, blank=True)
+    # updated_at = models.DateTimeField(null=True, blank=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     origin = models.CharField(max_length=255, choices=ORIGIN_CHOICES)
@@ -130,25 +145,31 @@ class BudgetExpenseEntry(BaseModel):
             self.transaction_type = 'INNER'
 
         self.year = self.date.year
+
+        def update_balance_history(account_name):
+            money_account = MoneyAccount.objects.get(name=account_name)
+            balance_history = BalanceHistory(money_account=money_account, balance=money_account.balance)
+            balance_history.save()
+
+        # Update the balance history for MoneyAccounts
+        if self.origin in ["CASH", "PKO", "ING"]:
+            update_balance_history(self.origin)
+        if self.destination in ["CASH", "PKO", "ING"]:
+            update_balance_history(self.destination)
+
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        origin_account = MoneyAccount.objects.get(name=self.origin)
-        destination_account = MoneyAccount.objects.get(name=self.destination)
-
-        if self.origin == 'OUT':
-            # Transfer from outside, decrease amount on destination account
-            destination_account.balance -= self.amount
-        elif self.destination == 'OUT':
+        if self.origin != 'OUT':
             # Transfer to outside, increase amount on origin account
+            origin_account = MoneyAccount.objects.get(name=self.origin)
             origin_account.balance += self.amount
-        else:
-            # Transfer between accounts, adjust origin and destination balances
-            origin_account.balance += self.amount
+            origin_account.save()
+        if self.destination != 'OUT':
+            # Transfer from outside, decrease amount on destination account
+            destination_account = MoneyAccount.objects.get(name=self.destination)
             destination_account.balance -= self.amount
-
-        origin_account.save()
-        destination_account.save()
+            destination_account.save()
 
         super().delete(*args, **kwargs)
 
