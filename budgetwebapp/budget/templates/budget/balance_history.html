@@ -16,7 +16,7 @@
             <tbody>
                 {% for entry in balance_history %}
                 <tr>
-                    <td>{{ entry.timestamp }}</td>
+                    <td>{{ entry.created_at }}</td>
                     <td>{{ entry.balance }}</td>
                 </tr>
                 {% endfor %}
