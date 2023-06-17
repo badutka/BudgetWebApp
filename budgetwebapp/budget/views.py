@@ -1,14 +1,30 @@
 import requests
 from django.shortcuts import render, redirect
 from django.core.paginator import Paginator
+from django.views.generic import ListView, DetailView
 
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .forms import BudgetExpenseEntryForm
-from .models import BudgetExpenseEntry
+from .models import BudgetExpenseEntry, MoneyAccount, BalanceHistory
 from .summary import create_summary_table, create_yearly_summary
 from .serializers import ChartDataSerializer
+
+
+class BalanceHistoryView(ListView):
+    model = BalanceHistory
+    template_name = 'budget/balance_history.html'
+    context_object_name = 'balance_entries'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        money_account_name = self.kwargs['money_account_name']
+        money_account = MoneyAccount.objects.get(name=money_account_name)
+        balance_history = BalanceHistory.objects.filter(money_account=money_account).order_by('-timestamp')
+        context['money_account_name'] = money_account_name
+        context['balance_history'] = balance_history
+        return context
 
 
 class ChartDataAPIView(APIView):
