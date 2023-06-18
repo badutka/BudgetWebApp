@@ -14,3 +14,23 @@
 .nowrap {
     white-space: nowrap;
   }
+
+.fit-content{
+    width: 0;
+}
+
+.income-balance-bg{
+    width: fit-content;
+    padding-right: 5%;
+    padding-left: 5%;
+    background-color: rgba(25, 135, 84, 0.3) !important;
+
+}
+
+.expense-balance-bg{
+    width: fit-content;
+    padding-right: 5px;
+    padding-left: 5px;
+    background-color: rgba(220, 53, 69, 0.3) !important;
+
+}
