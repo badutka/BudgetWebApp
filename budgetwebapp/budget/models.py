@@ -63,7 +63,7 @@ class Category(BaseModel):
         ordering = ['main_category', 'subcategory']
 
 
-class BudgetExpenseEntry(BaseModel):
+class Transaction(BaseModel):
     ORIGIN_CHOICES = [
         ('ING', 'ING'),
         ('PKO', 'PKO'),
@@ -96,7 +96,7 @@ class BudgetExpenseEntry(BaseModel):
 
         if self.pk is not None:
             # Get the previous amount before updating
-            previous_entry = BudgetExpenseEntry.objects.get(pk=self.pk)
+            previous_entry = Transaction.objects.get(pk=self.pk)
             previous_amount = previous_entry.amount
             # Get the previous origin and destination
             previous_origin = previous_entry.origin
@@ -141,10 +141,17 @@ class BudgetExpenseEntry(BaseModel):
         # After budget entry is saved we can now save balance history entry
         def update_balance_history(account_name):
             money_account = MoneyAccount.objects.get(name=account_name)
-            balance_history = BalanceHistory(money_account=money_account, balance=money_account.balance, created_at=self.created_at, budget_entry=self)
+            try:
+                balance_history = BalanceHistory.objects.get(money_account=money_account, budget_entry=self)
+                balance_history.balance = money_account.balance
+                print("updated_balance")
+            except BalanceHistory.DoesNotExist:
+                # Create a new BalanceHistory object if it doesn't exist
+                balance_history = BalanceHistory(money_account=money_account, balance=money_account.balance, budget_entry=self)
+                print("created_balance")
+            # Update the balance and created_at fields
+            balance_history.created_at = self.created_at
             balance_history.save()
-
-            # Update the balance history for MoneyAccounts
 
         if self.origin != 'OUT':
             update_balance_history(self.origin)
@@ -173,15 +180,16 @@ class BudgetExpenseEntry(BaseModel):
         return f"{self.date} - {self.category}: {self.amount}"
 
     class Meta:
-        verbose_name_plural = "BudgetEntries"
+        verbose_name_plural = "Transactions"
+        ordering = ['-created_at', '-id']
 
 
 class BalanceHistory(models.Model):
     money_account = models.ForeignKey(MoneyAccount, on_delete=models.CASCADE)
     balance = models.DecimalField(max_digits=10, decimal_places=2)
     created_at = models.DateTimeField(null=True, blank=True)  # , editable=False
-    budget_entry = models.ForeignKey(BudgetExpenseEntry, on_delete=models.CASCADE)
+    budget_entry = models.ForeignKey(Transaction, on_delete=models.CASCADE)
 
     class Meta:
         verbose_name_plural = "BalanceHistories"
-        ordering = ['-created_at']
+        ordering = ['-created_at', '-id']

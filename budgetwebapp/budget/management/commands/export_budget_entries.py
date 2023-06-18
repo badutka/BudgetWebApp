@@ -1,7 +1,7 @@
 import csv
 from openpyxl import Workbook
 from django.core.management.base import BaseCommand
-from budget.models import BudgetExpenseEntry
+from budget.models import Transaction
 
 
 class Command(BaseCommand):
@@ -16,7 +16,7 @@ class Command(BaseCommand):
         export_format = options['format']
 
         # Get all budget entries
-        budget_entries = BudgetExpenseEntry.objects.all()
+        budget_entries = Transaction.objects.all()
 
         self.export_to_file(output_file, budget_entries, export_format)
 

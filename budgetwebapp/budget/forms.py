@@ -1,10 +1,10 @@
 from django import forms
-from .models import BudgetExpenseEntry, Category
+from .models import Transaction, Category
 
 
 class BudgetExpenseEntryForm(forms.ModelForm):
     class Meta:
-        model = BudgetExpenseEntry
+        model = Transaction
         fields = ['date', 'category', 'amount', 'origin', 'destination']
 
     def __init__(self, *args, **kwargs):

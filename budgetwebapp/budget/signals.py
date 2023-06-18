@@ -1,7 +1,7 @@
 from django.db import models
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
-from .models import BudgetExpenseEntry, BalanceHistory
+from .models import BalanceHistory
 
 # @receiver(pre_delete, sender=BudgetExpenseEntry)
 # def delete_balance_history(sender, instance, **kwargs):

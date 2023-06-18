@@ -2,12 +2,13 @@ import requests
 from django.shortcuts import render, redirect
 from django.core.paginator import Paginator
 from django.views.generic import ListView, DetailView
+from django.db.models import Sum
 
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .forms import BudgetExpenseEntryForm
-from .models import BudgetExpenseEntry, MoneyAccount, BalanceHistory
+from .models import Transaction, MoneyAccount, BalanceHistory
 from .summary import create_summary_table, create_yearly_summary
 from .serializers import ChartDataSerializer
 
@@ -21,7 +22,8 @@ class BalanceHistoryView(ListView):
         context = super().get_context_data(**kwargs)
         money_account_name = self.kwargs['money_account_name']
         money_account = MoneyAccount.objects.get(name=money_account_name)
-        balance_history = BalanceHistory.objects.filter(money_account=money_account).order_by('-created_at')
+        balance_history = BalanceHistory.objects.filter(money_account=money_account)
+        # balance_history = BalanceHistory.objects.filter(money_account=money_account).order_by('-created_at')
         context['money_account_name'] = money_account_name
         context['balance_history'] = balance_history
         return context
@@ -83,72 +85,75 @@ def monthly_income_summary_view(request):
     return render(request, 'budget/monthly_income_summary.html', context)
 
 
-def outgoing_transaction_list_view(request):
-    entries = BudgetExpenseEntry.objects.filter(transaction_type__in=['OUTGOING', 'INNER']).order_by('date')
+def outgoing_transactions_list_view(request):
+    entries = Transaction.objects.filter(transaction_type__in=['OUTGOING', 'INNER']).order_by('date')
 
     paginator = Paginator(entries, 999)  # 10 entries per page
     page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    transactions_page_obj = paginator.get_page(page_number)
 
     context = {
-        'page_obj': page_obj
+        'transactions_page_obj': transactions_page_obj
     }
 
-    return render(request, 'budget/outgoing_transactions.html', context)
+    return render(request, 'budget/transactions_outgoing.html', context)
 
 
-def incoming_transaction_list_view(request):
-    entries = BudgetExpenseEntry.objects.filter(transaction_type__in=['INCOMING', 'INNER']).order_by('date')
+def incoming_transactions_list_view(request):
+    entries = Transaction.objects.filter(transaction_type__in=['INCOMING', 'INNER']).order_by('date')
 
     paginator = Paginator(entries, 999)  # 10 entries per page
     page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    transactions_page_obj = paginator.get_page(page_number)
 
     context = {
-        'page_obj': page_obj
+        'transactions_page_obj': transactions_page_obj
     }
 
-    return render(request, 'budget/incoming_transactions.html', context)
+    return render(request, 'budget/transactions_incoming.html', context)
 
 
-def budget_expense_entry_list(request):
-    entries = BudgetExpenseEntry.objects.all().order_by('date')
+def transactions_list_view(request):
+    entries = Transaction.objects.all()
+    # entries = BudgetExpenseEntry.objects.all().order_by('-created_at')
+    accs = MoneyAccount.objects.all().aggregate(total=Sum('balance'))['total']
 
     paginator = Paginator(entries, 999)  # 10 entries per page
     page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    transactions_page_obj = paginator.get_page(page_number)
 
     context = {
-        'page_obj': page_obj
+        'transactions_page_obj': transactions_page_obj,
+        'sum_accs': round(accs, 2)
     }
 
-    return render(request, 'budget/entry_list.html', context)
+    return render(request, 'budget/transactions.html', context)
 
 
-def budget_entry_add(request):
+def transaction_add(request):
     if request.method == 'POST':
         form = BudgetExpenseEntryForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('budget:budget_expense_entry_list')
+            return redirect('budget:transactions')
     else:
         form = BudgetExpenseEntryForm()
-    return render(request, 'budget/entry_add.html', {'form': form})
+    return render(request, 'budget/transaction_add.html', {'form': form})
 
 
-def budget_entry_edit(request, entry_id):
-    entry = BudgetExpenseEntry.objects.get(id=entry_id)
+def transaction_edit(request, transaction_id):
+    entry = Transaction.objects.get(id=transaction_id)
     if request.method == 'POST':
         form = BudgetExpenseEntryForm(request.POST, instance=entry)
         if form.is_valid():
             form.save()
-            return redirect('budget:budget_expense_entry_list')
+            return redirect('budget:transactions')
     else:
         form = BudgetExpenseEntryForm(instance=entry)
-    return render(request, 'budget/entry_edit.html', {'form': form, 'entry_id': entry_id})
+    return render(request, 'budget/transaction_edit.html', {'form': form, 'transaction_id': transaction_id})
 
 
-def budget_entry_remove(request, entry_id):
-    entry = BudgetExpenseEntry.objects.get(id=entry_id)
+def transaction_remove(request, transaction_id):
+    entry = Transaction.objects.get(id=transaction_id)
     entry.delete()
-    return redirect('budget:budget_expense_entry_list')
+    return redirect('budget:transactions')

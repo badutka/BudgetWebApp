@@ -1,0 +1,15 @@
+{% extends "budget/base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div style="color: #fff;">
+    {{ sum_accs }}
+</div>
+
+
+<div style="width: 75%; margin-left: 5%; margin-top: 1%;">
+    {% include 'budget/transactions_table.html' with transactions_page_obj=transactions_page_obj %}
+</div>
+
+{% endblock content %}

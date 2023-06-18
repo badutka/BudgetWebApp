@@ -2,13 +2,13 @@
 {% load humanize %}
 {% load mathfilters %}
 
-<h1>Budget Entry List</h1>
+<h1>Transactions</h1>
 
 <div class="table-responsive border rounded-2">
     <table class="table table-dark table-hover table-striped align-middle">
         <thead>
         <tr class="align-middle">
-            <th><a href="{% url 'budget:budget_entry_add' %}" class="btn btn-primary bi bi-plus"></a></th>
+            <th><a href="{% url 'budget:transaction_add' %}" class="btn btn-primary bi bi-plus"></a></th>
             <th>Index</th>
             <th>Date</th>
             <th>Created at</th>
@@ -22,31 +22,31 @@
         </tr>
         </thead>
         <tbody>
-        {% for entry in page_obj %}
+        {% for transaction in transactions_page_obj %}
         <tr data-bs-toggle="tooltip" data-bs-placement="top" title="Description: {{ entry.description }}">
             <td class="text-center narrow-column font-size-small">{{ entry.year }}</td>
-            <td class="text-center narrow-column font-size-medium">{{ page_obj|length|sub:forloop.counter|add:1 }}</td>
-            <td class="nowrap">{{ entry.date }}</td>
-            <td class="nowrap">{{ entry.created_at|date:'N d, Y H:i A' }}</td>
-            <td class="nowrap">{{ entry.updated_at|date:'N d, Y H:i A' }}</td>
-            <td>{{ entry.category }}</td>
-            <td>{{ entry.amount }}</td>
-            <td>{{ entry.origin }}</td>
-            <td>{{ entry.destination }}</td>
+            <td class="text-center narrow-column font-size-medium">{{ transactions_page_obj|length|sub:forloop.counter|add:1 }}</td>
+            <td class="nowrap">{{ transaction.date }}</td>
+            <td class="nowrap">{{ transaction.created_at|date:'N d, Y H:i A' }}</td>
+            <td class="nowrap">{{ transaction.updated_at|date:'N d, Y H:i A' }}</td>
+            <td>{{ transaction.category }}</td>
+            <td>{{ transaction.amount }}</td>
+            <td>{{ transaction.origin }}</td>
+            <td>{{ transaction.destination }}</td>
             <td>
-                {% if entry.transaction_type == 'INCOMING' %}
+                {% if transaction.transaction_type == 'INCOMING' %}
                     <i class="fas fa-arrow-down text-success"></i>  <!-- Incoming transaction -->
-                {% elif entry.transaction_type == 'OUTGOING' %}
+                {% elif transaction.transaction_type == 'OUTGOING' %}
                     <i class="fas fa-arrow-up text-warning"></i>  <!-- Outgoing transaction -->
-                {% elif entry.transaction_type == 'INNER' %}
+                {% elif transaction.transaction_type == 'INNER' %}
                     <i class="fas fa-arrows-alt-h text-light"></i>  <!-- Inner transaction -->
                 {% else %}
                     <i class="fas fa-question-circle"></i>  <!-- None-->
                 {% endif %}
             </td>
             <td class="nowrap">
-                <a href="{% url 'budget:budget_entry_edit' entry.id %}" class="btn btn-outline-primary bi bi-pen" style="font-size: 10px;"></a>
-                <a href="{% url 'budget:budget_entry_remove' entry.id %}" class="btn btn-outline-danger bi bi-trash" style="font-size: 10px; margin-left: 10px;"></a>
+                <a href="{% url 'budget:transaction_edit' transaction.id %}" class="btn btn-outline-primary bi bi-pen" style="font-size: 10px;"></a>
+                <a href="{% url 'budget:transaction_remove' transaction.id %}" class="btn btn-outline-danger bi bi-trash" style="font-size: 10px; margin-left: 10px;"></a>
             </td>
         </tr>
         {% endfor %}
@@ -57,7 +57,7 @@
 <!-- Pagination links -->
 <nav aria-label="Page navigation example">
     <ul class="pagination justify-content-center">
-        {% if page_obj.has_previous %}
+        {% if transactions_page_obj.has_previous %}
             <li class="page-item"><a class="page-link" href="?page=1">&laquo; First</a></li>
             <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
         {% else %}
@@ -70,10 +70,10 @@
         {% endif %}
 
         <li class="page-item active" aria-current="page">
-            <span class="page-link">{{ page_obj.number }}</span>
+            <span class="page-link">{{ transactions_page_obj.number }}</span>
         </li>
 
-        {% if page_obj.has_next %}
+        {% if transactions_page_obj.has_next %}
             <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
             <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last &raquo;</a></li>
         {% else %}

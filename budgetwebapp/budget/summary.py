@@ -1,7 +1,7 @@
 from django.db.models import Sum
 from calendar import month_name
 
-from .models import MainCategory, SubCategory, BudgetExpenseEntry, MoneyAccount
+from .models import MainCategory, SubCategory, Transaction, MoneyAccount
 
 
 def create_yearly_summary(year):
@@ -30,7 +30,7 @@ def create_yearly_summary(year):
         this_month_name = months[month - 1]
 
         # Calculate the total expenses for the month
-        expenses = BudgetExpenseEntry.objects.filter(
+        expenses = Transaction.objects.filter(
             date__year=year,
             date__month=month,
             transaction_type='OUTGOING'
@@ -38,7 +38,7 @@ def create_yearly_summary(year):
         summary['monthly_expenses'][this_month_name] = round(expenses, 2)
 
         # Calculate the total income for the month
-        income = BudgetExpenseEntry.objects.filter(
+        income = Transaction.objects.filter(
             date__year=year,
             date__month=month,
             transaction_type='INCOMING'
@@ -159,7 +159,7 @@ def create_summary_table(year, option):
         # Loop through each subcategory
         for subcategory in subcategories:
             # Query the BudgetExpenseEntry model to get the monthly summary for the given year
-            monthly_summary = BudgetExpenseEntry.objects.filter(
+            monthly_summary = Transaction.objects.filter(
                 category__main_category=main_category,
                 category__subcategory=subcategory,
                 year=year,
