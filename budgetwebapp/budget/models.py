@@ -184,4 +184,4 @@ class BalanceHistory(models.Model):
 
     class Meta:
         verbose_name_plural = "BalanceHistories"
-        ordering = ['created_at']
+        ordering = ['-created_at']
