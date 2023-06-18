@@ -1,5 +1,6 @@
 {% load static %}
 {% load humanize %}
+{% load mathfilters %}
 
 <h1>Budget Entry List</h1>
 
@@ -24,7 +25,7 @@
         {% for entry in page_obj %}
         <tr data-bs-toggle="tooltip" data-bs-placement="top" title="Description: {{ entry.description }}">
             <td class="text-center narrow-column font-size-small">{{ entry.year }}</td>
-            <td class="text-center narrow-column font-size-medium">{{ forloop.counter }}</td>
+            <td class="text-center narrow-column font-size-medium">{{ page_obj|length|sub:forloop.counter|add:1 }}</td>
             <td class="nowrap">{{ entry.date }}</td>
             <td class="nowrap">{{ entry.created_at|date:'N d, Y H:i A' }}</td>
             <td class="nowrap">{{ entry.updated_at|date:'N d, Y H:i A' }}</td>
