@@ -1,5 +1,6 @@
 {% extends "budget/base.html" %}
 {% load static %}
+{% load mathfilters %}
 
 {% block content %}
 
@@ -9,15 +10,35 @@
         <table class="table table-dark table-hover table-striped align-middle">
             <thead>
                 <tr>
+                    <th>Index</th>
                     <th>Date</th>
+                    <th>Origin</th>
+                    <th>Destination</th>
                     <th>Balance</th>
+                    <th class="fit-content">Amount</th>
                 </tr>
             </thead>
             <tbody>
-                {% for entry in balance_history %}
+                {% for history_entry in balance_history %}
                 <tr>
-                    <td>{{ entry.created_at }}</td>
-                    <td>{{ entry.balance }}</td>
+                    <td class="text-center narrow-column font-size-medium">{{ balance_history|length|sub:forloop.counter|add:1 }}</td>
+                    <td class="nowrap">{{ history_entry.created_at|date:'N d, Y H:i A' }}</td>
+                    <td>{{ history_entry.budget_entry.origin }}</td>
+                    <td>{{ history_entry.budget_entry.destination }}</td>
+                    <td>{{ history_entry.balance }}</td>
+                    {% if history_entry.budget_entry.destination == money_account_name%}
+                       <td class="nowrap">
+                           <div class="bg-success income-balance-bg rounded border border-success float-end">
+                               +{{ history_entry.budget_entry.amount }} PLN
+                           </div>
+                       </td>
+                    {% else %}
+                       <td class="nowrap">
+                           <div class="bg-danger expense-balance-bg rounded border border-danger float-end">
+                               -{{ history_entry.budget_entry.amount }} PLN
+                           </div>
+                       </td>
+                    {% endif %}
                 </tr>
                 {% endfor %}
             </tbody>
