@@ -4,9 +4,20 @@ from django.utils import timezone
 
 import pandas as pd
 from datetime import datetime, time
-from budget.models import BudgetExpenseEntry
+from budget.models import Transaction
 
-from budget.models import SubCategory, MainCategory, Category
+from budget.models import SubCategory, MainCategory, Category, MoneyAccount, Transaction
+
+
+def level_accounts_balances():
+    accs = MoneyAccount.objects.all()
+    for acc in accs:
+        acc.balance = acc.starting_balance
+        acc.save()
+
+
+def remove_all_budget_entries():
+    Transaction.objects.all().delete()
 
 
 def get_or_create_category(main_category_name, subcategory_name, origin, destination):
@@ -52,10 +63,13 @@ def get_or_create_category(main_category_name, subcategory_name, origin, destina
 
 def populate_budget_entries(excel_file_path):
     # Disable auto_now_add and auto_now
-    created_at_field = BudgetExpenseEntry._meta.get_field('created_at')
+    created_at_field = Transaction._meta.get_field('created_at')
     created_at_field.auto_now_add = False
-    updated_at_field = BudgetExpenseEntry._meta.get_field('updated_at')
+    updated_at_field = Transaction._meta.get_field('updated_at')
     updated_at_field.auto_now = False
+
+    remove_all_budget_entries()
+    level_accounts_balances()
 
     # Read the Excel file using pandas
     df = pd.read_excel(excel_file_path)
@@ -77,7 +91,7 @@ def populate_budget_entries(excel_file_path):
         category = get_or_create_category(main_category_name, subcategory_name, origin, destination)
 
         # # Create a BudgetExpenseEntry object
-        entry = BudgetExpenseEntry()
+        entry = Transaction()
         entry.date = datetime.strptime(date, '%Y-%m-%d').date()
 
         if created_at is not None:
