@@ -25,6 +25,19 @@ class BalanceHistoryAPIView(ListAPIView):
         return queryset
 
 
+def balance_history_view(request, money_account_name):
+    balance_history_api_view = BalanceHistoryAPIView.as_view()
+    response = balance_history_api_view(request, money_account_name=money_account_name)
+    balance_history = response.data
+    print(balance_history)
+    context = {
+        'balance_history': balance_history,
+        'money_account_name': money_account_name
+    }
+
+    return render(request, 'budget/balance_history.html', context)
+
+
 # class BalanceHistoryView(ListView):
 #     model = BalanceHistory
 #     template_name = 'budget/balance_history.html'

@@ -12,6 +12,7 @@ from .views import (
     chart_summary,
     ChartDataAPIView,
     BalanceHistoryAPIView,
+    balance_history_view
     # ChartSummaryView,
 
 )
@@ -29,6 +30,6 @@ urlpatterns = [
     path('transactions/chart-summary/', chart_summary, name='chart_summary'),
     # path('transactions/chart-summary/', ChartSummaryView.as_view(), name='chart_summary'),
     path('api/chart-data/', ChartDataAPIView.as_view(), name='chart-data'),
-    # path('balance-history/<str:money_account_name>/', BalanceHistoryView.as_view(), name='balance_history'),
+    path('balance-history/<str:money_account_name>/', balance_history_view, name='balance_history'),
     path('api/balance-history/<str:money_account_name>/', BalanceHistoryAPIView.as_view(), name='balance-history-api'),
 ]
