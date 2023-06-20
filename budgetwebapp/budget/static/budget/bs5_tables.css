@@ -1,3 +1,7 @@
+.table{
+    margin-bottom: auto;
+}
+
 .narrow-column{
     width: 1%; 
     vertical-align:middle
@@ -34,3 +38,35 @@
     background-color: rgba(220, 53, 69, 0.3) !important;
 
 }
+.balance-history{
+    width: 30%; 
+    margin-left: 35%; 
+    margin-top: 1%;
+}
+
+/* For Mobile */
+@media screen and (max-width: 780px) {
+    .balance-history {
+        width: 100%; 
+        margin-left: auto; 
+    }
+}
+
+/* For Tablets */
+@media screen and (min-width: 780px) and (max-width: 1024px){
+    .balance-history {
+        --widthA: max(764px, 95%);  /* 764px because when exiting 780 range, this is the table width for 100% width*/
+        width: var(--widthA);
+        margin-left: calc((100% - var(--widthA))/2); 
+    }
+}
+
+/* For Monitors */
+@media screen and (min-width: 1024px) {
+    .balance-history {
+        --widthA: 958px;  /* 764px because when exiting 1024 range, this is the table width for 95% width*/
+        width: var(--widthA);
+        margin-left: calc((100% - var(--widthA))/2); 
+    }
+}
+
