@@ -1,32 +1,58 @@
 import requests
+
 from django.shortcuts import render, redirect
 from django.core.paginator import Paginator
-from django.views.generic import ListView, DetailView
+from django.views.generic import ListView, DetailView, TemplateView
 from django.db.models import Sum
 
 from rest_framework.response import Response
+from rest_framework.generics import ListAPIView
 from rest_framework.views import APIView
 
 from .forms import BudgetExpenseEntryForm
 from .models import Transaction, MoneyAccount, BalanceHistory
 from .summary import create_summary_table, create_yearly_summary
-from .serializers import ChartDataSerializer
+from .serializers import ChartDataSerializer, BalanceHistorySerializer
 
 
-class BalanceHistoryView(ListView):
-    model = BalanceHistory
-    template_name = 'budget/balance_history.html'
-    context_object_name = 'balance_entries'
+class BalanceHistoryAPIView(ListAPIView):
+    serializer_class = BalanceHistorySerializer
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
+    def get_queryset(self):
         money_account_name = self.kwargs['money_account_name']
         money_account = MoneyAccount.objects.get(name=money_account_name)
-        balance_history = BalanceHistory.objects.filter(money_account=money_account)
-        # balance_history = BalanceHistory.objects.filter(money_account=money_account).order_by('-created_at')
-        context['money_account_name'] = money_account_name
-        context['balance_history'] = balance_history
-        return context
+        queryset = BalanceHistory.objects.filter(money_account=money_account)
+        return queryset
+
+
+# class BalanceHistoryView(ListView):
+#     model = BalanceHistory
+#     template_name = 'budget/balance_history.html'
+#     context_object_name = 'balance_entries'
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         money_account_name = self.kwargs['money_account_name']
+#         money_account = MoneyAccount.objects.get(name=money_account_name)
+#         balance_history = BalanceHistory.objects.filter(money_account=money_account)
+#         # balance_history = BalanceHistory.objects.filter(money_account=money_account).order_by('-created_at')
+#         context['money_account_name'] = money_account_name
+#         context['balance_history'] = balance_history
+#         return context
+
+
+# class ChartSummaryView(TemplateView):
+#     template_name = 'budget/chart_summary.html'
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         summary, totals = create_yearly_summary(2023)
+#
+#         serializer = ChartDataSerializer(summary)
+#         chart_data = serializer.data
+#
+#         context['chart_data'] = chart_data
+#         return context
 
 
 class ChartDataAPIView(APIView):
@@ -39,10 +65,7 @@ class ChartDataAPIView(APIView):
 
 
 def chart_summary(request):
-    context = {
-
-    }
-
+    context = {}
     return render(request, 'budget/chart_summary.html', context)
 
 

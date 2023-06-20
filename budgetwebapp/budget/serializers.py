@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from .models import BalanceHistory
 
 
 class ChartDataSerializer(serializers.Serializer):
@@ -23,3 +24,9 @@ class ChartDataSerializer(serializers.Serializer):
             'income_data': income,
             'balance_data': balance,
         }
+
+
+class BalanceHistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BalanceHistory
+        fields = '__all__'

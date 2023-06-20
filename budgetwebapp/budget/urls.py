@@ -11,7 +11,9 @@ from .views import (
     yearly_expense_summary_view,
     chart_summary,
     ChartDataAPIView,
-    BalanceHistoryView
+    BalanceHistoryAPIView,
+    # ChartSummaryView,
+
 )
 
 urlpatterns = [
@@ -25,7 +27,8 @@ urlpatterns = [
     path('transactions/monthly-income-summary/', monthly_income_summary_view, name='monthly_income_summary'),
     path('transactions/yearly-expense-summary/', yearly_expense_summary_view, name='yearly_expense_summary'),
     path('transactions/chart-summary/', chart_summary, name='chart_summary'),
+    # path('transactions/chart-summary/', ChartSummaryView.as_view(), name='chart_summary'),
     path('api/chart-data/', ChartDataAPIView.as_view(), name='chart-data'),
-    path('balance-history/<str:money_account_name>/', BalanceHistoryView.as_view(), name='balance_history'),
-    # path('transactions/outgoing/', OutgoingTransactionListView.as_view(), name='outgoing_transactions'),
+    # path('balance-history/<str:money_account_name>/', BalanceHistoryView.as_view(), name='balance_history'),
+    path('api/balance-history/<str:money_account_name>/', BalanceHistoryAPIView.as_view(), name='balance-history-api'),
 ]
