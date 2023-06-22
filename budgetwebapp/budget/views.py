@@ -28,11 +28,10 @@ class BalanceHistoryAPIView(ListAPIView):
 def balance_history_view(request, money_account_name):
     balance_history_api_view = BalanceHistoryAPIView.as_view()
     response = balance_history_api_view(request, money_account_name=money_account_name)
-    print(response.data)
     serializer = BalanceHistorySerializer(data=response.data, many=True)
     serializer.is_valid()
     balance_history = serializer.validated_data
-    print(balance_history)
+
     context = {
         'balance_history': balance_history,
         'money_account_name': money_account_name
