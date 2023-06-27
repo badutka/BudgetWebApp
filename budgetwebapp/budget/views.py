@@ -15,6 +15,26 @@ from .summary import create_summary_table, create_yearly_summary
 from .serializers import ChartDataSerializer, BalanceHistorySerializer
 
 
+def duplicate_transaction(request, transaction_id):
+    # Get the existing transaction entry
+    existing_transaction = Transaction.objects.get(id=transaction_id)
+
+    if request.method == 'POST':
+        # Create a form instance with the POST data
+        form = BudgetExpenseEntryForm(request.POST)
+        if form.is_valid():
+            # Save the duplicated entry
+            new_transaction = form.save(commit=False)
+            new_transaction.pk = None  # Clear the primary key to create a new entry
+            new_transaction.save()
+            return redirect('budget:transactions')
+    else:
+        # Create a form instance with the existing entry data
+        form = BudgetExpenseEntryForm(instance=existing_transaction)
+
+    return render(request, 'budget/transaction_add.html', {'form': form})
+
+
 class BalanceHistoryAPIView(ListAPIView):
     serializer_class = BalanceHistorySerializer
 

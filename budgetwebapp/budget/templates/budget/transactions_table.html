@@ -23,13 +23,14 @@
         </thead>
         <tbody>
         {% for transaction in transactions_page_obj %}
-        <tr data-bs-toggle="tooltip" data-bs-placement="top" title="Description: {{ entry.description }}">
-            <td class="text-center narrow-column font-size-small">{{ entry.year }}</td>
+        <tr data-bs-toggle="tooltip" data-bs-placement="top" title="Description: {{ transaction.description }}">
+<!--            <td>duplicate</td>-->
+            <td class="text-center narrow-column font-size-small"><a href="{% url 'budget:duplicate_transaction' transaction.id %}" class="btn btn-outline-primary fa-regular fa-clone"></a></td>
             <td class="text-center narrow-column font-size-medium">{{ transactions_page_obj|length|sub:forloop.counter|add:1 }}</td>
             <td class="nowrap">{{ transaction.date }}</td>
             <td class="nowrap">{{ transaction.created_at|date:'N d, Y H:i A' }}</td>
             <td class="nowrap">{{ transaction.updated_at|date:'N d, Y H:i A' }}</td>
-            <td>{{ transaction.category }}</td>
+            <td class="nowrap">{{ transaction.category }}</td>
             <td>{{ transaction.amount }}</td>
             <td>{{ transaction.origin }}</td>
             <td>{{ transaction.destination }}</td>
