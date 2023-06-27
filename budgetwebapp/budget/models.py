@@ -1,6 +1,7 @@
 from django.utils import timezone
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.db.models import Q, F
 
 
 class BaseModel(models.Model):
@@ -108,8 +109,10 @@ class Transaction(BaseModel):
 
         def update_account(account_name, amount):
             account = MoneyAccount.objects.get(name=account_name)
+            previous_balance = account.balance
             account.balance += amount
             account.save()
+            return previous_balance
 
         # rollback existing changes
         if self.pk is not None:
@@ -122,16 +125,16 @@ class Transaction(BaseModel):
 
         if self.origin == 'OUT':
             # Transfer from outside, increase amount on destination account
-            update_account(self.destination, self.amount - previous_amount)  # add the difference of amounts +(105 - 100) = +5, or +105 if +100 already rolled back
+            previous_balance_destination = update_account(self.destination, self.amount - previous_amount)  # add the difference of amounts +(105 - 100) = +5, or +105 if +100 already rolled back
             self.transaction_type = 'INCOMING'
         elif self.destination == 'OUT':
             # Transfer to outside, decrease amount on origin account
-            update_account(self.origin, -(self.amount - previous_amount))  # subtract the difference of amounts -(105 - 100) = -5, or -105 if -100 already rolled back
+            previous_balance_origin = update_account(self.origin, -(self.amount - previous_amount))  # subtract the difference of amounts -(105 - 100) = -5, or -105 if -100 already rolled back
             self.transaction_type = 'OUTGOING'
         else:
             # Transfer between accounts, adjust origin and destination balances
-            update_account(self.origin, -(self.amount - previous_amount))
-            update_account(self.destination, self.amount - previous_amount)
+            previous_balance_origin = update_account(self.origin, -(self.amount - previous_amount))
+            previous_balance_destination = update_account(self.destination, self.amount - previous_amount)
             self.transaction_type = 'INNER'
 
         self.year = self.date.year
@@ -139,24 +142,25 @@ class Transaction(BaseModel):
         super().save(*args, **kwargs)
 
         # After budget entry is saved we can now save balance history entry
-        def update_balance_history(account_name):
+        def update_balance_history(account_name, previous_balance):
             money_account = MoneyAccount.objects.get(name=account_name)
             try:
                 balance_history = BalanceHistory.objects.get(money_account=money_account, budget_entry=self)
-                balance_history.balance = money_account.balance
-                print("updated_balance")
+                balance_history.balance_after = money_account.balance
+                balance_history.balance_before = previous_balance
             except BalanceHistory.DoesNotExist:
                 # Create a new BalanceHistory object if it doesn't exist
-                balance_history = BalanceHistory(money_account=money_account, balance=money_account.balance, budget_entry=self)
-                print("created_balance")
-            # Update the balance and created_at fields
+                balance_history = BalanceHistory(money_account=money_account, balance_before=previous_balance, balance_after=money_account.balance, budget_entry=self)
+
+            # Update the created_at field
             balance_history.created_at = self.created_at
+
             balance_history.save()
 
         if self.origin != 'OUT':
-            update_balance_history(self.origin)
+            update_balance_history(self.origin, previous_balance_origin)
         if self.destination != 'OUT':
-            update_balance_history(self.destination)
+            update_balance_history(self.destination, previous_balance_destination)
 
     def delete(self, *args, **kwargs):
         if self.origin != 'OUT':
@@ -186,10 +190,11 @@ class Transaction(BaseModel):
 
 class BalanceHistory(models.Model):
     money_account = models.ForeignKey(MoneyAccount, on_delete=models.CASCADE)
-    balance = models.DecimalField(max_digits=10, decimal_places=2)
+    balance_before = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    balance_after = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     created_at = models.DateTimeField(null=True, blank=True)  # , editable=False
     budget_entry = models.ForeignKey(Transaction, on_delete=models.CASCADE)
 
     class Meta:
         verbose_name_plural = "BalanceHistories"
-        ordering = ['-created_at', '-id']
+        ordering = ['-budget_entry__date', '-id']
