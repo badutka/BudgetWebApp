@@ -1,47 +1,20 @@
 from django.shortcuts import render, redirect
 from django.core.paginator import Paginator
-from django.views.generic import ListView, DetailView, TemplateView
 from django.db.models import Sum
 from django.http import JsonResponse, HttpResponseBadRequest, HttpResponse
-
-from rest_framework.response import Response
-from rest_framework.generics import ListAPIView
-from rest_framework.views import APIView
 from rest_framework.exceptions import ValidationError
+from django.urls import reverse_lazy
 
 from .forms import BudgetExpenseEntryForm
 from .models import Transaction, MoneyAccount, BalanceHistory
 from .summary import create_summary_table, create_yearly_summary
 from .serializers import ChartDataSerializer, BalanceHistorySerializer, BalanceHistoryRefreshSerializer
+from api.views import BalanceHistoryAPIView
 
 
-def duplicate_transaction(request, transaction_id):
-    # Get the existing transaction entry
-    existing_transaction = Transaction.objects.get(id=transaction_id)
-
-    if request.method == 'POST':
-        # Create a form instance with the POST data
-        form = BudgetExpenseEntryForm(request.POST)
-        if form.is_valid():
-            # Save the duplicated entry
-            new_transaction = form.save(commit=False)
-            new_transaction.pk = None  # Clear the primary key to create a new entry
-            new_transaction.save()
-            return redirect('budget:transactions')
-    else:
-        # Create a form instance with the existing entry data
-        form = BudgetExpenseEntryForm(instance=existing_transaction)
-
-    return render(request, 'budget/transaction_add.html', {'form': form})
-
-
-class BalanceHistoryRefreshAPIView(APIView):
-    def get(self, request, money_account_name):
-        serializer = BalanceHistoryRefreshSerializer(money_account_name)
-
-        # return JsonResponse({'message': 'Balance history refreshed successfully'})  # can do as well
-        return Response(serializer.data)
-
+# ===============================================
+#               BALANCE HISTORY
+# ===============================================
 
 def refresh_balance_history(request, money_account_name):
     serializer = BalanceHistoryRefreshSerializer(data={'money_account_name': money_account_name})
@@ -61,16 +34,6 @@ def refresh_balance_history(request, money_account_name):
     # return response
 
 
-class BalanceHistoryAPIView(ListAPIView):
-    serializer_class = BalanceHistorySerializer
-
-    def get_queryset(self):
-        money_account_name = self.kwargs['money_account_name']
-        money_account = MoneyAccount.objects.get(name=money_account_name)
-        queryset = BalanceHistory.objects.filter(money_account=money_account)
-        return queryset
-
-
 def balance_history_view(request, money_account_name):
     balance_history_api_view = BalanceHistoryAPIView.as_view()
     response = balance_history_api_view(request, money_account_name=money_account_name)
@@ -86,19 +49,18 @@ def balance_history_view(request, money_account_name):
     return render(request, 'budget/balance_history.html', context)
 
 
-class ChartDataAPIView(APIView):
-    def get(self, request, format=None):
-        summary, totals = create_yearly_summary(2023)
-
-        serializer = ChartDataSerializer(summary)
-
-        return Response(serializer.data)
-
+# ===============================================
+#                    CHARTS
+# ===============================================
 
 def chart_summary(request):
     context = {}
     return render(request, 'budget/chart_summary.html', context)
 
+
+# ===============================================
+#               TABLE SUMMARIES
+# ===============================================
 
 def yearly_expense_summary_view(request):
     summary, totals = create_yearly_summary(2023)
@@ -139,6 +101,10 @@ def monthly_income_summary_view(request):
     return render(request, 'budget/monthly_income_summary.html', context)
 
 
+# ===============================================
+#        INCOMING / OUTGOING TRANSACTIONS
+# ===============================================
+
 def outgoing_transactions_list_view(request):
     entries = Transaction.objects.filter(transaction_type__in=['OUTGOING', 'INNER']).order_by('date')
 
@@ -167,6 +133,11 @@ def incoming_transactions_list_view(request):
     return render(request, 'budget/transactions_incoming.html', context)
 
 
+# ===============================================
+#                 CRUD + DUPLICATE
+# ===============================================
+
+
 def transactions_list_view(request):
     entries = Transaction.objects.all()
     # entries = BudgetExpenseEntry.objects.all().order_by('-created_at')
@@ -184,13 +155,41 @@ def transactions_list_view(request):
     return render(request, 'budget/transactions.html', context)
 
 
+def duplicate_transaction(request, transaction_id):
+    # Get the existing transaction entry
+    existing_transaction = Transaction.objects.get(id=transaction_id)
+
+    if request.method == 'POST':
+        # Create a form instance with the POST data
+        form = BudgetExpenseEntryForm(request.POST)
+        if form.is_valid():
+            # Save the duplicated entry
+            new_transaction = form.save(commit=False)
+            new_transaction.pk = None  # Clear the primary key to create a new entry
+            new_transaction.save()
+            return HttpResponse(status=204)
+    else:
+        if not ('HX-Request' in request.headers):
+            # Redirect users if accessing the URL directly
+            return redirect(reverse_lazy('budget:transactions'))
+
+        # Create a form instance with the existing entry data
+        form = BudgetExpenseEntryForm(instance=existing_transaction)
+
+    return render(request, 'budget/transaction_add.html', {'form': form})
+
+
 def transaction_add(request):
     if request.method == 'POST':
         form = BudgetExpenseEntryForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('budget:transactions')
+            return HttpResponse(status=204)
     else:
+        if not ('HX-Request' in request.headers):
+            # Redirect users if accessing the URL directly
+            return redirect(reverse_lazy('budget:transactions'))
+
         form = BudgetExpenseEntryForm()
     return render(request, 'budget/transaction_add.html', {'form': form})
 
@@ -203,6 +202,10 @@ def transaction_edit(request, transaction_id):
             form.save()
             return HttpResponse(status=204, headers={'HX-Trigger': 'transactionUpdated'})  # todo: remove trigger?
     else:
+        if not ('HX-Request' in request.headers):
+            # Redirect users if accessing the URL directly
+            return redirect(reverse_lazy('budget:transactions'))
+
         form = BudgetExpenseEntryForm(instance=entry)
     return render(request, 'budget/transaction_form.html', {'form': form, 'transaction_id': transaction_id})
 

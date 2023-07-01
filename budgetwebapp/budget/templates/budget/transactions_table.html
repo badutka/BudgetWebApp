@@ -8,7 +8,8 @@
     <table class="table table-dark table-hover table-striped align-middle">
         <thead>
         <tr class="align-middle">
-            <th><a href="{% url 'budget:transaction_add' %}" class="btn btn-primary bi bi-plus"></a></th>
+<!--            <th><a href="{% url 'budget:transaction_add' %}" class="btn btn-primary bi bi-plus"></a></th>-->
+            <th><a hx-get="{% url 'budget:transaction_add' %}" hx-target="#dialog" class="btn btn-primary bi bi-plus"></a></th>
             <th>Index</th>
             <th>Date</th>
             <th>Created at</th>
@@ -25,7 +26,7 @@
         {% for transaction in transactions_page_obj %}
         <tr data-bs-toggle="tooltip" data-bs-placement="top" title="Description: {{ transaction.description }}">
 <!--            <td>duplicate</td>-->
-            <td class="text-center narrow-column font-size-small"><a href="{% url 'budget:duplicate_transaction' transaction.id %}" class="btn btn-outline-primary fa-regular fa-clone"></a></td>
+            <td class="text-center narrow-column font-size-small"><a hx-get="{% url 'budget:duplicate_transaction' transaction.id %}" hx-target="#dialog" class="btn btn-outline-primary fa-regular fa-clone"></a></td>
             <td class="text-center narrow-column font-size-medium">{{ transactions_page_obj|length|sub:forloop.counter|add:1 }}</td>
             <td class="nowrap">{{ transaction.date }}</td>
             <td class="nowrap">{{ transaction.created_at|date:'N d, Y H:i A' }}</td>

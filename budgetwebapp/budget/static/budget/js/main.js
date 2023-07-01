@@ -24,8 +24,3 @@ htmx.on("htmx:beforeSwap", (e) => {
 htmx.on("hidden.bs.modal", () => {
   document.getElementById("dialog").innerHTML = ""
 })
-
-$(document).on("click", ".saveButton", function(){
-  location.reload();
-  console.log("reloaded")
-});

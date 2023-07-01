@@ -10,15 +10,15 @@ from .views import (
     monthly_income_summary_view,
     yearly_expense_summary_view,
     chart_summary,
-    ChartDataAPIView,
     BalanceHistoryAPIView,
     balance_history_view,
     duplicate_transaction,
-    BalanceHistoryRefreshAPIView,
     refresh_balance_history,
-    # refresh_balance_history,
-    # ChartSummaryView,
+)
 
+from api.views import (
+    ChartDataAPIView,
+    BalanceHistoryRefreshAPIView,
 )
 
 urlpatterns = [
