@@ -13,7 +13,10 @@ from .views import (
     ChartDataAPIView,
     BalanceHistoryAPIView,
     balance_history_view,
-    duplicate_transaction
+    duplicate_transaction,
+    BalanceHistoryRefreshAPIView,
+    refresh_balance_history,
+    # refresh_balance_history,
     # ChartSummaryView,
 
 )
@@ -33,5 +36,7 @@ urlpatterns = [
     path('api/chart-data/', ChartDataAPIView.as_view(), name='chart-data'),
     path('balance-history/<str:money_account_name>/', balance_history_view, name='balance_history'),
     path('api/balance-history/<str:money_account_name>/', BalanceHistoryAPIView.as_view(), name='balance-history-api'),
+    path('balance-history/refresh/<str:money_account_name>/', refresh_balance_history, name='balance_history_refresh'),
+    path('api/balance-history/refresh/<str:money_account_name>/', BalanceHistoryRefreshAPIView.as_view(), name='balance-history-refresh-api'),
     path('transactions/duplicate/<int:transaction_id>/', duplicate_transaction, name='duplicate_transaction'),
 ]

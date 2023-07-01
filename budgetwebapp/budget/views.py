@@ -8,11 +8,13 @@ from django.db.models import Sum
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView
 from rest_framework.views import APIView
+from rest_framework.exceptions import ValidationError
 
 from .forms import BudgetExpenseEntryForm
 from .models import Transaction, MoneyAccount, BalanceHistory
 from .summary import create_summary_table, create_yearly_summary
-from .serializers import ChartDataSerializer, BalanceHistorySerializer
+from .serializers import ChartDataSerializer, BalanceHistorySerializer, BalanceHistoryRefreshSerializer
+from django.http import JsonResponse, HttpResponseBadRequest
 
 
 def duplicate_transaction(request, transaction_id):
@@ -33,6 +35,32 @@ def duplicate_transaction(request, transaction_id):
         form = BudgetExpenseEntryForm(instance=existing_transaction)
 
     return render(request, 'budget/transaction_add.html', {'form': form})
+
+
+class BalanceHistoryRefreshAPIView(APIView):
+    def get(self, request, money_account_name):
+        serializer = BalanceHistoryRefreshSerializer(money_account_name)
+
+        # return JsonResponse({'message': 'Balance history refreshed successfully'})  # can do as well
+        return Response(serializer.data)
+
+
+def refresh_balance_history(request, money_account_name):
+    serializer = BalanceHistoryRefreshSerializer(data={'money_account_name': money_account_name})
+
+    try:  # or just do serializer.is_valid(raise_exception=True) instead of try/except for default handling
+        serializer.is_valid(raise_exception=True)
+    except ValidationError as e:
+        error_message = str(e.detail)
+        # Handle the validation error as needed
+        # For example, you can return a custom error response
+        return HttpResponseBadRequest(error_message)
+
+    message = serializer.create(serializer.validated_data)['message']
+    return redirect('budget:balance_history', money_account_name=money_account_name)
+
+    # response = balance_history_view(request, money_account_name=money_account_name)
+    # return response
 
 
 class BalanceHistoryAPIView(ListAPIView):
