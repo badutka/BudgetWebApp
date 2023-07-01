@@ -3,6 +3,8 @@
 //var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
 //  return new bootstrap.Tooltip(tooltipTriggerEl)
 //})
+
+//https://blog.benoitblanchon.fr/django-htmx-modal-form/
 const modal = new bootstrap.Modal(document.getElementById("modal"))
 
 htmx.on("htmx:afterSwap", (e) => {
