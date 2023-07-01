@@ -46,7 +46,8 @@
                 {% endif %}
             </td>
             <td class="nowrap">
-                <a href="{% url 'budget:transaction_edit' transaction.id %}" class="btn btn-outline-primary bi bi-pen" style="font-size: 10px;"></a>
+<!--                <a href="{% url 'budget:transaction_edit' transaction.id %}" class="btn btn-outline-primary bi bi-pen" style="font-size: 10px;"></a>-->
+                <a hx-get="{% url 'budget:transaction_edit' transaction.id %}" hx-target="#dialog" class="btn btn-outline-primary bi bi-pen" style="font-size: 10px;"></a>
                 <a href="{% url 'budget:transaction_remove' transaction.id %}" class="btn btn-outline-danger bi bi-trash" style="font-size: 10px; margin-left: 10px;"></a>
             </td>
         </tr>
@@ -87,3 +88,7 @@
         {% endif %}
     </ul>
 </nav>
+
+<div id="modal" class="modal fade">
+  <div id="dialog" class="modal-dialog" hx-target="this"></div>
+</div>

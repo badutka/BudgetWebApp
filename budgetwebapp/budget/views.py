@@ -1,9 +1,8 @@
-import requests
-
 from django.shortcuts import render, redirect
 from django.core.paginator import Paginator
 from django.views.generic import ListView, DetailView, TemplateView
 from django.db.models import Sum
+from django.http import JsonResponse, HttpResponseBadRequest, HttpResponse
 
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView
@@ -14,7 +13,6 @@ from .forms import BudgetExpenseEntryForm
 from .models import Transaction, MoneyAccount, BalanceHistory
 from .summary import create_summary_table, create_yearly_summary
 from .serializers import ChartDataSerializer, BalanceHistorySerializer, BalanceHistoryRefreshSerializer
-from django.http import JsonResponse, HttpResponseBadRequest
 
 
 def duplicate_transaction(request, transaction_id):
@@ -203,10 +201,10 @@ def transaction_edit(request, transaction_id):
         form = BudgetExpenseEntryForm(request.POST, instance=entry)
         if form.is_valid():
             form.save()
-            return redirect('budget:transactions')
+            return HttpResponse(status=204, headers={'HX-Trigger': 'transactionUpdated'})  # todo: remove trigger?
     else:
         form = BudgetExpenseEntryForm(instance=entry)
-    return render(request, 'budget/transaction_edit.html', {'form': form, 'transaction_id': transaction_id})
+    return render(request, 'budget/transaction_form.html', {'form': form, 'transaction_id': transaction_id})
 
 
 def transaction_remove(request, transaction_id):
