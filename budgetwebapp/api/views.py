@@ -1,9 +1,9 @@
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView
 from rest_framework.views import APIView
-from django.views.generic import ListView, DetailView, TemplateView
+from rest_framework import status
 
-from budget.serializers import ChartDataSerializer, BalanceHistorySerializer, BalanceHistoryRefreshSerializer
+from budget.serializers import TransactionSerializer, ChartDataSerializer, BalanceHistorySerializer, BalanceHistoryRefreshSerializer
 from budget.models import MoneyAccount, BalanceHistory
 from budget.summary import create_summary_table, create_yearly_summary
 
@@ -33,3 +33,12 @@ class ChartDataAPIView(APIView):
         serializer = ChartDataSerializer(summary)
 
         return Response(serializer.data)
+
+
+class TransactionCreateAPIView(APIView):
+    def post(self, request, format=None):
+        serializer = TransactionSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

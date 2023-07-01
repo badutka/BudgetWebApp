@@ -1,14 +1,19 @@
+import requests
 from django.shortcuts import render, redirect
 from django.core.paginator import Paginator
 from django.db.models import Sum
 from django.http import JsonResponse, HttpResponseBadRequest, HttpResponse
+from django.urls import reverse_lazy, reverse
 from rest_framework.exceptions import ValidationError
-from django.urls import reverse_lazy
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.renderers import JSONRenderer
+from rest_framework.decorators import api_view
 
 from .forms import BudgetExpenseEntryForm
 from .models import Transaction, MoneyAccount, BalanceHistory
 from .summary import create_summary_table, create_yearly_summary
-from .serializers import ChartDataSerializer, BalanceHistorySerializer, BalanceHistoryRefreshSerializer
+from .serializers import TransactionSerializer, ChartDataSerializer, BalanceHistorySerializer, BalanceHistoryRefreshSerializer
 from api.views import BalanceHistoryAPIView
 
 
@@ -183,8 +188,25 @@ def transaction_add(request):
     if request.method == 'POST':
         form = BudgetExpenseEntryForm(request.POST)
         if form.is_valid():
-            form.save()
-            return HttpResponse(status=204)
+            # Prepare data for API request
+            data = {
+                'date': form.cleaned_data['date'],
+                'category': form.cleaned_data['category'].pk,
+                'amount': form.cleaned_data['amount'],
+                'origin': form.cleaned_data['origin'],
+                'destination': form.cleaned_data['destination'],
+                'description': form.cleaned_data['description'],
+            }
+
+            # Send API request to create transaction
+            api_url = request.build_absolute_uri(reverse('budget:transaction_add_api'))
+
+            response = requests.post(api_url, data=data)
+            if response.status_code == 204:
+                return HttpResponse(status=204)
+            else:
+                # Handle error case
+                return HttpResponseBadRequest()
     else:
         if not ('HX-Request' in request.headers):
             # Redirect users if accessing the URL directly

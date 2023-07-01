@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.db.models import Q
 
-from .models import BalanceHistory, Transaction, MoneyAccount
+from .models import BalanceHistory, Transaction, MoneyAccount, Category, MainCategory, SubCategory
 
 
 class ChartDataSerializer(serializers.Serializer):
@@ -72,4 +72,10 @@ class BalanceHistoryRefreshSerializer(serializers.Serializer):
 class BalanceHistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = BalanceHistory
+        fields = '__all__'
+
+
+class TransactionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Transaction
         fields = '__all__'
