@@ -26,7 +26,9 @@
         {% for transaction in transactions_page_obj %}
         <tr data-bs-toggle="tooltip" data-bs-placement="top" title="Description: {{ transaction.description }}">
 <!--            <td>duplicate</td>-->
-            <td class="text-center narrow-column font-size-small"><a hx-get="{% url 'budget:duplicate_transaction' transaction.id %}" hx-target="#dialog" class="btn btn-outline-primary fa-regular fa-clone"></a></td>
+            <td class="text-center narrow-column font-size-small" data-bs-toggle="tooltip" data-bs-placement="top" title="Create a copy">
+                <a hx-get="{% url 'budget:duplicate_transaction' transaction.id %}" hx-target="#dialog" class="btn btn-outline-primary fa-regular fa-clone"></a>
+            </td>
             <td class="text-center narrow-column font-size-medium">{{ transactions_page_obj|length|sub:forloop.counter|add:1 }}</td>
             <td class="nowrap">{{ transaction.date }}</td>
             <td class="nowrap">{{ transaction.created_at|date:'N d, Y H:i A' }}</td>
