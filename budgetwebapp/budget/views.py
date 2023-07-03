@@ -197,7 +197,7 @@ def transaction_add(request):
                 'destination': form.cleaned_data['destination'],
                 'description': form.cleaned_data['description'],
             }
-
+            print(data)
             # Send API request to create transaction
             api_url = request.build_absolute_uri(reverse('budget:transaction_add_api'))
 
@@ -218,17 +218,34 @@ def transaction_add(request):
 
 def transaction_edit(request, transaction_id):
     entry = Transaction.objects.get(id=transaction_id)
+
     if request.method == 'POST':
         form = BudgetExpenseEntryForm(request.POST, instance=entry)
         if form.is_valid():
-            form.save()
-            return HttpResponse(status=204, headers={'HX-Trigger': 'transactionUpdated'})  # todo: remove trigger?
+            # Prepare data for API request
+            data = {
+                'date': form.cleaned_data['date'],
+                'category': form.cleaned_data['category'].pk,
+                'amount': form.cleaned_data['amount'],
+                'origin': form.cleaned_data['origin'],
+                'destination': form.cleaned_data['destination'],
+                'description': form.cleaned_data['description'],
+            }
+
+            # Send API request to update transaction
+            api_url = request.build_absolute_uri(reverse('budget:transaction_update_api', args=[transaction_id]))
+            response = requests.put(api_url, data=data)
+            if response.status_code == 204:
+                return HttpResponse(status=204)
+            else:
+                # Handle error case
+                return HttpResponseBadRequest()
     else:
         if not ('HX-Request' in request.headers):
-            # Redirect users if accessing the URL directly
             return redirect(reverse_lazy('budget:transactions'))
 
         form = BudgetExpenseEntryForm(instance=entry)
+
     return render(request, 'budget/transaction_form.html', {'form': form, 'transaction_id': transaction_id})
 
 

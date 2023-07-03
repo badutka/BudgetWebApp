@@ -19,7 +19,8 @@ from .views import (
 from api.views import (
     ChartDataAPIView,
     BalanceHistoryRefreshAPIView,
-    TransactionCreateAPIView
+    TransactionCreateAPIView,
+    TransactionUpdateAPIView,
 )
 
 urlpatterns = [
@@ -27,6 +28,7 @@ urlpatterns = [
     path('add/', transaction_add, name='transaction_add'),
     path('api/add/', TransactionCreateAPIView.as_view(), name='transaction_add_api'),
     path('edit/<int:transaction_id>/', transaction_edit, name='transaction_edit'),
+    path('api/edit/<int:transaction_id>/', TransactionUpdateAPIView.as_view(), name='transaction_update_api'),
     path('remove/<int:transaction_id>/', transaction_remove, name='transaction_remove'),
     path('transactions/incoming/', incoming_transactions_list_view, name='incoming_transactions'),
     path('transactions/outgoing/', outgoing_transactions_list_view, name='outgoing_transactions'),
