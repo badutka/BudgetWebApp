@@ -1,20 +1,17 @@
 import requests
-from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
 from django.db.models import Sum
-from django.http import JsonResponse, HttpResponseBadRequest, HttpResponse
+from django.http import HttpResponseBadRequest, HttpResponse
+from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
 from rest_framework.exceptions import ValidationError
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.renderers import JSONRenderer
-from rest_framework.decorators import api_view
 
-from .forms import BudgetExpenseEntryForm
-from .models import Transaction, MoneyAccount, BalanceHistory
-from .summary import create_summary_table, create_yearly_summary
-from .serializers import TransactionSerializer, ChartDataSerializer, BalanceHistorySerializer, BalanceHistoryRefreshSerializer
 from api.views import BalanceHistoryAPIView
+from .forms import BudgetExpenseEntryForm
+from .models import Transaction, MoneyAccount
+from .serializers import BalanceHistorySerializer, BalanceHistoryRefreshSerializer
+from .summary import create_summary_table, create_yearly_summary
+from .utils import get_data_from_form, get_response_by_status_code
 
 
 # ===============================================
@@ -144,20 +141,22 @@ def incoming_transactions_list_view(request):
 
 
 def transactions_list_view(request):
-    entries = Transaction.objects.all()
-    # entries = BudgetExpenseEntry.objects.all().order_by('-created_at')
-    accs = MoneyAccount.objects.all().aggregate(total=Sum('balance'))['total']
+    if request.method == 'GET':
+        api_url = request.build_absolute_uri(reverse('budget:transactions_api'))  # API endpoint URL
+        response = requests.get(api_url)
+        transactions = get_response_by_status_code(response, 200, response.json(), [])
 
-    paginator = Paginator(entries, 999)  # 10 entries per page
-    page_number = request.GET.get('page')
-    transactions_page_obj = paginator.get_page(page_number)
+        mountAccounts = MoneyAccount.objects.all().aggregate(total=Sum('balance'))['total']
+        paginator = Paginator(transactions, 999)  # 10 entries per page
+        page_number = request.GET.get('page')
+        transactions_page_obj = paginator.get_page(page_number)
 
-    context = {
-        'transactions_page_obj': transactions_page_obj,
-        'sum_accs': round(accs, 2)
-    }
+        context = {
+            'transactions_page_obj': transactions_page_obj,
+            'sum_accs': round(mountAccounts, 2)
+        }
 
-    return render(request, 'budget/transactions.html', context)
+        return render(request, 'budget/transactions.html', context)
 
 
 def duplicate_transaction(request, transaction_id):
@@ -172,6 +171,7 @@ def duplicate_transaction(request, transaction_id):
             new_transaction = form.save(commit=False)
             new_transaction.pk = None  # Clear the primary key to create a new entry
             new_transaction.save()
+
             return HttpResponse(status=204)
     else:
         if not ('HX-Request' in request.headers):
@@ -186,27 +186,14 @@ def duplicate_transaction(request, transaction_id):
 
 def transaction_add(request):
     if request.method == 'POST':
-        form = BudgetExpenseEntryForm(request.POST)
-        if form.is_valid():
-            # Prepare data for API request
-            data = {
-                'date': form.cleaned_data['date'],
-                'category': form.cleaned_data['category'].pk,
-                'amount': form.cleaned_data['amount'],
-                'origin': form.cleaned_data['origin'],
-                'destination': form.cleaned_data['destination'],
-                'description': form.cleaned_data['description'],
-            }
-            print(data)
-            # Send API request to create transaction
-            api_url = request.build_absolute_uri(reverse('budget:transaction_add_api'))
 
-            response = requests.post(api_url, data=data)
-            if response.status_code == 204:
-                return HttpResponse(status=204)
-            else:
-                # Handle error case
-                return HttpResponseBadRequest()
+        form = BudgetExpenseEntryForm(request.POST)
+
+        if form.is_valid():
+            api_url = request.build_absolute_uri(reverse('budget:transaction_add_api'))
+            response = requests.post(api_url, data=get_data_from_form(form))
+            return get_response_by_status_code(response, 204, HttpResponse(status=204), HttpResponseBadRequest())
+
     else:
         if not ('HX-Request' in request.headers):
             # Redirect users if accessing the URL directly
@@ -216,31 +203,35 @@ def transaction_add(request):
     return render(request, 'budget/transaction_add.html', {'form': form})
 
 
+def transaction(request, transaction_id):
+    if request.method == 'GET':
+        api_url = request.build_absolute_uri(reverse('budget:transaction_api', args=[transaction_id]))  # API endpoint URL
+        response = requests.get(api_url)
+        transactions = get_response_by_status_code(response, 200, response.json(), [])
+
+        transactions = [transactions]
+        paginator = Paginator(transactions, 999)  # 10 entries per page
+        page_number = request.GET.get('page')
+        transactions_page_obj = paginator.get_page(page_number)
+
+        context = {
+            'transactions_page_obj': transactions_page_obj,
+        }
+
+        return render(request, 'budget/transactions.html', context)
+
+
 def transaction_edit(request, transaction_id):
-    transaction = Transaction.objects.get(id=transaction_id)
+    transaction = get_object_or_404(Transaction, id=transaction_id)
 
     if request.method == 'POST':
         form = BudgetExpenseEntryForm(request.POST, instance=transaction)
 
         if form.is_valid():
-            # Prepare data for API request
-            data = {
-                'date': form.cleaned_data['date'],
-                'category': form.cleaned_data['category'].pk,
-                'amount': form.cleaned_data['amount'],
-                'origin': form.cleaned_data['origin'],
-                'destination': form.cleaned_data['destination'],
-                'description': form.cleaned_data['description'],
-            }
-
-            # Send API request to update transaction
             api_url = request.build_absolute_uri(reverse('budget:transaction_update_api', args=[transaction_id]))
-            response = requests.put(api_url, data=data)
-            if response.status_code == 204:
-                return HttpResponse(status=204)
-            else:
-                # Handle error case
-                return HttpResponseBadRequest()
+            response = requests.put(api_url, data=get_data_from_form(form))
+            return get_response_by_status_code(response, 200, HttpResponse(status=200), HttpResponseBadRequest())
+
     else:
         if not ('HX-Request' in request.headers):
             return redirect(reverse_lazy('budget:transactions'))
@@ -254,10 +245,8 @@ def transaction_delete(request, transaction_id):
     api_url = request.build_absolute_uri(reverse('budget:transaction_delete_api', args=[transaction_id]))
 
     if request.method == 'GET':
-
         response = requests.delete(api_url)
-        if response.status_code == 204:
-            return redirect('budget:transactions')
+        return get_response_by_status_code(response, 200, redirect('budget:transactions'))
 
     return redirect('budget:transactions')
 

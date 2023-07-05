@@ -31,8 +31,8 @@
             </td>
             <td class="text-center narrow-column font-size-medium">{{ transactions_page_obj|length|sub:forloop.counter|add:1 }}</td>
             <td class="nowrap">{{ transaction.date }}</td>
-            <td class="nowrap">{{ transaction.created_at|date:'N d, Y H:i A' }}</td>
-            <td class="nowrap">{{ transaction.updated_at|date:'N d, Y H:i A' }}</td>
+            <td class="nowrap">{{ transaction.created_at }}</td>
+            <td class="nowrap">{{ transaction.updated_at }}</td>
             <td class="nowrap">{{ transaction.category }}</td>
             <td>{{ transaction.amount }}</td>
             <td>{{ transaction.origin }}</td>

@@ -3,6 +3,7 @@ from django.urls import path
 from .views import (
     transactions_list_view,
     transaction_add,
+    transaction,
     transaction_edit,
     transaction_delete,
     incoming_transactions_list_view,
@@ -18,25 +19,43 @@ from .views import (
 )
 
 from api.views import (
-    TransactionCreateAPIView,
-    TransactionUpdateAPIView,
+    TransactionsAPIView,
+    TransactionAPIView,
     TransactionFormAPIView,
-    TransactionRemoveAPIView,
     ChartDataAPIView,
     BalanceHistoryRefreshAPIView,
 )
 
-urlpatterns = [
-    # 1. Transactions List
-    path('transactions', transactions_list_view, name='transactions'),
-    # 2. Single Transaction
+from rest_framework import permissions
+from drf_yasg.views import get_schema_view
+# from rest_framework.schemas import get_schema_view  # openAPI  # https://www.django-rest-framework.org/api-guide/schemas/
+# from rest_framework_swagger.views import get_swagger_view  # django-rest-swagger
+from drf_yasg import openapi
 
-    # 3. Add Transaction
+schema_view = get_schema_view(
+    openapi.Info(
+        title="Your API Title",
+        default_version='v1',
+        description="Your API description",
+        terms_of_service="https://www.example.com/terms/",
+        contact=openapi.Contact(email="contact@example.com"),
+        license=openapi.License(name="MIT License"),
+    ),
+    public=True,
+    permission_classes=[permissions.AllowAny],
+)
+
+urlpatterns = [
+    # 1. Get Transactions
+    path('transactions/', transactions_list_view, name='transactions'),
+    # 2. Create a new Transaction
     path('transactions/add/', transaction_add, name='transaction_add'),
-    # 4. Update Transaction
-    path('transactions/<int:transaction_id>/', transaction_edit, name='transaction_edit'),
-    # 5. Remove Transaction
-    path('remove/<int:transaction_id>/', transaction_delete, name='transaction_delete'),
+    # 3. Get Transaction
+    path('transactions/<int:transaction_id>/', transaction, name='transaction'),
+    # 4. Update the Transaction
+    path('transactions/<int:transaction_id>/edit/', transaction_edit, name='transaction_edit'),
+    # 5. Delete the Transaction
+    path('transactions/<int:transaction_id>/delete/', transaction_delete, name='transaction_delete'),
     # 6. Duplicate Transaction
     path('transactions/duplicate/<int:transaction_id>/', duplicate_transaction, name='duplicate_transaction'),
     # 7. Incoming Transactions List
@@ -59,18 +78,16 @@ urlpatterns = [
 ]
 
 urlpatterns = urlpatterns + [
-    # 1. Transactions List
-
-    # 2. Single Transaction
-
-    # 3. Add Transaction
-    path('api/transactions/add/', TransactionCreateAPIView.as_view(), name='transaction_add_api'),
-    # 4. Update Transaction
-    path('api/transactions/edit/<int:transaction_id>/', TransactionUpdateAPIView.as_view(), name='transaction_update_api'),
-    # 4.2. Edit Transaction Form
-    path('api/transactions/form/<int:transaction_id>/', TransactionFormAPIView.as_view(), name='transaction_form_api'),  # todo: create a separate, better suited form
-    # 5. Remove Transaction
-    path('api/transactions/remove/<int:transaction_id>/', TransactionRemoveAPIView.as_view(), name='transaction_delete_api'),
+    # 1. Get Transactions
+    path('api/transactions/', TransactionsAPIView.as_view(), name='transactions_api'),
+    # 2. Create a new Transaction
+    path('api/transactions/', TransactionsAPIView.as_view(), name='transaction_add_api'),
+    # 3. Get Transaction
+    path('api/transactions/<int:transaction_id>/', TransactionAPIView.as_view(), name='transaction_api'),
+    # 4. Update the Transaction
+    path('api/transactions/<int:transaction_id>/', TransactionAPIView.as_view(), name='transaction_update_api'),
+    # 5. Delete the Transaction
+    path('api/transactions/<int:transaction_id>/', TransactionAPIView.as_view(), name='transaction_delete_api'),
     # 6. Duplicate Transaction
 
     # 7. Incoming Transactions List
@@ -90,4 +107,13 @@ urlpatterns = urlpatterns + [
     # 14. Balance History Refresh
     path('api/balance-history/refresh/<str:money_account_name>/', BalanceHistoryRefreshAPIView.as_view(), name='balance-history-refresh-api'),
 
+    # 4.2. Edit Transaction Form
+    # path('api/transactions/form/<int:transaction_id>/', TransactionFormAPIView.as_view(), name='transaction_form_api'),  # todo: create a separate, better suited form
+
+    # API DOCS
+    path('api/docs/', schema_view.with_ui('swagger', cache_timeout=0), name='api_docs'),
+    # path('openapi', get_schema_view(title="Your Project", description="API for all things …"), name='openapi-schema'),
+    # path('api/docs/', get_swagger_view(title='Your API Title')),
+    # path('swagger.json', schema_view.without_ui(cache_timeout=0), name='schema-json'),
+    # path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 ]
