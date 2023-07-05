@@ -51,7 +51,7 @@
             <td class="nowrap">
 <!--                <a href="{% url 'budget:transaction_edit' transaction.id %}" class="btn btn-outline-primary bi bi-pen" style="font-size: 10px;"></a>-->
                 <a hx-get="{% url 'budget:transaction_edit' transaction.id %}" hx-target="#dialog" class="btn btn-outline-primary bi bi-pen" style="font-size: 10px;"></a>
-                <a href="{% url 'budget:transaction_remove' transaction.id %}" class="btn btn-outline-danger bi bi-trash" style="font-size: 10px; margin-left: 10px;"></a>
+                <a href="{% url 'budget:transaction_delete' transaction.id %}" class="btn btn-outline-danger bi bi-trash" style="font-size: 10px; margin-left: 10px;"></a>
             </td>
         </tr>
         {% endfor %}

@@ -1,5 +1,5 @@
 import requests
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
 from django.db.models import Sum
 from django.http import JsonResponse, HttpResponseBadRequest, HttpResponse
@@ -217,10 +217,11 @@ def transaction_add(request):
 
 
 def transaction_edit(request, transaction_id):
-    entry = Transaction.objects.get(id=transaction_id)
+    transaction = Transaction.objects.get(id=transaction_id)
 
     if request.method == 'POST':
-        form = BudgetExpenseEntryForm(request.POST, instance=entry)
+        form = BudgetExpenseEntryForm(request.POST, instance=transaction)
+
         if form.is_valid():
             # Prepare data for API request
             data = {
@@ -244,12 +245,20 @@ def transaction_edit(request, transaction_id):
         if not ('HX-Request' in request.headers):
             return redirect(reverse_lazy('budget:transactions'))
 
-        form = BudgetExpenseEntryForm(instance=entry)
+        form = BudgetExpenseEntryForm(instance=transaction)
 
     return render(request, 'budget/transaction_form.html', {'form': form, 'transaction_id': transaction_id})
 
 
-def transaction_remove(request, transaction_id):
-    entry = Transaction.objects.get(id=transaction_id)
-    entry.delete()
+def transaction_delete(request, transaction_id):
+    api_url = request.build_absolute_uri(reverse('budget:transaction_delete_api', args=[transaction_id]))
+
+    if request.method == 'GET':
+
+        response = requests.delete(api_url)
+        if response.status_code == 204:
+            return redirect('budget:transactions')
+
     return redirect('budget:transactions')
+
+# return render(request, 'confirmation_template.html', {'entry': entry})

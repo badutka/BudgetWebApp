@@ -4,12 +4,12 @@ from .models import Transaction, Category
 from django.forms import DateInput
 
 
-class DateInput(DateInput):
+class CustomDateInput(DateInput):
     input_type = 'date'
 
 
 class BudgetExpenseEntryForm(forms.ModelForm):
-    date = forms.DateField(widget=DateInput)
+    date = forms.DateField(widget=CustomDateInput)
     description = forms.CharField(widget=forms.Textarea(), required=False)
 
     class Meta:

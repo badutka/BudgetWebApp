@@ -3,11 +3,14 @@ from rest_framework.generics import ListAPIView
 from rest_framework.views import APIView
 from rest_framework import status, generics
 
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render
+from django.template.loader import render_to_string
+from django.http import HttpResponse
 
 from budget.serializers import TransactionSerializer, ChartDataSerializer, BalanceHistorySerializer, BalanceHistoryRefreshSerializer
 from budget.models import Transaction, MoneyAccount, BalanceHistory
 from budget.summary import create_summary_table, create_yearly_summary
+from budget.forms import BudgetExpenseEntryForm
 
 
 class BalanceHistoryRefreshAPIView(APIView):
@@ -37,25 +40,40 @@ class ChartDataAPIView(APIView):
         return Response(serializer.data)
 
 
+class TransactionRemoveAPIView(APIView):
+    def delete(self, request, transaction_id):
+        transaction = get_object_or_404(Transaction, id=transaction_id)
+        transaction.delete()
+        return Response({"message": "Transaction deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+
+
 class TransactionUpdateAPIView(APIView):
     def get(self, request, transaction_id):
         transaction = get_object_or_404(Transaction, id=transaction_id)
-        serializer = TransactionSerializer(instance=transaction)
+        serializer = TransactionSerializer(transaction)
         return Response(serializer.data)
 
     def put(self, request, transaction_id):
         transaction = get_object_or_404(Transaction, id=transaction_id)
-        serializer = TransactionSerializer(instance=transaction, data=request.data)
+        serializer = TransactionSerializer(transaction, data=request.data)
 
         if serializer.is_valid():
             serializer.save()
-            return Response(status=status.HTTP_204_NO_CONTENT)
+            return Response({'message': 'Transaction updated successfully'})
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class TransactionFormAPIView(APIView):
+    def get(self, request, transaction_id):
+        transaction = get_object_or_404(Transaction, id=transaction_id)
+        form = BudgetExpenseEntryForm(instance=transaction)
+        form_html = render_to_string('budget/transaction_form.html', {'form': form})
+        return HttpResponse(form_html)
+
+
 class TransactionCreateAPIView(APIView):
-    def post(self, request, format=None):
+    def delete(self, request, format=None):
         serializer = TransactionSerializer(data=request.data)
 
         if serializer.is_valid():
