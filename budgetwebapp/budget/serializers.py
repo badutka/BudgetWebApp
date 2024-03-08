@@ -79,3 +79,24 @@ class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transaction
         fields = '__all__'
+
+    def is_valid(self, raise_exception=False):
+        valid = super().is_valid(raise_exception=raise_exception)
+
+        if valid:
+            print(self.validated_data)
+
+            if self.validated_data.get('origin') == 'OUT':
+                transaction_type = 'INCOMING'
+            elif self.validated_data.get('destination') == 'OUT':
+                transaction_type = 'OUTGOING'
+            else:
+                transaction_type = 'INNER'
+
+            category = self.validated_data.get('category')
+
+            if transaction_type != category.transaction_type:
+                self._errors["transaction_type"] = ["Transaction type does not match category type"]
+                valid = False
+
+        return valid
