@@ -2,6 +2,7 @@ from django.utils import timezone
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.db.models import Q, F
+from rest_framework import serializers
 
 
 class BaseModel(models.Model):

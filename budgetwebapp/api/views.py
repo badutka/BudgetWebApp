@@ -50,6 +50,17 @@ class TransactionFormAPIView(APIView):
         return HttpResponse(form_html)
 
 
+class TransactionDuplicateAPIView(APIView):
+    def post(self, request, transaction_id):
+        transaction = get_object_or_404(Transaction, id=transaction_id)
+        serializer = TransactionSerializer(transaction, data=request.data)
+        if serializer.is_valid():
+            new_transaction = serializer.save(pk=None)  # Create a new entry without a primary key
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 class TransactionAPIView(APIView):
     def get(self, request, transaction_id):
         transaction = get_object_or_404(Transaction, id=transaction_id)
@@ -59,7 +70,6 @@ class TransactionAPIView(APIView):
     def put(self, request, transaction_id):
         transaction = get_object_or_404(Transaction, id=transaction_id)
         serializer = TransactionSerializer(transaction, data=request.data)
-
         if serializer.is_valid():
             serializer.save()
             return Response({'message': 'Transaction updated successfully'}, status=status.HTTP_200_OK)
@@ -94,8 +104,8 @@ class TransactionsAPIView(APIView):
 
     def post(self, request, format=None):
         serializer = TransactionSerializer(data=request.data)
-
         if serializer.is_valid():
+            print(serializer.validated_data)
             serializer.save()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
