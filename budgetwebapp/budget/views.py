@@ -160,26 +160,20 @@ def transactions_list_view(request):
 
 
 def duplicate_transaction(request, transaction_id):
-    # Get the existing transaction entry
-    existing_transaction = Transaction.objects.get(id=transaction_id)
-
     if request.method == 'POST':
-        # Create a form instance with the POST data
         form = BudgetExpenseEntryForm(request.POST)
         if form.is_valid():
-            # Save the duplicated entry
-            new_transaction = form.save(commit=False)
-            new_transaction.pk = None  # Clear the primary key to create a new entry
-            new_transaction.save()
+            api_url = request.build_absolute_uri(reverse('budget:transaction_duplicate_api', args=[transaction_id]))
+            response = requests.post(api_url, data=get_data_from_form(form))
+            return get_response_by_status_code(response, 204, HttpResponse(status=204), HttpResponseBadRequest())
 
-            return HttpResponse(status=204)
     else:
         if not ('HX-Request' in request.headers):
             # Redirect users if accessing the URL directly
             return redirect(reverse_lazy('budget:transactions'))
 
         # Create a form instance with the existing entry data
-        form = BudgetExpenseEntryForm(instance=existing_transaction)
+        form = BudgetExpenseEntryForm(instance=Transaction.objects.get(id=transaction_id))
 
     return render(request, 'budget/transaction_add.html', {'form': form})
 

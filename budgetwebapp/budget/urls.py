@@ -21,6 +21,7 @@ from .views import (
 from api.views import (
     TransactionsAPIView,
     TransactionAPIView,
+    TransactionDuplicateAPIView,
     TransactionFormAPIView,
     ChartDataAPIView,
     BalanceHistoryRefreshAPIView,
@@ -57,7 +58,7 @@ urlpatterns = [
     # 5. Delete the Transaction
     path('transactions/<int:transaction_id>/delete/', transaction_delete, name='transaction_delete'),
     # 6. Duplicate Transaction
-    path('transactions/duplicate/<int:transaction_id>/', duplicate_transaction, name='duplicate_transaction'),
+    path('transactions/<int:transaction_id>/duplicate/', duplicate_transaction, name='duplicate_transaction'),
     # 7. Incoming Transactions List
     path('transactions/incoming/', incoming_transactions_list_view, name='incoming_transactions'),
     # 8. Outgoing Transactions List
@@ -89,7 +90,7 @@ urlpatterns = urlpatterns + [
     # 5. Delete the Transaction
     path('api/transactions/<int:transaction_id>/', TransactionAPIView.as_view(), name='transaction_delete_api'),
     # 6. Duplicate Transaction
-
+    path('api/transactions/<int:transaction_id>/duplicate/', TransactionDuplicateAPIView.as_view(), name='transaction_duplicate_api'),
     # 7. Incoming Transactions List
 
     # 8. Outgoing Transactions List
