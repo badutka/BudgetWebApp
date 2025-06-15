@@ -5,6 +5,7 @@ from django.http import HttpResponseBadRequest, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
 from rest_framework.exceptions import ValidationError
+from django.http import JsonResponse
 
 from api.views import BalanceHistoryAPIView
 from .forms import BudgetExpenseEntryForm
@@ -65,10 +66,10 @@ def chart_summary(request):
 # ===============================================
 
 def yearly_expense_summary_view(request):
-    summary, totals = create_yearly_summary(2023)
-    expense_summary_detailed, total_expense_summary_detailed = create_summary_table(2023, "expense")
-    income_summary_detailed, total_income_summary_detailed = create_summary_table(2023, "income")
-
+    summary, totals = create_yearly_summary(2024)
+    expense_summary_detailed, total_expense_summary_detailed = create_summary_table(2024, "expense")
+    income_summary_detailed, total_income_summary_detailed = create_summary_table(2024, "income")
+    print(summary)
     context = {
         'summary': summary,
         'totals': totals,
@@ -82,7 +83,7 @@ def yearly_expense_summary_view(request):
 
 
 def monthly_expense_summary_view(request):
-    summary_table, summary_table_total = create_summary_table(2023, "expense")
+    summary_table, summary_table_total = create_summary_table(2024, "expense")
 
     context = {
         'summary_table': summary_table,
@@ -93,7 +94,7 @@ def monthly_expense_summary_view(request):
 
 
 def monthly_income_summary_view(request):
-    summary_table, summary_table_total = create_summary_table(2023, "income")
+    summary_table, summary_table_total = create_summary_table(2024, "income")
 
     context = {
         'summary_table': summary_table,
@@ -141,7 +142,16 @@ def incoming_transactions_list_view(request):
 
 
 def transactions_list_view(request):
-    if request.method == 'GET':
+    print('hello1')
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest' and request.method == 'GET':
+        selected_value = request.GET.get('selected_value')
+        # Process the selected value as needed
+        # Generate the response
+        response_data = {'response': 'You selected: ' + selected_value}
+        print(response_data)
+        return JsonResponse(response_data)
+    elif request.method == 'GET':
+        print('hello3')
         api_url = request.build_absolute_uri(reverse('budget:transactions_api'))  # API endpoint URL
         response = requests.get(api_url)
         transactions = get_response_by_status_code(response, 200, response.json(), [])

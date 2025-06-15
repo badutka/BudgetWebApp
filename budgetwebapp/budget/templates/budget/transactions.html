@@ -12,4 +12,30 @@
     {% include 'budget/transactions_table.html' with transactions_page_obj=transactions_page_obj %}
 </div>
 
+    <select id="dropdown">
+        <option value="value1">Option 1</option>
+        <option value="value2">Option 2</option>
+        <option value="value3">Option 3</option>
+    </select>
+
+    <div id="output"></div>
+
+    <script>
+        $(document).ready(function() {
+            $('#dropdown').change(function() {
+                var selectedValue = $(this).val();
+                $.ajax({
+                    url: '/transactions/',
+                    data: {
+                        'selected_value': selectedValue
+                    },
+                    dataType: 'json',
+                    success: function(data) {
+                        $('#output').html(data.response);
+                    }
+                });
+            });
+        });
+    </script>
+
 {% endblock content %}

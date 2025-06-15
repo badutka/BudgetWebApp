@@ -47,6 +47,8 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
+    # 0. Home (default)
+    path('', transactions_list_view, name='transactions'),
     # 1. Get Transactions
     path('transactions/', transactions_list_view, name='transactions'),
     # 2. Create a new Transaction

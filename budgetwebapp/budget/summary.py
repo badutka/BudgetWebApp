@@ -1,7 +1,7 @@
 from django.db.models import Sum
 from calendar import month_name
 
-from .models import MainCategory, SubCategory, Transaction, MoneyAccount
+from .models import ParentCategory, Category, Transaction, MoneyAccount
 
 
 def create_yearly_summary(year):
@@ -33,7 +33,7 @@ def create_yearly_summary(year):
         expenses = Transaction.objects.filter(
             date__year=year,
             date__month=month,
-            transaction_type='OUTGOING'
+            category__transaction_type='OUTGOING'
         ).aggregate(total=Sum('amount'))['total'] or 0
         summary['monthly_expenses'][this_month_name] = round(expenses, 2)
 
@@ -41,7 +41,7 @@ def create_yearly_summary(year):
         income = Transaction.objects.filter(
             date__year=year,
             date__month=month,
-            transaction_type='INCOMING'
+            category__transaction_type='INCOMING'
         ).aggregate(total=Sum('amount'))['total'] or 0
         summary['monthly_income'][this_month_name] = round(income, 2)
 
@@ -61,7 +61,7 @@ def create_yearly_summary(year):
     total_income = sum(summary['monthly_income'].values())
     total_net_savings = total_income - total_expenses
     total_ending_balance = starting_balance + total_net_savings
-
+    print(summary['monthly_net_savings'])
     return summary, {'total_expenses': total_expenses, 'total_income': total_income, 'total_net_savings': total_net_savings, 'total_ending_balance': total_ending_balance}
 
 
@@ -131,7 +131,7 @@ def create_summary_table(year, option):
     # main_categories = MainCategory.objects.all()
 
     # Get all main categories based on the transaction type
-    main_categories = MainCategory.objects.filter(category__transaction_type__in=summary_type[option]).distinct()
+    parent_categories = ParentCategory.objects.filter(category__transaction_type__in=summary_type[option]).distinct()
 
     # Create a dictionary to store the summary data
     summary_table = {}
@@ -143,9 +143,9 @@ def create_summary_table(year, option):
     category_totals = {}
 
     # Loop through each main category
-    for main_category in main_categories:
+    for main_category in parent_categories:
         # Get all subcategories for the current main category
-        subcategories = SubCategory.objects.filter(category__main_category=main_category)
+        categories = Category.objects.filter(parent_category=main_category)
         # Create a list to store the row data for the current main category
         main_category_data = []
 
@@ -157,11 +157,11 @@ def create_summary_table(year, option):
         category_monthly_totals = {month: 0 for month in months}
 
         # Loop through each subcategory
-        for subcategory in subcategories:
+        for category in categories:
             # Query the BudgetExpenseEntry model to get the monthly summary for the given year
             monthly_summary = Transaction.objects.filter(
-                category__main_category=main_category,
-                category__subcategory=subcategory,
+                category__parent_category=main_category,
+                category__name=category.name,
                 year=year,
                 transaction_type__in=summary_type[option]  # Filter for income or expense transactions
             ).values('date__month').annotate(total_amount=Sum('amount'))
@@ -177,10 +177,10 @@ def create_summary_table(year, option):
                 subcategory_summary[month] = total_amount
 
                 # Update subcategory total
-                if subcategory in subcategory_totals:
-                    subcategory_totals[subcategory] += total_amount
+                if category in subcategory_totals:
+                    subcategory_totals[category] += total_amount
                 else:
-                    subcategory_totals[subcategory] = total_amount
+                    subcategory_totals[category] = total_amount
 
                 # Update category total
                 category_total += total_amount
@@ -196,7 +196,7 @@ def create_summary_table(year, option):
 
             # Append the subcategory summary to the main category data list
             main_category_data.append({
-                'subcategory': subcategory.name,
+                'subcategory': category.name,
                 'summary': subcategory_summary
             })
 

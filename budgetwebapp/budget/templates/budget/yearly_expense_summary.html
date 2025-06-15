@@ -26,33 +26,33 @@
                 <tr>
                     <th>Income</th>
                     {% for month, value in summary.monthly_income.items %}
-                        <th>{{ value|floatformat:2|intcomma }} PLN</th>
+                        <th>{{ value|floatformat:2|intcomma }}</th>
                     {% endfor %}
-                    <th>{{ totals.total_income|floatformat:2|intcomma }} PLN</th>
+                    <th>{{ totals.total_income|floatformat:2|intcomma }}</th>
                 </tr>
 
                 <tr>
                     <th>Expenses</th>
                     {% for month, value in summary.monthly_expenses.items %}
-                        <th>{{ value|floatformat:2|intcomma }} PLN</th>
+                        <th>{{ value|floatformat:2|intcomma }}</th>
                     {% endfor %}
-                    <th>{{ totals.total_expenses|floatformat:2|intcomma }} PLN</th>
+                    <th>{{ totals.total_expenses|floatformat:2|intcomma }}</th>
                 </tr>
 
                 <tr>
                     <th>Net Savings</th>
                     {% for month, value in summary.monthly_net_savings.items %}
-                        <th>{{ value|floatformat:2|intcomma }} PLN</th>
+                        <th>{{ value|floatformat:2|intcomma }}</th>
                     {% endfor %}
-                    <th>{{ totals.total_net_savings|floatformat:2|intcomma }} PLN</th>
+                    <th>{{ totals.total_net_savings|floatformat:2|intcomma }}</th>
                 </tr>
 
                 <tr>
                     <th><span class="badge bg-danger">Ending Balance</span> <i class="bi bi-arrow-right"></i></th>
                     {% for month, value in summary.monthly_ending_balance.items %}
-                        <th>{{ value|floatformat:2|intcomma }} PLN</th>
+                        <th>{{ value|floatformat:2|intcomma }}</th>
                     {% endfor %}
-                    <th>{{ totals.total_ending_balance|floatformat:2|intcomma }} PLN</th>
+                    <th>{{ totals.total_ending_balance|floatformat:2|intcomma }}</th>
                 </tr>
 
             </tbody>

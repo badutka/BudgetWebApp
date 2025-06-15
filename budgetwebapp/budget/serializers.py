@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.db.models import Q
 
-from .models import BalanceHistory, Transaction, MoneyAccount, Category, MainCategory, SubCategory
+from .models import BalanceHistory, Transaction, MoneyAccount, Category, ParentCategory
 
 
 class ChartDataSerializer(serializers.Serializer):
@@ -84,8 +84,6 @@ class TransactionSerializer(serializers.ModelSerializer):
         valid = super().is_valid(raise_exception=raise_exception)
 
         if valid:
-            print(self.validated_data)
-
             if self.validated_data.get('origin') == 'OUT':
                 transaction_type = 'INCOMING'
             elif self.validated_data.get('destination') == 'OUT':

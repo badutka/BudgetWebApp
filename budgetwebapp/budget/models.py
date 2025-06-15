@@ -24,45 +24,57 @@ class MoneyAccount(BaseModel):
         verbose_name_plural = "MoneyAccounts"
 
 
-class MainCategory(BaseModel):
+class ParentCategory(models.Model):
     name = models.CharField(max_length=255, unique=True)
 
     def __str__(self):
         return self.name
 
     class Meta:
-        verbose_name_plural = "MainCategories"
+        verbose_name_plural = "ParentCategories"
         ordering = ["name"]
 
 
-class SubCategory(BaseModel):
-    name = models.CharField(max_length=255, unique=True)
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        verbose_name_plural = "SubCategories"
-        ordering = ["name"]
+# class MainCategory(BaseModel):
+#     name = models.CharField(max_length=255, unique=True)
+#
+#     def __str__(self):
+#         return self.name
+#
+#     class Meta:
+#         verbose_name_plural = "MainCategories"
+#         ordering = ["name"]
+#
+#
+# class SubCategory(BaseModel):
+#     name = models.CharField(max_length=255, unique=True)
+#
+#     def __str__(self):
+#         return self.name
+#
+#     class Meta:
+#         verbose_name_plural = "SubCategories"
+#         ordering = ["name"]
 
 
 class Category(BaseModel):
-    main_category = models.ForeignKey(MainCategory, on_delete=models.CASCADE)
-    subcategory = models.ForeignKey(SubCategory, on_delete=models.CASCADE)
+    name = models.CharField(max_length=255, unique=True)
+    parent_category = models.ForeignKey(ParentCategory, on_delete=models.CASCADE)
+
     TRANSFER_CHOICES = [
         ('INNER', 'INNER'),
         ('INCOMING', 'INCOMING'),
         ('OUTGOING', 'OUTGOING'),
     ]
-    transaction_type = models.CharField(max_length=255, choices=TRANSFER_CHOICES, blank=True, null=True)
+    transaction_type = models.CharField(max_length=255, choices=TRANSFER_CHOICES)
 
     def __str__(self):
-        return f"{self.main_category.name} - {self.subcategory.name}"
+        return f"{self.parent_category.name} - {self.name} ({self.transaction_type})"
 
     class Meta:
         verbose_name_plural = "Categories"
-        unique_together = [['main_category', 'subcategory']]
-        ordering = ['main_category', 'subcategory']
+        unique_together = [['parent_category', 'name']]
+        ordering = ['parent_category', 'name']
 
 
 class Transaction(BaseModel):
@@ -93,8 +105,7 @@ class Transaction(BaseModel):
 
     def save(self, *args, **kwargs):
         if self.category:
-            self.main_category = self.category.main_category
-            self.subcategory = self.category.subcategory
+            self.transaction_type = self.category.transaction_type
 
         if self.pk is not None:
             # Get the previous amount before updating
@@ -125,16 +136,16 @@ class Transaction(BaseModel):
         if self.origin == 'OUT':
             # Transfer from outside, increase amount on destination account
             update_account(self.destination, self.amount - previous_amount)  # add the difference of amounts +(105 - 100) = +5, or +105 if +100 already rolled back
-            self.transaction_type = 'INCOMING'
+            self.category.transaction_type = 'INCOMING'
         elif self.destination == 'OUT':
             # Transfer to outside, decrease amount on origin account
             update_account(self.origin, -(self.amount - previous_amount))  # subtract the difference of amounts -(105 - 100) = -5, or -105 if -100 already rolled back
-            self.transaction_type = 'OUTGOING'
+            self.category.transaction_type = 'OUTGOING'
         else:
             # Transfer between accounts, adjust origin and destination balances
             update_account(self.origin, -(self.amount - previous_amount))
             update_account(self.destination, self.amount - previous_amount)
-            self.transaction_type = 'INNER'
+            self.category.transaction_type = 'INNER'
 
         self.year = self.date.year
 
