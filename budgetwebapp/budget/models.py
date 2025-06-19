@@ -69,7 +69,8 @@ class Category(BaseModel):
     transaction_type = models.CharField(max_length=255, choices=TRANSFER_CHOICES)
 
     def __str__(self):
-        return f"{self.parent_category.name} - {self.name} ({self.transaction_type})"
+        # return f"{self.parent_category.name} - {self.name} ({self.transaction_type})"
+        return f"{self.parent_category.name} - {self.name}"
 
     class Meta:
         verbose_name_plural = "Categories"
@@ -136,16 +137,19 @@ class Transaction(BaseModel):
         if self.origin == 'OUT':
             # Transfer from outside, increase amount on destination account
             update_account(self.destination, self.amount - previous_amount)  # add the difference of amounts +(105 - 100) = +5, or +105 if +100 already rolled back
-            self.category.transaction_type = 'INCOMING'
+            # self.category.transaction_type = 'INCOMING'
+            self.transaction_type = 'INCOMING'
         elif self.destination == 'OUT':
             # Transfer to outside, decrease amount on origin account
             update_account(self.origin, -(self.amount - previous_amount))  # subtract the difference of amounts -(105 - 100) = -5, or -105 if -100 already rolled back
-            self.category.transaction_type = 'OUTGOING'
+            # self.category.transaction_type = 'OUTGOING'
+            self.transaction_type = 'OUTGOING'
         else:
             # Transfer between accounts, adjust origin and destination balances
             update_account(self.origin, -(self.amount - previous_amount))
             update_account(self.destination, self.amount - previous_amount)
-            self.category.transaction_type = 'INNER'
+            # self.category.transaction_type = 'INNER'
+            self.transaction_type = 'INNER'
 
         self.year = self.date.year
 
