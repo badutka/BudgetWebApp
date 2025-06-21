@@ -1,0 +1,9 @@
+django
+django-crispy-forms
+crispy-bootstrap5
+djangorestframework
+django-mathfilters
+drf-yasg
+requests
+
+pandas
