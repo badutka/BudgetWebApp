@@ -18,13 +18,8 @@ def create_yearly_summary(year):
         'monthly_ending_balance': {k: v for k, v in zip(months, [0] * 12)}  # Ending balance for each month
     }
 
-    # Get the starting balances for each money account
-    pko_account = MoneyAccount.objects.get(name='PKO')
-    ing_account = MoneyAccount.objects.get(name='ING')
-    cash_account = MoneyAccount.objects.get(name='CASH')
-
-    # Calculate the starting balance for the month
-    starting_balance = pko_account.starting_balance + ing_account.starting_balance + cash_account.starting_balance
+    # Get starting balances from all MoneyAccounts
+    starting_balance = MoneyAccount.objects.aggregate(total=Sum('starting_balance'))['total'] or 0
 
     # Calculate the summary for each month
     for month in range(1, 13):
@@ -63,7 +58,7 @@ def create_yearly_summary(year):
     total_income = sum(summary['monthly_income'].values())
     total_net_savings = total_income - total_expenses
     total_ending_balance = starting_balance + total_net_savings
-    print(summary['monthly_net_savings'])
+
     return summary, {'total_expenses': total_expenses, 'total_income': total_income, 'total_net_savings': total_net_savings, 'total_ending_balance': total_ending_balance}
 
 
