@@ -13,6 +13,7 @@ from budget.serializers import TransactionSerializer, ChartDataSerializer, Balan
 from budget.models import Transaction, Category, MoneyAccount, BalanceHistory
 from budget.summary import create_summary_table, create_yearly_summary
 from budget.forms import BudgetExpenseEntryForm
+from budget.utils import update_request_data_for_transaction
 
 
 class BalanceHistoryRefreshAPIView(APIView):
@@ -53,7 +54,10 @@ class TransactionFormAPIView(APIView):
 class TransactionDuplicateAPIView(APIView):
     def post(self, request, transaction_id):
         transaction = get_object_or_404(Transaction, id=transaction_id)
-        serializer = TransactionSerializer(transaction, data=request.data)
+        data = update_request_data_for_transaction(request)
+
+        serializer = TransactionSerializer(transaction, data=data, partial=True)
+
         if serializer.is_valid():
             new_transaction = serializer.save(pk=None)  # Create a new entry without a primary key
             return Response(status=status.HTTP_204_NO_CONTENT)
@@ -69,7 +73,10 @@ class TransactionAPIView(APIView):
 
     def put(self, request, transaction_id):
         transaction = get_object_or_404(Transaction, id=transaction_id)
-        serializer = TransactionSerializer(transaction, data=request.data)
+        data = update_request_data_for_transaction(request)
+
+        serializer = TransactionSerializer(transaction, data=data, partial=True)
+
         if serializer.is_valid():
             serializer.save()
             return Response({'message': 'Transaction updated successfully'}, status=status.HTTP_200_OK)
@@ -90,22 +97,56 @@ class TransactionsAPIView(APIView):
         return formatted_date
 
     def get(self, request):
-        transactions = Transaction.objects.all()
+        # transactions = Transaction.objects.all()
+        transactions = Transaction.objects.select_related('origin', 'destination', 'category').all()
         serializer = TransactionSerializer(transactions, many=True)
         serialized_data = serializer.data
 
+        # for many transactions,and wanting to reduce DB hits (avoiding N+1 problem):
+        accounts = {acc.id: str(acc.name) for acc in MoneyAccount.objects.all()}
+
+        # todo:
+        # https://stackoverflow.com/questions/9046284/how-i-can-replace-user-id-to-username-in-django-json
+        # https://docs.djangoproject.com/en/dev/topics/serialization/#natural-keys
+        # https://stackoverflow.com/questions/60232446/is-there-a-way-to-retrieve-the-value-of-object-instead-of-its-id
+        # https://www.django-rest-framework.org/api-guide/relations/
         # Convert timestamp strings into dates
         for data in serialized_data:
             data['created_at'] = TransactionsAPIView.format_timestamp(data['created_at'])
             data['updated_at'] = TransactionsAPIView.format_timestamp(data['updated_at'])
-            data['category'] = str(Category.objects.get(id=data['category']))
+            data['category'] = str(
+                Category.objects.get(id=data['category']))  # THIS IS HOW CATEGORY IS DISPLAYED BY NAME, NOT PK
+
+            # todo: this or below or natural keys
+            origin_id = data.get('origin')
+            destination_id = data.get('destination')
+            # data['origin'] = str(MoneyAccount.objects.get(id=origin_id).name) if origin_id else 'Out'
+            # data['destination'] = str(MoneyAccount.objects.get(id=destination_id).name) if destination_id else 'Out'
+            # for many transactions,and wanting to reduce DB hits (avoiding N+1 problem):
+            data['origin'] = accounts.get(origin_id, 'Out')
+            data['destination'] = accounts.get(destination_id, 'Out')
+
+            # todo: this or natural keys
+            # Replace origin and destination IDs with their names
+            # origin_id = data.get('origin')
+            # if origin_id:
+            #     origin_account = MoneyAccount.objects.filter(id=origin_id).first()
+            #     data['origin'] = origin_account.name if origin_account else None
+            # else:
+            #     data['origin'] = None
+            #
+            # destination_id = data.get('destination')
+            # if destination_id:
+            #     destination_account = MoneyAccount.objects.filter(id=destination_id).first()
+            #     data['destination'] = destination_account.name if destination_account else None
+            # else:
+            #     data['destination'] = None
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request, format=None):
         serializer = TransactionSerializer(data=request.data)
         if serializer.is_valid():
-            print(serializer.validated_data)
             serializer.save()
             return Response(status=status.HTTP_204_NO_CONTENT)
 

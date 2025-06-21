@@ -1,4 +1,4 @@
-import requests
+import requests, json
 from django.core.paginator import Paginator
 from django.db.models import Sum
 from django.http import HttpResponseBadRequest, HttpResponse
@@ -66,9 +66,9 @@ def chart_summary(request):
 # ===============================================
 
 def yearly_expense_summary_view(request):
-    summary, totals = create_yearly_summary(2024)
-    expense_summary_detailed, total_expense_summary_detailed = create_summary_table(2024, "expense")
-    income_summary_detailed, total_income_summary_detailed = create_summary_table(2024, "income")
+    summary, totals = create_yearly_summary(2025)
+    expense_summary_detailed, total_expense_summary_detailed = create_summary_table(2025, "expense")
+    income_summary_detailed, total_income_summary_detailed = create_summary_table(2025, "income")
     print(summary)
     context = {
         'summary': summary,
@@ -83,7 +83,7 @@ def yearly_expense_summary_view(request):
 
 
 def monthly_expense_summary_view(request):
-    summary_table, summary_table_total = create_summary_table(2024, "expense")
+    summary_table, summary_table_total = create_summary_table(2025, "expense")
 
     context = {
         'summary_table': summary_table,
@@ -94,7 +94,7 @@ def monthly_expense_summary_view(request):
 
 
 def monthly_income_summary_view(request):
-    summary_table, summary_table_total = create_summary_table(2024, "income")
+    summary_table, summary_table_total = create_summary_table(2025, "income")
 
     context = {
         'summary_table': summary_table,
@@ -232,6 +232,7 @@ def transaction_edit(request, transaction_id):
         form = BudgetExpenseEntryForm(request.POST, instance=transaction)
 
         if form.is_valid():
+            # updated_transaction = form.save(commit=False)
             api_url = request.build_absolute_uri(reverse('budget:transaction_update_api', args=[transaction_id]))
             response = requests.put(api_url, data=get_data_from_form(form))
             return get_response_by_status_code(response, 200, HttpResponse(status=200), HttpResponseBadRequest())

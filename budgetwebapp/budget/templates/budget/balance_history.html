@@ -27,7 +27,7 @@
                     <td>{{ history_entry.budget_entry.origin }}</td>
                     <td>{{ history_entry.budget_entry.destination }}</td>
                     <td>{{ history_entry.balance_before }} <i class="bi bi-arrow-right"></i> {{ history_entry.balance_after }}</td>
-                    {% if history_entry.budget_entry.destination == money_account_name%}
+                    {% if history_entry.budget_entry.transaction_type == "INCOMING"%}
                        <td class="nowrap">
                            <div class="bg-success income-balance-bg rounded border border-success float-end">
                                +{{ history_entry.budget_entry.amount }} PLN

@@ -56,14 +56,19 @@ class BalanceHistoryRefreshSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         money_account_name = validated_data['money_account_name']
-        transactions = Transaction.objects.filter(Q(origin=money_account_name) | Q(destination=money_account_name)).reverse()
+        transactions = Transaction.objects.filter(
+            Q(origin__name=money_account_name) | Q(destination__name=money_account_name)).reverse()
+        print(f"balance_refresh {transactions = }")
         account = MoneyAccount.objects.get(name=money_account_name)
         balance = account.starting_balance
         BalanceHistory.objects.filter(money_account__name=money_account_name).delete()  # !!!!!!!!!!!!!!!!!!!!!
         for transaction in transactions:
-            if transaction.origin == money_account_name:
+            if transaction.origin and transaction.origin.name == money_account_name:
                 balance = create_balance_history(transaction, account, balance, -transaction.amount)
-            if transaction.destination == money_account_name:
+                print('odejmujemy 100')
+            if transaction.destination and transaction.destination.name == money_account_name:
+                print('dodajemy 100')
+                print(transaction.amount)
                 balance = create_balance_history(transaction, account, balance, transaction.amount)
         return {'message': 'Balance history refreshed successfully'}
     # todo: only delete records that changed, meaning: delete all balance entries above the date, and then do nothing when record already exists and create a new one when it doesn't (for given timestamp)
@@ -75,26 +80,76 @@ class BalanceHistorySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+# class TransactionSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Transaction
+#         fields = '__all__'
+#
+#     def is_valid(self, raise_exception=False):
+#         valid = super().is_valid(raise_exception=raise_exception)
+#
+#         if valid:
+#             if self.validated_data.get('origin') == 'OUT':
+#                 transaction_type = 'INCOMING'
+#             elif self.validated_data.get('destination') == 'OUT':
+#                 transaction_type = 'OUTGOING'
+#             else:
+#                 transaction_type = 'INNER'
+#
+#             category = self.validated_data.get('category')
+#
+#             if transaction_type != category.transaction_type:
+#                 self._errors["transaction_type"] = ["Transaction type does not match category type"]
+#                 valid = False
+#
+#         return valid
+
+class MoneyAccountSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MoneyAccount
+        fields = '__all__'
+
+
 class TransactionSerializer(serializers.ModelSerializer):
+    origin = serializers.PrimaryKeyRelatedField(
+        queryset=MoneyAccount.objects.all(),
+        allow_null=True,
+        required=False
+    )
+    destination = serializers.PrimaryKeyRelatedField(
+        queryset=MoneyAccount.objects.all(),
+        allow_null=True,
+        required=False
+    )
+
     class Meta:
         model = Transaction
         fields = '__all__'
 
-    def is_valid(self, raise_exception=False):
-        valid = super().is_valid(raise_exception=raise_exception)
+    def validate(self, data):
+        origin = data.get('origin')
+        destination = data.get('destination')
+        print(f'serializer: {origin = }')
+        print(f'serializer: {destination = }')
+        if not origin and not destination:
+            raise serializers.ValidationError("At least one of origin or destination must be set.")
 
-        if valid:
-            if self.validated_data.get('origin') == 'OUT':
-                transaction_type = 'INCOMING'
-            elif self.validated_data.get('destination') == 'OUT':
-                transaction_type = 'OUTGOING'
-            else:
-                transaction_type = 'INNER'
+        if origin and destination and origin == destination:
+            raise serializers.ValidationError("Origin and destination cannot be the same.")
 
-            category = self.validated_data.get('category')
+        # Automatically determine transaction_type
+        if origin and destination:
+            transaction_type = 'INNER'
+        elif origin and not destination:
+            transaction_type = 'OUTGOING'
+        elif not origin and destination:
+            transaction_type = 'INCOMING'
+        else:
+            raise serializers.ValidationError("Invalid transaction configuration.")
 
-            if transaction_type != category.transaction_type:
-                self._errors["transaction_type"] = ["Transaction type does not match category type"]
-                valid = False
-
-        return valid
+        category = data.get('category')
+        if category and category.transaction_type != transaction_type:
+            raise serializers.ValidationError(
+                f"Transaction type mismatch: expected {category.transaction_type}, got {transaction_type}")
+        print(f'serializer validated data: {data = }')
+        return data
