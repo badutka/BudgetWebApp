@@ -17,16 +17,20 @@
 <!--<div style="display: flex; flex-wrap: wrap; margin-top: 1%; margin-left: 5%;">-->
 <!-- Flex container -->
 <div style="display: flex; margin-top: 1%; margin-left: 10px;">
-
     <!-- Filters Sidebar -->
     <form style="width: 150px; margin-right: 10px;" id="transaction-filter-form"
           hx-get="{% url 'budget:transactions' %}"
           hx-target="#transaction-table-content"
           hx-push-url="true"
-          hx-trigger="change from:select, change from:input[name='category']:not(#category-select-all)">
+          hx-trigger="change from:select,
+             change from:input[name='category']:not(#category-select-all),
+             change from:input[name='date_from'],
+             change from:input[name='date_to']">
+<!--        width: 150px in label below fixes all filters at 150px.-->
+        <label class="form-label filter-label" style="font-size: 24px; width: 150px;">Filters:</label>
 
         <!-- Transaction Type Dropdown -->
-        <label for="transaction_type" class="form-label filter-label">Filter by Type</label>
+        <label for="transaction_type" class="form-label filter-label">Type</label>
         <select name="transaction_type" id="transaction_type" class="form-select">
             <option value="">Any</option>
             {% for val, label in transaction_type_choices %}
@@ -37,7 +41,7 @@
         </select>
 
         <!-- Dropdown-style Category Filter -->
-        <label class="form-label filter-label">Filter by Category</label>
+        <label class="form-label filter-label">Category</label>
         <div class="dropdown">
             <button class="btn btn-light dropdown-toggle" type="button" id="categoryDropdownButton"
                     data-bs-toggle="dropdown" aria-expanded="false"
@@ -75,6 +79,18 @@
                 </fieldset>
             </div>
         </div>
+
+        <!-- Date From -->
+        <label for="id_date_from" class="form-label filter-label">From</label>
+        <input type="date" name="date_from" id="id_date_from"
+               class="form-control"
+               value="{{ request.GET.date_from }}">
+
+        <!-- Date To -->
+        <label for="id_date_to" class="form-label filter-label">To</label>
+        <input type="date" name="date_to" id="id_date_to"
+               class="form-control"
+               value="{{ request.GET.date_to }}">
 
     </form>
 

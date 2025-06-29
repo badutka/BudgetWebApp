@@ -21,6 +21,20 @@ class TransactionFilter(django_filters.FilterSet):
         # method='filter_category'
     )
 
+    # New date filters
+    date_from = django_filters.DateFilter(
+        field_name='date',
+        lookup_expr='gte',
+        label='From date',
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
+    )
+    date_to = django_filters.DateFilter(
+        field_name='date',
+        lookup_expr='lte',
+        label='To date',
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
+    )
+
     def filter_category(self, queryset, name, value):
         if not value:
             return queryset.none()  # No categories selected = no results
@@ -28,4 +42,4 @@ class TransactionFilter(django_filters.FilterSet):
 
     class Meta:
         model = Transaction
-        fields = ('transaction_type', 'category')
+        fields = ('transaction_type', 'category', 'date_from', 'date_to')

@@ -60,7 +60,7 @@
 
 <!-- Pagination links -->
 <nav aria-label="Page navigation example">
-    <ul class="pagination justify-content-center">
+    <ul class="pagination justify-content-center mt-2">
         {% if transactions_page_obj.has_previous %}
             <li class="page-item"><a class="page-link" href="?page=1">&laquo; First</a></li>
             <li class="page-item"><a class="page-link" href="?page={{ transactions_page_obj.previous_page_number }}">Previous</a></li>
