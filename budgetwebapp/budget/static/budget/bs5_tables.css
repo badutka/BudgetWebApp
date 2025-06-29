@@ -23,6 +23,12 @@
     width: 0;
 }
 
+.filter-label{
+    color: white;
+    margin-bottom: 0;
+    margin-top: .5rem;
+}
+
 .income-balance-bg{
     width: fit-content;
     padding-right: 5%;
@@ -69,4 +75,3 @@
         margin-left: calc((100% - var(--widthA))/2); 
     }
 }
-

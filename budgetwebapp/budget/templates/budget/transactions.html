@@ -14,17 +14,19 @@
 </select>
 
 <h1>Transactions</h1>
+<!--<div style="display: flex; flex-wrap: wrap; margin-top: 1%; margin-left: 5%;">-->
+<!-- Flex container -->
+<div style="display: flex; margin-top: 1%; margin-left: 10px;">
 
-<div id='transactions-table' style="width: 75%; margin-left: 5%; margin-top: 1%;">
-
-    <form id="transaction-filter-form"
+    <!-- Filters Sidebar -->
+    <form style="width: 150px; margin-right: 10px;" id="transaction-filter-form"
           hx-get="{% url 'budget:transactions' %}"
           hx-target="#transaction-table-content"
           hx-push-url="true"
           hx-trigger="change from:select, change from:input[name='category']:not(#category-select-all)">
 
         <!-- Transaction Type Dropdown -->
-        <label for="transaction_type" class="form-label">Filter by Type</label>
+        <label for="transaction_type" class="form-label filter-label">Filter by Type</label>
         <select name="transaction_type" id="transaction_type" class="form-select">
             <option value="">Any</option>
             {% for val, label in transaction_type_choices %}
@@ -35,13 +37,17 @@
         </select>
 
         <!-- Dropdown-style Category Filter -->
+        <label class="form-label filter-label">Filter by Category</label>
         <div class="dropdown">
             <button class="btn btn-light dropdown-toggle" type="button" id="categoryDropdownButton"
-                    data-bs-toggle="dropdown" aria-expanded="false">
-                Filter by Category
+                    data-bs-toggle="dropdown" aria-expanded="false"
+                    style="width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                Expand
             </button>
 
-            <div class="dropdown-menu p-3" style="min-width: 250px;" aria-labelledby="categoryDropdownButton">
+            <div class="dropdown-menu p-3"
+                 style="width: 100%; max-width: 100%; box-sizing: border-box;"
+                 aria-labelledby="categoryDropdownButton">
                 <fieldset class="mb-0">
                     <div class="form-check">
                         <input class="form-check-input"
@@ -60,8 +66,7 @@
                                name="category"
                                value="{{ category.id }}"
                                id="category-{{ category.id }}"
-
-                                {% if not request.GET.category or category.id|stringformat:"s" in request.GET|getlist:"category" %}checked{% endif %}>
+                               {% if not request.GET.category or category.id|stringformat:"s" in request.GET|getlist:"category" %}checked{% endif %}>
                         <label class="form-check-label" for="category-{{ category.id }}">
                             {{ category.name }}
                         </label>
@@ -73,12 +78,17 @@
 
     </form>
 
-    {% include 'budget/transactions_table.html' with transactions_page_obj=transactions_page_obj %}
-
-
-    <div id="modal" class="modal fade">
-        <div id="dialog" class="modal-dialog" hx-target="this"></div>
+    <!-- Transactions Table -->
+    <div id="transactions-table" style="width: 90%;">
+        {% include 'budget/transactions_table.html' with transactions_page_obj=transactions_page_obj %}
     </div>
+
+</div>
+<!--</div>-->
+
+<!-- Modal -->
+<div id="modal" class="modal fade">
+    <div id="dialog" class="modal-dialog" hx-target="this"></div>
 </div>
 
 {% endblock content %}
