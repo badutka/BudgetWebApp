@@ -168,7 +168,7 @@ class Category(BaseModel):
 #         ordering = ['-date', '-updated_at', '-id']
 
 class Transaction(BaseModel):
-    TRANSFER_CHOICES = [
+    TRANSACTION_TYPE_CHOICES = [
         ('INNER', 'INNER'),
         ('INCOMING', 'INCOMING'),
         ('OUTGOING', 'OUTGOING'),
@@ -186,7 +186,7 @@ class Transaction(BaseModel):
     destination = models.ForeignKey(MoneyAccount, on_delete=models.SET_NULL, related_name='transactions_destination',
                                     null=True, blank=True)
     year = models.PositiveIntegerField(blank=True, null=True)
-    transaction_type = models.CharField(max_length=255, choices=TRANSFER_CHOICES, blank=True, null=True)
+    transaction_type = models.CharField(max_length=255, choices=TRANSACTION_TYPE_CHOICES, blank=True, null=True)
     description = models.CharField(max_length=255, null=True)
 
     def save(self, *args, **kwargs):
