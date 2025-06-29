@@ -3,10 +3,10 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 
 import pandas as pd
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 from budget.models import Transaction
 
-from budget.models import SubCategory, MainCategory, Category, MoneyAccount, Transaction
+from budget.models import Category, ParentCategory, MoneyAccount, Transaction
 
 
 def level_accounts_balances():
@@ -20,43 +20,27 @@ def remove_all_budget_entries():
     Transaction.objects.all().delete()
 
 
-def get_or_create_category(main_category_name, subcategory_name, origin, destination):
-    try:
-        # Try to get the existing Category object based on the provided names
-        category = Category.objects.get(subcategory__name=subcategory_name, main_category__name=main_category_name)
-        print(f"Retrieved existing category by name: '{category}'.")
-    except Category.DoesNotExist:
-        # If the Category doesn't exist, create a new one along with MainCategory and Subcategory
-        subcategory, was_created = SubCategory.objects.get_or_create(name=subcategory_name)
+def get_or_create_category(category_name, origin, destination):
+    if origin is None:
+        transaction_type = "INCOMING"
+    elif destination is None:
+        transaction_type = "OUTGOING"
+    else:
+        transaction_type = "INNER"
 
-        if was_created:
-            print(f"Created new subcategory: '{subcategory}'.")
-        else:
-            print(f"Retrieved subcategory by name: '{subcategory}'.")
+    pc = ParentCategory.objects.get(name='Other')
 
-        # Get or create the MainCategory object
-        main_category, was_created = MainCategory.objects.get_or_create(name=main_category_name)
+    # Create the new Category object
+    category, was_created = Category.objects.get_or_create(
+        name=category_name,
+        parent_category=pc,
+        transaction_type=transaction_type
+    )
 
-        if was_created:
-            print(f"Created new main category: '{main_category}'.")
-        else:
-            print(f"Retrieved main category by name: '{main_category}'.")
-
-        if origin == 'OUT':
-            transaction_type = "INCOMING"
-        elif destination == 'OUT':
-            transaction_type = "OUTGOING"
-        else:
-            transaction_type = "INNER"
-
-        # Create the new Category object
-        category = Category.objects.create(
-            subcategory=subcategory,
-            main_category=main_category,
-            transaction_type=transaction_type
-        )
-
-        print(f"Created new category: '{category}'.")
+    if was_created:
+        print(f"Created new subcategory: '{category_name}'.")
+    else:
+        print(f"Retrieved subcategory by name: '{category_name}'.")
 
     return category
 
@@ -70,29 +54,26 @@ def populate_budget_entries(excel_file_path):
 
     remove_all_budget_entries()
     level_accounts_balances()
-
-    # Read the Excel file using pandas
-    df = pd.read_excel(excel_file_path)
+    #
+    # # Read the Excel file using pandas
+    df = pd.read_excel(excel_file_path, skiprows=5)
+    df = df[['Date', 'Category', 'Expense', 'Income']]
 
     # Iterate over each row in the DataFrame
     for index, row in df.iterrows():
         # Extract the data from the row
-        date = row['Date'].strftime('%Y-%m-%d')
-        created_at = row['Created at']
-        updated_at = row['Updated at']
+        date = row['Date'] + timedelta(hours=12)
+        created_at = date
+        updated_at = date
         category_name = row['Category']
-        main_category_name = category_name.split(' - ')[0]
-        subcategory_name = category_name.split(' - ')[1]
-        amount = Decimal(str(row['Amount']))
-        origin = row['Origin']
-        destination = row['Destination']
-        description = row['Description']
+        amount = row['Expense'] if row['Expense'] >= 0 else row['Income']
+        amount = Decimal(amount)
+        origin = 'ING'
+        destination = ''
+        description = ''
 
-        category = get_or_create_category(main_category_name, subcategory_name, origin, destination)
-
-        # # Create a BudgetExpenseEntry object
         entry = Transaction()
-        entry.date = datetime.strptime(date, '%Y-%m-%d').date()
+        entry.date = date
 
         if created_at is not None:
             entry.created_at = timezone.make_aware(created_at)
@@ -104,17 +85,24 @@ def populate_budget_entries(excel_file_path):
         else:
             entry.updated_at = timezone.make_aware(datetime.combine(entry.date, time(12, 0)))
 
-        entry.category = category
+
         entry.amount = amount
+        origin = MoneyAccount.objects.get(name=origin) if origin else None
+        destination = MoneyAccount.objects.get(name=destination) if destination else None
+
+        if row['Income'] > 0:
+            origin, destination = destination, origin
         entry.origin = origin
         entry.destination = destination
+        category = get_or_create_category(category_name, origin, destination)
+
+        entry.category = category
         entry.description = description
 
-        # Save the entry to the database
         entry.save()
 
-        print(f"Created new expense entry: {{Date: {entry.date}, Category: {entry.category}, Amount: {entry.amount}, Origin: {entry.origin}, Destination: {entry.destination}}}.\n{10 * '-'}")
-    print(f"\nPopulated {len(df)} records.\n")
+        # print(f"Created new expense entry: {{Date: {entry.date}, Category: {entry.category}, Amount: {entry.amount}, Origin: {entry.origin}, Destination: {entry.destination}}}.\n{10 * '-'}")
+        # print(f"\nPopulated {len(df)} records.\n")
 
     # Re-enable auto_now_add and auto_now
     created_at_field.auto_now_add = True
