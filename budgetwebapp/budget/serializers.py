@@ -98,53 +98,15 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class TransactionSerializer(serializers.ModelSerializer):
-    # origin = serializers.PrimaryKeyRelatedField(
-    #     queryset=MoneyAccount.objects.all(),
-    #     allow_null=True,
-    #     required=False
-    # )
-    # destination = serializers.PrimaryKeyRelatedField(
-    #     queryset=MoneyAccount.objects.all(),
-    #     allow_null=True,
-    #     required=False
-    # )
-
-    # origin = MoneyAccountSerializer(read_only=True)
-    # destination = MoneyAccountSerializer(read_only=True)
-    # category = CategorySerializer(read_only=True)
-    #
-    # origin_id = serializers.PrimaryKeyRelatedField(
-    #     queryset=MoneyAccount.objects.all(),
-    #     write_only=True,
-    #     source='origin',
-    #     required=False,
-    #     allow_null=True,
-    # )
-    # destination_id = serializers.PrimaryKeyRelatedField(
-    #     queryset=MoneyAccount.objects.all(),
-    #     write_only=True,
-    #     source='destination',
-    #     allow_null=True,
-    #     required=False
-    # )
-    # category_id = serializers.PrimaryKeyRelatedField(
-    #     queryset=Category.objects.all(),
-    #     write_only=True,
-    #     source='category'
-    # )
-
     class Meta:
         model = Transaction
         fields = '__all__'
 
     def validate(self, data):
-        print(f'serializer: {data = }')
         origin = data.get('origin')
         destination = data.get('destination')
         # origin = data.get('origin', getattr(self.instance, 'origin', None))
         # destination = data.get('destination', getattr(self.instance, 'destination', None))
-        print(f'serializer: {origin = }')
-        print(f'serializer: {destination = }')
         if not origin and not destination:
             raise serializers.ValidationError("At least one of origin or destination must be set.")
 
@@ -165,5 +127,4 @@ class TransactionSerializer(serializers.ModelSerializer):
         if category and category.transaction_type != transaction_type:
             raise serializers.ValidationError(
                 f"Transaction type mismatch: expected {category.transaction_type}, got {transaction_type}")
-        print(f'serializer validated data: {data = }')
         return data

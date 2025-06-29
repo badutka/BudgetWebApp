@@ -141,34 +141,6 @@ def incoming_transactions_list_view(request):
 # ===============================================
 
 
-# def transactions_list_view(request):
-#     print('hello1')
-#     if request.headers.get('x-requested-with') == 'XMLHttpRequest' and request.method == 'GET':
-#         selected_value = request.GET.get('selected_value')
-#         # Process the selected value as needed
-#         # Generate the response
-#         response_data = {'response': 'You selected: ' + selected_value}
-#         print(response_data)
-#         return JsonResponse(response_data)
-#     elif request.method == 'GET':
-#         print('hello3')
-#         api_url = request.build_absolute_uri(reverse('budget:transactions_api'))  # API endpoint URL
-#         response = requests.get(api_url)
-#         print(response)
-#         transactions = get_response_by_status_code(response, 200, response.json(), [])
-#
-#         moneyAccounts = MoneyAccount.objects.all().aggregate(total=Sum('balance'))['total']
-#         paginator = Paginator(transactions, 999)  # 10 entries per page
-#         page_number = request.GET.get('page')
-#         transactions_page_obj = paginator.get_page(page_number)
-#
-#         context = {
-#             'transactions_page_obj': transactions_page_obj,
-#             'sum_accs': round(moneyAccounts, 2)
-#         }
-#
-#         return render(request, 'budget/transactions.html', context)
-
 def transactions_list_view(request):
     if request.method == 'GET':
         api_url = request.build_absolute_uri(reverse('budget:transactions_api'))  # API endpoint URL
