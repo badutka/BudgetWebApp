@@ -2,7 +2,7 @@
 {% load humanize %}
 {% load mathfilters %}
 
-<h1>Transactions</h1>
+<div id="transaction-table-content">
 <div class="table-responsive border rounded-2">
     <table class="table table-dark table-hover table-striped align-middle">
         <thead>
@@ -63,7 +63,7 @@
     <ul class="pagination justify-content-center">
         {% if transactions_page_obj.has_previous %}
             <li class="page-item"><a class="page-link" href="?page=1">&laquo; First</a></li>
-            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+            <li class="page-item"><a class="page-link" href="?page={{ transactions_page_obj.previous_page_number }}">Previous</a></li>
         {% else %}
             <li class="page-item disabled">
                 <a class="page-link" href="#" tabindex="-1" aria-disabled="true">&laquo; First</a>
@@ -78,8 +78,8 @@
         </li>
 
         {% if transactions_page_obj.has_next %}
-            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
-            <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last &raquo;</a></li>
+            <li class="page-item"><a class="page-link" href="?page={{ transactions_page_obj.next_page_number }}">Next</a></li>
+            <li class="page-item"><a class="page-link" href="?page={{ transactions_page_obj.paginator.num_pages }}">Last &raquo;</a></li>
         {% else %}
             <li class="page-item disabled">
                 <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Next</a>
@@ -90,7 +90,4 @@
         {% endif %}
     </ul>
 </nav>
-
-<div id="modal" class="modal fade">
-  <div id="dialog" class="modal-dialog" hx-target="this"></div>
 </div>

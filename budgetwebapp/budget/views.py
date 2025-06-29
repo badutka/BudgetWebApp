@@ -9,10 +9,11 @@ from django.http import JsonResponse
 
 from api.views import BalanceHistoryAPIView
 from .forms import BudgetExpenseEntryForm
-from .models import Transaction, MoneyAccount
+from .models import Transaction, MoneyAccount, Category
 from .serializers import BalanceHistorySerializer, BalanceHistoryRefreshSerializer
 from .summary import create_summary_table, create_yearly_summary
-from .utils import get_data_from_form, get_response_by_status_code
+from .utils import get_data_from_form, get_response_by_status_code, update_transactions_details, flatten_querydict
+from .filters import TransactionFilter
 
 
 # ===============================================
@@ -69,7 +70,7 @@ def yearly_expense_summary_view(request):
     summary, totals = create_yearly_summary(2025)
     expense_summary_detailed, total_expense_summary_detailed = create_summary_table(2025, "expense")
     income_summary_detailed, total_income_summary_detailed = create_summary_table(2025, "income")
-    print(summary)
+
     context = {
         'summary': summary,
         'totals': totals,
@@ -124,7 +125,6 @@ def outgoing_transactions_list_view(request):
 
 def incoming_transactions_list_view(request):
     entries = Transaction.objects.filter(transaction_type__in=['INCOMING', 'INNER']).order_by('date')
-
     paginator = Paginator(entries, 999)  # 10 entries per page
     page_number = request.GET.get('page')
     transactions_page_obj = paginator.get_page(page_number)
@@ -141,30 +141,61 @@ def incoming_transactions_list_view(request):
 # ===============================================
 
 
-def transactions_list_view(request):
-    print('hello1')
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest' and request.method == 'GET':
-        selected_value = request.GET.get('selected_value')
-        # Process the selected value as needed
-        # Generate the response
-        response_data = {'response': 'You selected: ' + selected_value}
-        print(response_data)
-        return JsonResponse(response_data)
-    elif request.method == 'GET':
-        print('hello3')
-        api_url = request.build_absolute_uri(reverse('budget:transactions_api'))  # API endpoint URL
-        response = requests.get(api_url)
-        transactions = get_response_by_status_code(response, 200, response.json(), [])
+# def transactions_list_view(request):
+#     print('hello1')
+#     if request.headers.get('x-requested-with') == 'XMLHttpRequest' and request.method == 'GET':
+#         selected_value = request.GET.get('selected_value')
+#         # Process the selected value as needed
+#         # Generate the response
+#         response_data = {'response': 'You selected: ' + selected_value}
+#         print(response_data)
+#         return JsonResponse(response_data)
+#     elif request.method == 'GET':
+#         print('hello3')
+#         api_url = request.build_absolute_uri(reverse('budget:transactions_api'))  # API endpoint URL
+#         response = requests.get(api_url)
+#         print(response)
+#         transactions = get_response_by_status_code(response, 200, response.json(), [])
+#
+#         moneyAccounts = MoneyAccount.objects.all().aggregate(total=Sum('balance'))['total']
+#         paginator = Paginator(transactions, 999)  # 10 entries per page
+#         page_number = request.GET.get('page')
+#         transactions_page_obj = paginator.get_page(page_number)
+#
+#         context = {
+#             'transactions_page_obj': transactions_page_obj,
+#             'sum_accs': round(moneyAccounts, 2)
+#         }
+#
+#         return render(request, 'budget/transactions.html', context)
 
-        mountAccounts = MoneyAccount.objects.all().aggregate(total=Sum('balance'))['total']
+def transactions_list_view(request):
+    if request.method == 'GET':
+        api_url = request.build_absolute_uri(reverse('budget:transactions_api'))  # API endpoint URL
+        # response = requests.get(api_url)
+        params = flatten_querydict(request.GET)
+        response = requests.get(api_url, params=params)
+
+        transactions = get_response_by_status_code(response, 200, response.json(), [])
+        money_accounts = MoneyAccount.objects.all()
+        categories = Category.objects.all()
+        transactions = update_transactions_details(transactions, money_accounts, categories)
+
         paginator = Paginator(transactions, 999)  # 10 entries per page
         page_number = request.GET.get('page')
         transactions_page_obj = paginator.get_page(page_number)
 
+        money_accounts_sum = money_accounts.aggregate(total=Sum('balance'))['total']
+
         context = {
             'transactions_page_obj': transactions_page_obj,
-            'sum_accs': round(mountAccounts, 2)
+            'sum_accs': round(money_accounts_sum, 2),
+            'transaction_type_choices': Transaction.TRANSACTION_TYPE_CHOICES,
+            'categories': categories  # <--- make sure this is passed
         }
+
+        if request.headers.get('HX-Request'):
+            return render(request, 'budget/transactions_table.html', context)
 
         return render(request, 'budget/transactions.html', context)
 
@@ -190,7 +221,6 @@ def duplicate_transaction(request, transaction_id):
 
 def transaction_add(request):
     if request.method == 'POST':
-
         form = BudgetExpenseEntryForm(request.POST)
 
         if form.is_valid():
@@ -202,14 +232,14 @@ def transaction_add(request):
         if not ('HX-Request' in request.headers):
             # Redirect users if accessing the URL directly
             return redirect(reverse_lazy('budget:transactions'))
-
         form = BudgetExpenseEntryForm()
     return render(request, 'budget/transaction_add.html', {'form': form})
 
 
 def transaction(request, transaction_id):
     if request.method == 'GET':
-        api_url = request.build_absolute_uri(reverse('budget:transaction_api', args=[transaction_id]))  # API endpoint URL
+        api_url = request.build_absolute_uri(
+            reverse('budget:transaction_api', args=[transaction_id]))  # API endpoint URL
         response = requests.get(api_url)
         transactions = get_response_by_status_code(response, 200, response.json(), [])
 

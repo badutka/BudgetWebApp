@@ -28,12 +28,15 @@ def create_yearly_summary(year):
 
         # Calculate the total expenses for the month
         expenses = Transaction.objects.filter(
-            date__year=year,
+            date__year=2025,
             date__month=month,
             category__transaction_type='OUTGOING'
         ).aggregate(total=Sum('amount'))['total'] or 0
         summary['monthly_expenses'][this_month_name] = round(expenses, 2)
-
+        print(year)
+        print(month)
+        print(this_month_name)
+        print(expenses)
         # Calculate the total income for the month
         income = Transaction.objects.filter(
             date__year=year,
@@ -180,7 +183,7 @@ def create_summary_table(year, option):
     parent_categories = ParentCategory.objects.filter(
         category__transaction_type__in=summary_type[option]
     ).distinct()
-
+    print(parent_categories)
     # Fetch all subcategories per parent category
     categories = Category.objects.filter(
         parent_category__in=parent_categories,
@@ -216,7 +219,7 @@ def create_summary_table(year, option):
         category_total = 0
 
         subcategories = [cat for cat in categories if cat.parent_category_id == parent.id]
-
+        print(subcategories)
         for subcat in subcategories:
             subcat_name = subcat.name
             month_data = {month: tx_lookup[parent_name][subcat_name].get(month, 0) for month in months}
