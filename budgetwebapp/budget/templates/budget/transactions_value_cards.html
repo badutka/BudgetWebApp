@@ -1,0 +1,77 @@
+{% load static %}
+<!-- budget/transactions_value_cards.html -->
+<!--<div class="d-flex flex-wrap justify-content-center gap-3 mb-4" id="value-cards">-->
+<!--    <div class="card text-white bg-dark" style="min-width: 150px; border: 1px solid white;">-->
+<!--        <div class="card-body">-->
+<!--            <h5 class="card-title">Accounts</h5>-->
+<!--            <p class="card-text">{{ sum_accs }}</p>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--    <div class="card text-white bg-dark" style="min-width: 150px; border: 1px solid white;">-->
+<!--        <div class="card-body">-->
+<!--            <h5 class="card-title">Incoming</h5>-->
+<!--            <p class="card-text">{{ totals.INCOMING }}</p>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--    <div class="card text-white bg-dark" style="min-width: 150px; border: 1px solid white;">-->
+<!--        <div class="card-body">-->
+<!--            <h5 class="card-title">Outgoing</h5>-->
+<!--            <p class="card-text">{{ totals.OUTGOING }}</p>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--    <div class="card text-white bg-dark" style="min-width: 150px; border: 1px solid white;">-->
+<!--        <div class="card-body">-->
+<!--            <h5 class="card-title">Inner</h5>-->
+<!--            <p class="card-text">{{ totals.INNER }}</p>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--    <div class="card text-white bg-dark" style="min-width: 150px; border: 1px solid white;">-->
+<!--        <div class="card-body">-->
+<!--            <h5 class="card-title">Balance</h5>-->
+<!--            <p class="card-text">{{ balance }}</p>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--</div>-->
+
+<div class="d-flex flex-wrap justify-content-center gap-3 mb-4" id="value-cards">
+    <div class="card value-card">
+        <div class="card-body">
+            <h5 class="card-title">
+                <i class="fas fa-wallet"></i> Accounts
+            </h5>
+            <p class="card-text">{{ sum_accs }}</p>
+        </div>
+    </div>
+    <div class="card value-card">
+        <div class="card-body">
+            <h5 class="card-title">
+                <i class="fas fa-arrow-down"></i> Incoming
+            </h5>
+            <p class="card-text">{{ totals.INCOMING }}</p>
+        </div>
+    </div>
+    <div class="card value-card">
+        <div class="card-body">
+            <h5 class="card-title">
+                <i class="fas fa-arrow-up"></i> Outgoing
+            </h5>
+            <p class="card-text">{{ totals.OUTGOING }}</p>
+        </div>
+    </div>
+    <div class="card value-card">
+        <div class="card-body">
+            <h5 class="card-title">
+                <i class="fas fa-arrows-left-right"></i> Inner
+            </h5>
+            <p class="card-text">{{ totals.INNER }}</p>
+        </div>
+    </div>
+    <div class="card value-card">
+        <div class="card-body">
+            <h5 class="card-title">
+                <i class="fas fa-dollar-sign"></i> Balance
+            </h5>
+            <p class="card-text">{{ balance }}</p>
+        </div>
+    </div>
+</div>

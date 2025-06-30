@@ -6,8 +6,6 @@ from .views import (
     transaction,
     transaction_edit,
     transaction_delete,
-    incoming_transactions_list_view,
-    outgoing_transactions_list_view,
     monthly_expense_summary_view,
     monthly_income_summary_view,
     yearly_expense_summary_view,
@@ -15,7 +13,7 @@ from .views import (
     BalanceHistoryAPIView,
     balance_history_view,
     duplicate_transaction,
-    refresh_balance_history,
+    refresh_balance_history
 )
 
 from api.views import (
@@ -61,10 +59,6 @@ urlpatterns = [
     path('transactions/<int:transaction_id>/delete/', transaction_delete, name='transaction_delete'),
     # 6. Duplicate Transaction
     path('transactions/<int:transaction_id>/duplicate/', duplicate_transaction, name='duplicate_transaction'),
-    # 7. Incoming Transactions List
-    path('transactions/incoming/', incoming_transactions_list_view, name='incoming_transactions'),
-    # 8. Outgoing Transactions List
-    path('transactions/outgoing/', outgoing_transactions_list_view, name='outgoing_transactions'),
     # 9. Monthly Expense Summary
     path('transactions/monthly-expense-summary/', monthly_expense_summary_view, name='monthly_expense_summary'),
     # 10. Monthly Income Summary

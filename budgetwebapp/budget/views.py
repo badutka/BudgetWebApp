@@ -12,7 +12,11 @@ from .forms import BudgetExpenseEntryForm
 from .models import Transaction, MoneyAccount, Category
 from .serializers import BalanceHistorySerializer, BalanceHistoryRefreshSerializer
 from .summary import create_summary_table, create_yearly_summary
-from .utils import get_data_from_form, get_response_by_status_code, update_transactions_details, flatten_querydict
+from .utils import (get_data_from_form,
+                    get_response_by_status_code,
+                    update_transactions_details,
+                    flatten_querydict,
+                    get_transactions_totals)
 from .filters import TransactionFilter
 
 
@@ -106,40 +110,8 @@ def monthly_income_summary_view(request):
 
 
 # ===============================================
-#        INCOMING / OUTGOING TRANSACTIONS
-# ===============================================
-
-def outgoing_transactions_list_view(request):
-    entries = Transaction.objects.filter(transaction_type__in=['OUTGOING', 'INNER']).order_by('date')
-
-    paginator = Paginator(entries, 999)  # 10 entries per page
-    page_number = request.GET.get('page')
-    transactions_page_obj = paginator.get_page(page_number)
-
-    context = {
-        'transactions_page_obj': transactions_page_obj
-    }
-
-    return render(request, 'budget/transactions_outgoing.html', context)
-
-
-def incoming_transactions_list_view(request):
-    entries = Transaction.objects.filter(transaction_type__in=['INCOMING', 'INNER']).order_by('date')
-    paginator = Paginator(entries, 999)  # 10 entries per page
-    page_number = request.GET.get('page')
-    transactions_page_obj = paginator.get_page(page_number)
-
-    context = {
-        'transactions_page_obj': transactions_page_obj
-    }
-
-    return render(request, 'budget/transactions_incoming.html', context)
-
-
-# ===============================================
 #                 CRUD + DUPLICATE
 # ===============================================
-
 
 def transactions_list_view(request):
     if request.method == 'GET':
@@ -158,12 +130,15 @@ def transactions_list_view(request):
         transactions_page_obj = paginator.get_page(page_number)
 
         money_accounts_sum = money_accounts.aggregate(total=Sum('balance'))['total']
+        totals, balance = get_transactions_totals(transactions)
 
         context = {
             'transactions_page_obj': transactions_page_obj,
             'sum_accs': round(money_accounts_sum, 2),
             'transaction_type_choices': Transaction.TRANSACTION_TYPE_CHOICES,
-            'categories': categories  # <--- make sure this is passed
+            'categories': categories,  # <--- make sure this is passed,
+            'totals': totals,
+            'balance': balance
         }
 
         if request.headers.get('HX-Request'):

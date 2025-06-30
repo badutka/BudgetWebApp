@@ -3,96 +3,13 @@
 
 {% block content %}
 
-<div style="color: #fff;">
-    {{ sum_accs }}
-</div>
-
-<select id="dropdown">
-    <option value="value1">Option 1</option>
-    <option value="value2">Option 2</option>
-    <option value="value3">Option 3</option>
-</select>
-
-<h1>Transactions</h1>
 <!--<div style="display: flex; flex-wrap: wrap; margin-top: 1%; margin-left: 5%;">-->
+
 <!-- Flex container -->
 <div style="display: flex; margin-top: 1%; margin-left: 10px;">
+
     <!-- Filters Sidebar -->
-    <form style="width: 150px; margin-right: 10px;" id="transaction-filter-form"
-          hx-get="{% url 'budget:transactions' %}"
-          hx-target="#transaction-table-content"
-          hx-push-url="true"
-          hx-trigger="change from:select,
-             change from:input[name='category']:not(#category-select-all),
-             change from:input[name='date_from'],
-             change from:input[name='date_to']">
-<!--        width: 150px in label below fixes all filters at 150px.-->
-        <label class="form-label filter-label" style="font-size: 24px; width: 150px;">Filters:</label>
-
-        <!-- Transaction Type Dropdown -->
-        <label for="transaction_type" class="form-label filter-label">Type</label>
-        <select name="transaction_type" id="transaction_type" class="form-select">
-            <option value="">Any</option>
-            {% for val, label in transaction_type_choices %}
-            <option value="{{ val }}" {% if request.GET.transaction_type == val %}selected{% endif %}>
-                {{ label }}
-            </option>
-            {% endfor %}
-        </select>
-
-        <!-- Dropdown-style Category Filter -->
-        <label class="form-label filter-label">Category</label>
-        <div class="dropdown">
-            <button class="btn btn-light dropdown-toggle" type="button" id="categoryDropdownButton"
-                    data-bs-toggle="dropdown" aria-expanded="false"
-                    style="width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                Expand
-            </button>
-
-            <div class="dropdown-menu p-3"
-                 style="width: 100%; max-width: 100%; box-sizing: border-box;"
-                 aria-labelledby="categoryDropdownButton">
-                <fieldset class="mb-0">
-                    <div class="form-check">
-                        <input class="form-check-input"
-                               type="checkbox"
-                               id="category-select-all"
-                               checked>
-                        <label class="form-check-label fw-bold" for="category-select-all">
-                            Select All
-                        </label>
-                    </div>
-                    <hr>
-                    {% for category in categories %}
-                    <div class="form-check">
-                        <input class="form-check-input"
-                               type="checkbox"
-                               name="category"
-                               value="{{ category.id }}"
-                               id="category-{{ category.id }}"
-                               {% if not request.GET.category or category.id|stringformat:"s" in request.GET|getlist:"category" %}checked{% endif %}>
-                        <label class="form-check-label" for="category-{{ category.id }}">
-                            {{ category.name }}
-                        </label>
-                    </div>
-                    {% endfor %}
-                </fieldset>
-            </div>
-        </div>
-
-        <!-- Date From -->
-        <label for="id_date_from" class="form-label filter-label">From</label>
-        <input type="date" name="date_from" id="id_date_from"
-               class="form-control"
-               value="{{ request.GET.date_from }}">
-
-        <!-- Date To -->
-        <label for="id_date_to" class="form-label filter-label">To</label>
-        <input type="date" name="date_to" id="id_date_to"
-               class="form-control"
-               value="{{ request.GET.date_to }}">
-
-    </form>
+    {% include 'budget/transactions_filters.html' %}
 
     <!-- Transactions Table -->
     <div id="transactions-table" style="width: 90%;">

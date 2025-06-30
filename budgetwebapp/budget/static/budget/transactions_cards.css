@@ -1,0 +1,35 @@
+.value-card {
+  /*background: linear-gradient(135deg, #2c3e50, #34495e);*/
+  /*background: linear-gradient(135deg, #212529, #2c3034);*/
+  background: linear-gradient(135deg, #24415f, #2c3034);
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  min-width: 180px;
+  color: #ecf0f1;
+  padding: 1.25rem;
+  transition: transform 0.3s ease;
+  text-align: center;
+}
+
+.value-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.45);
+}
+
+.value-card .card-title {
+  font-weight: 700;
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.value-card .card-text {
+  font-weight: 600;
+  font-size: 2rem;
+  color: #1abc9c; /* accent color */
+}

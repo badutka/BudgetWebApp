@@ -9,25 +9,21 @@
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <li class="nav-item">
-          <a class="nav-link active" aria-current="page" href="{% url 'budget:transactions' %}">Transactions</a>
+          <a class="nav-link active" aria-current="page" href="#">Home</a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link active" aria-current="page" href="{% url 'budget:incoming_transactions' %}">Incoming Transactions</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link active" aria-current="page" href="{% url 'budget:outgoing_transactions' %}">Outgoing Transactions</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link active" aria-current="page" href="{% url 'budget:monthly_expense_summary' %}">Monthly Expense Summary</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link active" aria-current="page" href="{% url 'budget:monthly_income_summary' %}">Monthly Income Summary</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link active" aria-current="page" href="{% url 'budget:yearly_expense_summary' %}">Yearly Expense Summary</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link active" aria-current="page" href="{% url 'budget:chart_summary' %}">Charts Summary</a>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownTransactions" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            T9Ns
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <li><a class="dropdown-item" href="{% url 'budget:transactions' %}">Transactions</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="{% url 'budget:monthly_expense_summary' %}">Monthly Expense Summary</a></li>
+            <li><a class="dropdown-item" href="{% url 'budget:monthly_income_summary' %}">Monthly Income Summary</a></li>
+            <li><a class="dropdown-item" href="{% url 'budget:yearly_expense_summary' %}">Yearly Expense Summary</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="{% url 'budget:chart_summary' %}">Charts Summary</a></li>
+          </ul>
         </li>
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownBalanceHistory" role="button" data-bs-toggle="dropdown" aria-expanded="false">

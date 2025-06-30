@@ -79,6 +79,26 @@ def update_transactions_details(transactions, money_accounts, categories):
     return transactions
 
 
+def get_transactions_totals(transactions):
+    totals = {
+        'INNER': 0,
+        'INCOMING': 0,
+        'OUTGOING': 0
+    }
+
+    for t9n in transactions:
+        t9n_type = t9n.get('transaction_type')
+        amount = float(t9n.get('amount', 0))
+
+        if t9n_type in totals:
+            totals[t9n_type] += amount
+
+    balance = round(totals['INCOMING'] - totals['OUTGOING'], 2)
+    totals = {k: round(v, 2) for k, v in totals.items()}
+
+    return totals, balance
+
+
 def ts_to_readable(timestamp_str):
     timestamp = datetime.fromisoformat(timestamp_str[:-1])  # Remove trailing 'Z'
     return timestamp.strftime('%Y-%m-%d %I:%M %p')
