@@ -21,7 +21,6 @@ class TransactionFilter(django_filters.FilterSet):
         # method='filter_category'
     )
 
-    # New date filters
     date_from = django_filters.DateFilter(
         field_name='date',
         lookup_expr='gte',
