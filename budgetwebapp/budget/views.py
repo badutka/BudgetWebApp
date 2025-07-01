@@ -125,7 +125,7 @@ def transactions_list_view(request):
         categories = Category.objects.all()
         transactions = update_transactions_details(transactions, money_accounts, categories)
 
-        paginator = Paginator(transactions, 999)  # 10 entries per page
+        paginator = Paginator(transactions, 30)  # 10 entries per page
         page_number = request.GET.get('page')
         transactions_page_obj = paginator.get_page(page_number)
 

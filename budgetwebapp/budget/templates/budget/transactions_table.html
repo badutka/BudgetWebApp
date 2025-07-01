@@ -36,18 +36,18 @@
         {% for transaction in transactions_page_obj %}
         <tr data-bs-toggle="tooltip" data-bs-placement="top" title="Description: {{ transaction.description }}">
 <!--            <td>duplicate</td>-->
-            <td class="text-center narrow-column font-size-small" data-bs-toggle="tooltip" data-bs-placement="top" title="Create a copy">
+            <td class="text-center narrow-column font-size-small" data-bs-toggle="tooltip" data-bs-placement="top" title="Create a copy"><span class="td-t9ns-text">
                 <a hx-get="{% url 'budget:duplicate_transaction' transaction.id %}" hx-target="#dialog" class="btn btn-outline-primary fa-regular fa-clone"></a>
-            </td>
-            <td class="text-center narrow-column font-size-medium">{{ transactions_page_obj|length|sub:forloop.counter|add:1 }}</td>
-            <td class="nowrap">{{ transaction.date }}</td>
-            <td class="nowrap">{{ transaction.created_at }}</td>
-            <td class="nowrap">{{ transaction.updated_at }}</td>
-            <td class="nowrap">{{ transaction.category }}</td>
-            <td>{{ transaction.amount }}</td>
-            <td>{{ transaction.origin }}</td>
-            <td>{{ transaction.destination }}</td>
-            <td>
+            </span></td>
+            <td class="text-center narrow-column font-size-medium"><span class="td-t9ns-text">{{ transactions_page_obj|length|sub:forloop.counter|add:1 }}</span></td>
+            <td class="nowrap"><span class="td-t9ns-text">{{ transaction.date }}</span></td>
+            <td class="nowrap"><span class="td-t9ns-text">{{ transaction.created_at }}</span></td>
+            <td class="nowrap"><span class="td-t9ns-text">{{ transaction.updated_at }}</span></td>
+            <td class="nowrap"><span class="td-t9ns-text">{{ transaction.category }}</span></td>
+            <td><span class="td-t9ns-text">{{ transaction.amount }}</span></td>
+            <td><span class="td-t9ns-text">{{ transaction.origin }}</span></td>
+            <td><span class="td-t9ns-text">{{ transaction.destination }}</span></td>
+            <td><span class="td-t9ns-text">
                 {% if transaction.transaction_type == 'INCOMING' %}
                     <i class="fas fa-arrow-down text-success"></i>  <!-- Incoming transaction -->
                 {% elif transaction.transaction_type == 'OUTGOING' %}
@@ -57,12 +57,12 @@
                 {% else %}
                     <i class="fas fa-question-circle"></i>  <!-- None-->
                 {% endif %}
-            </td>
-            <td class="nowrap">
+            </span></td></span>
+            <td class="nowrap"><span class="td-t9ns-text">
 <!--                <a href="{% url 'budget:transaction_edit' transaction.id %}" class="btn btn-outline-primary bi bi-pen" style="font-size: 10px;"></a>-->
                 <a hx-get="{% url 'budget:transaction_edit' transaction.id %}" hx-target="#dialog" class="btn btn-outline-primary bi bi-pen" style="font-size: 10px;"></a>
                 <a href="{% url 'budget:transaction_delete' transaction.id %}" class="btn btn-outline-danger bi bi-trash" style="font-size: 10px; margin-left: 10px;"></a>
-            </td>
+            </span></td>
         </tr>
         {% endfor %}
         </tbody>
@@ -75,6 +75,7 @@
         {% if transactions_page_obj.has_previous %}
             <li class="page-item"><a class="page-link" href="?page=1">&laquo; First</a></li>
             <li class="page-item"><a class="page-link" href="?page={{ transactions_page_obj.previous_page_number }}">Previous</a></li>
+            <li class="page-item"><a class="page-link" href="?page={{ transactions_page_obj.previous_page_number }}">{{ transactions_page_obj.previous_page_number }}</a></li>
         {% else %}
             <li class="page-item disabled">
                 <a class="page-link" href="#" tabindex="-1" aria-disabled="true">&laquo; First</a>
@@ -89,6 +90,7 @@
         </li>
 
         {% if transactions_page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ transactions_page_obj.next_page_number }}">{{ transactions_page_obj.next_page_number }}</a></li>
             <li class="page-item"><a class="page-link" href="?page={{ transactions_page_obj.next_page_number }}">Next</a></li>
             <li class="page-item"><a class="page-link" href="?page={{ transactions_page_obj.paginator.num_pages }}">Last &raquo;</a></li>
         {% else %}

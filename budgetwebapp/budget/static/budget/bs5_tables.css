@@ -75,3 +75,29 @@
         margin-left: calc((100% - var(--widthA))/2); 
     }
 }
+
+@keyframes fadeInCell {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+#transaction-table-content .td-t9ns-text{ /* */
+  animation: fadeInCell 0.3s ease-in-out;
+}
+
+/* Prevent scrollbar flickering during animations */
+#transaction-table-content .table-responsive {
+  overflow-y: hidden !important; /* no vertical scrollbar */
+  scrollbar-width: none;         /* Firefox */
+}
+
+/* For WebKit-based browsers (Chrome, Safari) */
+#transaction-table-content .table-responsive::-webkit-scrollbar {
+  display: none;
+}
