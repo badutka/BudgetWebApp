@@ -75,7 +75,7 @@
   border: 1.5px solid #bbb;
   width: 18px;
   height: 18px;
-  transition: border-color 0.3s ease, background-color 0.3s ease;
+  transition: border-color 0.2s ease, background-color 0.3s ease;
 }
 
 #transaction-filter-form .form-check-input:checked {

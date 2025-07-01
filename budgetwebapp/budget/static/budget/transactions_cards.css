@@ -9,7 +9,9 @@
   padding: 1.25rem;
   transition: transform 0.3s ease;
   text-align: center;
+  /*width: 15%;*/
 }
+
 
 .value-card:hover {
   transform: translateY(-6px);
@@ -26,7 +28,9 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  /*font-size: clamp(1rem, 4vw, 1.2rem);*/
 }
+
 
 @keyframes fadeInDelayed {
   from {
@@ -42,6 +46,9 @@
 .value-card .card-text {
   font-weight: 600;
   font-size: 2rem;
+  /*font-size: clamp(1rem, 4vw, 1.8rem);*/
+  /*font-size: clamp(1rem, 4vw, 2rem);*/
   color: #1abc9c; /* accent color */
   animation: fadeInDelayed 0.6s ease-out;
+  /*white-space: nowrap;*/
 }
