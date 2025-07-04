@@ -9,7 +9,7 @@ from django.http import JsonResponse
 
 from api.views import BalanceHistoryAPIView
 from .forms import BudgetExpenseEntryForm
-from .models import Transaction, MoneyAccount, Category
+from .models import Transaction, MoneyAccount, Category, ParentCategory
 from .serializers import BalanceHistorySerializer, BalanceHistoryRefreshSerializer
 from .summary import create_summary_table, create_yearly_summary
 from .utils import (get_data_from_form,
@@ -123,6 +123,7 @@ def transactions_list_view(request):
         transactions = get_response_by_status_code(response, 200, response.json(), [])
         money_accounts = MoneyAccount.objects.all()
         categories = Category.objects.all()
+        parent_categories = ParentCategory.objects.all()
         transactions = update_transactions_details(transactions, money_accounts, categories)
 
         paginator = Paginator(transactions, 30)  # 10 entries per page
@@ -132,13 +133,21 @@ def transactions_list_view(request):
         money_accounts_sum = money_accounts.aggregate(total=Sum('balance'))['total']
         totals, balance = get_transactions_totals(transactions)
 
+        # Remove `page` from query params and encode the rest to preserve filters
+        filter_params = request.GET.copy()
+        if 'page' in filter_params:
+            del filter_params['page']
+        filter_query = filter_params.urlencode()
+
         context = {
             'transactions_page_obj': transactions_page_obj,
             'sum_accs': round(money_accounts_sum, 2),
             'transaction_type_choices': Transaction.TRANSACTION_TYPE_CHOICES,
-            'categories': categories,  # <--- make sure this is passed,
+            'categories': categories,
+            'parent_categories': parent_categories,
             'totals': totals,
-            'balance': balance
+            'balance': balance,
+            'filter_query': filter_query,  # 🔥 needed for pagination links
         }
 
         if request.headers.get('HX-Request'):

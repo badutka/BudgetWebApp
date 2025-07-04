@@ -1,6 +1,7 @@
 {% load static %}
 {% load humanize %}
 {% load mathfilters %}
+{% load template_filters %}
 
 <div id="transaction-table-content">
     <h1 class="text-center text-white">Transactions</h1>
@@ -70,18 +71,38 @@
 </div>
 
 <!-- Pagination links -->
+<!-- Pagination links -->
 <nav aria-label="Page navigation example">
     <ul class="pagination justify-content-center mt-2">
+
         {% if transactions_page_obj.has_previous %}
-            <li class="page-item"><a class="page-link" href="?page=1">&laquo; First</a></li>
-            <li class="page-item"><a class="page-link" href="?page={{ transactions_page_obj.previous_page_number }}">Previous</a></li>
-            <li class="page-item"><a class="page-link" href="?page={{ transactions_page_obj.previous_page_number }}">{{ transactions_page_obj.previous_page_number }}</a></li>
+            <li class="page-item">
+                <a class="page-link"
+                   hx-get="?page=1&{{ filter_query }}"
+                   hx-target="#transaction-table-content"
+                   hx-push-url="true"
+                   href="?page=1&{{ filter_query }}">&laquo; First</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link"
+                   hx-get="?page={{ transactions_page_obj.previous_page_number }}&{{ filter_query }}"
+                   hx-target="#transaction-table-content"
+                   hx-push-url="true"
+                   href="?page={{ transactions_page_obj.previous_page_number }}&{{ filter_query }}">Previous</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link"
+                   hx-get="?page={{ transactions_page_obj.previous_page_number }}&{{ filter_query }}"
+                   hx-target="#transaction-table-content"
+                   hx-push-url="true"
+                   href="?page={{ transactions_page_obj.previous_page_number }}&{{ filter_query }}">{{ transactions_page_obj.previous_page_number }}</a>
+            </li>
         {% else %}
             <li class="page-item disabled">
-                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">&laquo; First</a>
+                <span class="page-link">&laquo; First</span>
             </li>
             <li class="page-item disabled">
-                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+                <span class="page-link">Previous</span>
             </li>
         {% endif %}
 
@@ -90,15 +111,33 @@
         </li>
 
         {% if transactions_page_obj.has_next %}
-            <li class="page-item"><a class="page-link" href="?page={{ transactions_page_obj.next_page_number }}">{{ transactions_page_obj.next_page_number }}</a></li>
-            <li class="page-item"><a class="page-link" href="?page={{ transactions_page_obj.next_page_number }}">Next</a></li>
-            <li class="page-item"><a class="page-link" href="?page={{ transactions_page_obj.paginator.num_pages }}">Last &raquo;</a></li>
+            <li class="page-item">
+                <a class="page-link"
+                   hx-get="?page={{ transactions_page_obj.next_page_number }}&{{ filter_query }}"
+                   hx-target="#transaction-table-content"
+                   hx-push-url="true"
+                   href="?page={{ transactions_page_obj.next_page_number }}&{{ filter_query }}">{{ transactions_page_obj.next_page_number }}</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link"
+                   hx-get="?page={{ transactions_page_obj.next_page_number }}&{{ filter_query }}"
+                   hx-target="#transaction-table-content"
+                   hx-push-url="true"
+                   href="?page={{ transactions_page_obj.next_page_number }}&{{ filter_query }}">Next</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link"
+                   hx-get="?page={{ transactions_page_obj.paginator.num_pages }}&{{ filter_query }}"
+                   hx-target="#transaction-table-content"
+                   hx-push-url="true"
+                   href="?page={{ transactions_page_obj.paginator.num_pages }}&{{ filter_query }}">Last &raquo;</a>
+            </li>
         {% else %}
             <li class="page-item disabled">
-                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Next</a>
+                <span class="page-link">Next</span>
             </li>
             <li class="page-item disabled">
-                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Last &raquo;</a>
+                <span class="page-link">Last &raquo;</span>
             </li>
         {% endif %}
     </ul>
