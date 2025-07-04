@@ -71,38 +71,24 @@
 </div>
 
 <!-- Pagination links -->
-<!-- Pagination links -->
 <nav aria-label="Page navigation example">
     <ul class="pagination justify-content-center mt-2">
-
         {% if transactions_page_obj.has_previous %}
             <li class="page-item">
-                <a class="page-link"
-                   hx-get="?page=1&{{ filter_query }}"
-                   hx-target="#transaction-table-content"
-                   hx-push-url="true"
-                   href="?page=1&{{ filter_query }}">&laquo; First</a>
+                {% htmx_pagelink "&laquo; First" 1 %}
             </li>
             <li class="page-item">
-                <a class="page-link"
-                   hx-get="?page={{ transactions_page_obj.previous_page_number }}&{{ filter_query }}"
-                   hx-target="#transaction-table-content"
-                   hx-push-url="true"
-                   href="?page={{ transactions_page_obj.previous_page_number }}&{{ filter_query }}">Previous</a>
+                {% htmx_pagelink "Previous" transactions_page_obj.previous_page_number %}
             </li>
             <li class="page-item">
-                <a class="page-link"
-                   hx-get="?page={{ transactions_page_obj.previous_page_number }}&{{ filter_query }}"
-                   hx-target="#transaction-table-content"
-                   hx-push-url="true"
-                   href="?page={{ transactions_page_obj.previous_page_number }}&{{ filter_query }}">{{ transactions_page_obj.previous_page_number }}</a>
+                {% htmx_pagelink transactions_page_obj.previous_page_number transactions_page_obj.previous_page_number %}
             </li>
         {% else %}
             <li class="page-item disabled">
-                <span class="page-link">&laquo; First</span>
+                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">&laquo; First</a>
             </li>
             <li class="page-item disabled">
-                <span class="page-link">Previous</span>
+                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
             </li>
         {% endif %}
 
@@ -112,32 +98,20 @@
 
         {% if transactions_page_obj.has_next %}
             <li class="page-item">
-                <a class="page-link"
-                   hx-get="?page={{ transactions_page_obj.next_page_number }}&{{ filter_query }}"
-                   hx-target="#transaction-table-content"
-                   hx-push-url="true"
-                   href="?page={{ transactions_page_obj.next_page_number }}&{{ filter_query }}">{{ transactions_page_obj.next_page_number }}</a>
+                {% htmx_pagelink transactions_page_obj.next_page_number transactions_page_obj.next_page_number %}
             </li>
             <li class="page-item">
-                <a class="page-link"
-                   hx-get="?page={{ transactions_page_obj.next_page_number }}&{{ filter_query }}"
-                   hx-target="#transaction-table-content"
-                   hx-push-url="true"
-                   href="?page={{ transactions_page_obj.next_page_number }}&{{ filter_query }}">Next</a>
+                {% htmx_pagelink "Next" transactions_page_obj.next_page_number %}
             </li>
             <li class="page-item">
-                <a class="page-link"
-                   hx-get="?page={{ transactions_page_obj.paginator.num_pages }}&{{ filter_query }}"
-                   hx-target="#transaction-table-content"
-                   hx-push-url="true"
-                   href="?page={{ transactions_page_obj.paginator.num_pages }}&{{ filter_query }}">Last &raquo;</a>
+                {% htmx_pagelink "Last &raquo;" transactions_page_obj.paginator.num_pages %}
             </li>
         {% else %}
             <li class="page-item disabled">
-                <span class="page-link">Next</span>
+                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Next</a>
             </li>
             <li class="page-item disabled">
-                <span class="page-link">Last &raquo;</span>
+                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Last &raquo;</a>
             </li>
         {% endif %}
     </ul>
