@@ -27,29 +27,46 @@ htmx.on("hidden.bs.modal", () => {
   document.getElementById("dialog").innerHTML = ""
 })
 
+function updateDropdownText(filterName) {
+    const checkboxes = document.querySelectorAll(`.form-check-input[name="${filterName}"]`);
+    const dropdownButton = document.getElementById(`${filterName}DropdownButton`);
+
+    if (!dropdownButton) return;
+
+    const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+    dropdownButton.textContent = checkedCount > 0 ? `${checkedCount} selected` : 'Expand';
+}
+
+function setupFilterSelectAll(filterName) {
+    const selectAllCheckbox = document.getElementById(`${filterName}-select-all`);
+    const checkboxes = document.querySelectorAll(`.form-check-input[name="${filterName}"]`);
+
+    if (!selectAllCheckbox || checkboxes.length === 0) return;
+
+
+
+    // "Select All" toggle
+    console.log(selectAllCheckbox)
+    selectAllCheckbox.addEventListener('change', function () {
+        checkboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
+        checkboxes[0].dispatchEvent(new Event('change', { bubbles: true }));
+        updateDropdownText(filterName);
+    });
+
+    // Sync "Select All" checkbox when any individual one changes
+    checkboxes.forEach(cb => {
+        cb.addEventListener('change', function () {
+            const allChecked = Array.from(checkboxes).every(c => c.checked);
+            selectAllCheckbox.checked = allChecked;
+            updateDropdownText(filterName);
+        });
+    });
+
+    // Initial text update
+    updateDropdownText(filterName);
+}
+
 document.addEventListener('DOMContentLoaded', function () {
-    function setupFilterSelectAll(filterName) {
-        const selectAllCheckbox = document.getElementById(`${filterName}-select-all`);
-        const checkboxes = document.querySelectorAll(`.form-check-input[name="${filterName}"]`);
-
-        if (!selectAllCheckbox || checkboxes.length === 0) return;
-
-        // "Select All" toggle
-        console.log(selectAllCheckbox)
-        selectAllCheckbox.addEventListener('change', function () {
-            checkboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
-            checkboxes[0].dispatchEvent(new Event('change', { bubbles: true }));
-        });
-
-        // Sync "Select All" checkbox when any individual one changes
-        checkboxes.forEach(cb => {
-            cb.addEventListener('change', function () {
-                const allChecked = Array.from(checkboxes).every(c => c.checked);
-                selectAllCheckbox.checked = allChecked;
-            });
-        });
-    }
-
     // 🧠 Call the function for each filter you want to activate
     setupFilterSelectAll('category');
     setupFilterSelectAll('parent_category');

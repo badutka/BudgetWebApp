@@ -1,6 +1,6 @@
 #transaction-filter-form {
   width: 220px; /* a bit wider for better readability */
-  padding: 1rem;
+  padding: 0.5rem;
   /*background: #f8f9fa;*/ /* light background */
   background: linear-gradient(90deg, #010409, #212529);
   border-radius: 12px;
