@@ -1,7 +1,7 @@
 import django_filters
 from django.db.models import Q
 
-from budget.models import Transaction, Category
+from budget.models import Transaction, Category, ParentCategory
 from django import forms
 
 
@@ -19,6 +19,11 @@ class TransactionFilter(django_filters.FilterSet):
         conjoined=False,
         # widget=django_filters.widgets.CSVWidget(),
         # method='filter_category'
+    )
+    parent_category = django_filters.ModelMultipleChoiceFilter(
+        queryset=ParentCategory.objects.all(),
+        method='filter_by_parent_category',
+        label='Parent Category',
     )
 
     date_from = django_filters.DateFilter(
@@ -39,6 +44,11 @@ class TransactionFilter(django_filters.FilterSet):
             return queryset.none()  # No categories selected = no results
         return queryset.filter(category__in=value)
 
+    def filter_by_parent_category(self, queryset, name, value):
+        if not value:
+            return queryset
+        return queryset.filter(category__parent_category__in=value)
+
     class Meta:
         model = Transaction
-        fields = ('transaction_type', 'category', 'date_from', 'date_to')
+        fields = ('transaction_type', 'category', 'parent_category', 'date_from', 'date_to')

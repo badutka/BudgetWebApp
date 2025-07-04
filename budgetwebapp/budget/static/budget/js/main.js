@@ -27,38 +27,67 @@ htmx.on("hidden.bs.modal", () => {
   document.getElementById("dialog").innerHTML = ""
 })
 
-// check / uncheck all checklist boxes
 document.addEventListener('DOMContentLoaded', function () {
-    const selectAllCheckbox = document.getElementById('category-select-all');
-    const categoryCheckboxes = document.querySelectorAll('.form-check-input[name="category"]');
-    const form = document.getElementById('transaction-filter-form');
+    function setupFilterSelectAll(filterName) {
+        const selectAllCheckbox = document.getElementById(`${filterName}-select-all`);
+        const checkboxes = document.querySelectorAll(`.form-check-input[name="${filterName}"]`);
 
-    // Select all on first load if no category param is present
-    // Use this if overriding filtering method (filter_category) to not show any results with no checkboxed values.
-//    if (!window.location.search.includes('category=')) {
-//        categoryCheckboxes.forEach(cb => cb.checked = true);
-//        // Submit after setting them
-//        categoryCheckboxes[0].dispatchEvent(new Event('change', { bubbles: true }));
-//    }
+        if (!selectAllCheckbox || checkboxes.length === 0) return;
 
-    // When "Select All" is toggled
-    selectAllCheckbox.addEventListener('change', function () {
-        categoryCheckboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
-
-        // 🔥 Trigger a real 'change' event on one of the boxes to activate HTMX
-//        if (categoryCheckboxes.length > 0) {
-            categoryCheckboxes[0].dispatchEvent(new Event('change', { bubbles: true }));
-//        }
-    });
-
-    // When any category checkbox is manually changed
-    categoryCheckboxes.forEach(cb => {
-        cb.addEventListener('change', function () {
-            const allChecked = Array.from(categoryCheckboxes).every(cb => cb.checked);
-            selectAllCheckbox.checked = allChecked;
+        // "Select All" toggle
+        console.log(selectAllCheckbox)
+        selectAllCheckbox.addEventListener('change', function () {
+            checkboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
+            checkboxes[0].dispatchEvent(new Event('change', { bubbles: true }));
         });
-    });
+
+        // Sync "Select All" checkbox when any individual one changes
+        checkboxes.forEach(cb => {
+            cb.addEventListener('change', function () {
+                const allChecked = Array.from(checkboxes).every(c => c.checked);
+                selectAllCheckbox.checked = allChecked;
+            });
+        });
+    }
+
+    // 🧠 Call the function for each filter you want to activate
+    setupFilterSelectAll('category');
+    setupFilterSelectAll('parent_category');
+    // Add more as needed: setupFilterSelectAll('status'), etc.
 });
+
+//// check / uncheck all checklist boxes
+//document.addEventListener('DOMContentLoaded', function () {
+//    const selectAllCheckbox = document.getElementById('category-select-all');
+//    const categoryCheckboxes = document.querySelectorAll('.form-check-input[name="category"]');
+//    const form = document.getElementById('transaction-filter-form');
+//
+//    // Select all on first load if no category param is present
+//    // Use this if overriding filtering method (filter_category) to not show any results with no checkboxed values.
+////    if (!window.location.search.includes('category=')) {
+////        categoryCheckboxes.forEach(cb => cb.checked = true);
+////        // Submit after setting them
+////        categoryCheckboxes[0].dispatchEvent(new Event('change', { bubbles: true }));
+////    }
+//
+//    // When "Select All" is toggled
+//    selectAllCheckbox.addEventListener('change', function () {
+//        categoryCheckboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
+//
+//        // 🔥 Trigger a real 'change' event on one of the boxes to activate HTMX
+////        if (categoryCheckboxes.length > 0) {
+//            categoryCheckboxes[0].dispatchEvent(new Event('change', { bubbles: true }));
+////        }
+//    });
+//
+//    // When any category checkbox is manually changed
+//    categoryCheckboxes.forEach(cb => {
+//        cb.addEventListener('change', function () {
+//            const allChecked = Array.from(categoryCheckboxes).every(cb => cb.checked);
+//            selectAllCheckbox.checked = allChecked;
+//        });
+//    });
+//});
 
 
 //$(document).ready(function() {
