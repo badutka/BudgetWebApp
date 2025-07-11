@@ -44,6 +44,7 @@ class Category(BaseModel):
         ('INCOMING', 'INCOMING'),
         ('OUTGOING', 'OUTGOING'),
     ]
+
     transaction_type = models.CharField(max_length=255, choices=TRANSFER_CHOICES)
 
     def __str__(self):
@@ -54,6 +55,52 @@ class Category(BaseModel):
         verbose_name_plural = "Categories"
         unique_together = [['parent_category', 'name']]
         ordering = ['parent_category', 'name']
+
+
+class MonthlySummary(models.Model):
+    year = models.PositiveIntegerField()
+    month = models.PositiveIntegerField()
+    income = models.DecimalField(max_digits=12, decimal_places=2)
+    expenses = models.DecimalField(max_digits=12, decimal_places=2)
+    net_savings = models.DecimalField(max_digits=12, decimal_places=2)
+    ending_balance = models.DecimalField(max_digits=12, decimal_places=2)
+
+    class Meta:
+        verbose_name_plural = "MonthlySummaries"
+        unique_together = ('year', 'month')
+        ordering = ['year', 'month']
+        # ordering = ["name"]
+
+    def month_name(self):
+        from calendar import month_name
+        return month_name[self.month]
+
+
+class MonthlyCategorySummary(models.Model):
+    year = models.PositiveIntegerField()
+    month = models.PositiveIntegerField()
+    parent_category_name = models.CharField(max_length=255)
+    category_name = models.CharField(max_length=255)
+    transaction_type = models.CharField(max_length=255, choices=Category.TRANSFER_CHOICES)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+
+    class Meta:
+        verbose_name_plural = "MonthlyCategorySummaries"
+        unique_together = ('year', 'month', 'parent_category_name', 'category_name', 'transaction_type')
+        ordering = ['parent_category_name', 'category_name', 'year', 'month']
+
+
+class MonthlyParentCategorySummary(models.Model):
+    year = models.PositiveIntegerField()
+    month = models.PositiveIntegerField()
+    parent_category_name = models.CharField(max_length=255)
+    transaction_type = models.CharField(max_length=255, choices=Category.TRANSFER_CHOICES)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+
+    class Meta:
+        verbose_name_plural = "MonthlyParentCategorySummaries"
+        unique_together = ('year', 'month', 'parent_category_name', 'transaction_type')
+        ordering = ['transaction_type', 'parent_category_name', 'year', 'month']
 
 
 class Transaction(BaseModel):

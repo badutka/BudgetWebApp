@@ -12,12 +12,12 @@ from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 
 from budget.serializers import TransactionSerializer, ChartDataSerializer, BalanceHistorySerializer, \
-    BalanceHistoryRefreshSerializer
-from budget.models import Transaction, Category, MoneyAccount, BalanceHistory
+    BalanceHistoryRefreshSerializer, MonthlySummarySerializer, MonthlyCategorySummarySerializer, MonthlyParentCategorySummarySerializer
+from budget.models import Transaction, Category, MoneyAccount, BalanceHistory, MonthlySummary, MonthlyCategorySummary, MonthlyParentCategorySummary
 from budget.summary import create_summary_table, create_yearly_summary
 from budget.forms import BudgetExpenseEntryForm
 from budget.utils import update_request_data_for_transaction
-from budget.filters import TransactionFilter
+from budget.filters import TransactionFilter, MonthlySummaryFilter
 
 
 class BalanceHistoryRefreshAPIView(APIView):
@@ -40,8 +40,7 @@ class BalanceHistoryAPIView(ListAPIView):
 
 class ChartDataAPIView(APIView):
     def get(self, request, format=None):
-        summary, totals = create_yearly_summary(2023)
-
+        summary, totals = create_yearly_summary(2025)
         serializer = ChartDataSerializer(summary)
 
         return Response(serializer.data)
@@ -114,3 +113,21 @@ class TransactionsAPIView(generics.ListCreateAPIView):
         filtered_qs = super().filter_queryset(queryset)
         # print("Filtered queryset SQL:", filtered_qs.query)
         return filtered_qs
+
+class MonthlySummaryAPIView(generics.ListCreateAPIView):
+    queryset = MonthlySummary.objects.all()
+    serializer_class = MonthlySummarySerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = MonthlySummaryFilter
+
+class MonthlyCategorySummaryAPIView(generics.ListCreateAPIView):
+    queryset = MonthlyCategorySummary.objects.all()
+    serializer_class = MonthlyCategorySummarySerializer
+    filter_backends = [DjangoFilterBackend]
+    # filterset_class = MonthlySummaryFilter
+
+class MonthlyParentCategorySummaryAPIView(generics.ListCreateAPIView):
+    queryset = MonthlyParentCategorySummary.objects.all()
+    serializer_class = MonthlyParentCategorySummarySerializer
+    filter_backends = [DjangoFilterBackend]
+    # filterset_class = MonthlySummaryFilter

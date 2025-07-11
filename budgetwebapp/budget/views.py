@@ -9,7 +9,7 @@ from django.http import JsonResponse
 
 from api.views import BalanceHistoryAPIView
 from .forms import BudgetExpenseEntryForm
-from .models import Transaction, MoneyAccount, Category, ParentCategory
+from .models import Transaction, MoneyAccount, Category, ParentCategory, MonthlyCategorySummary, MonthlyParentCategorySummary, MonthlySummary
 from .serializers import BalanceHistorySerializer, BalanceHistoryRefreshSerializer
 from .summary import create_summary_table, create_yearly_summary
 from .utils import (get_data_from_form,
@@ -97,6 +97,88 @@ def monthly_expense_summary_view(request):
 
     return render(request, 'budget/monthly_expense_summary.html', context)
 
+def chunked(iterable, size):
+    """Yield successive chunks of given size from iterable."""
+    for i in range(0, len(iterable), size):
+        yield iterable[i:i + size]
+
+def product_list(summaries):
+    rows = list(chunked(summaries, 12))
+    return rows
+from collections import defaultdict
+from django.db.models import Q
+
+def get_parent_category_summary_rows(year, transaction_type=None):
+    """
+    Returns a list of dicts representing rows:
+    Each dict has keys: is_parent_category (bool), name (str), amounts (list of 13 decimals)
+    The last element (index 12) is the sum of the first 12 monthly amounts.
+
+    Optionally filters by transaction_type.
+    """
+
+    # Base queryset filters
+    category_filter = Q(year=year)
+    parent_filter = Q(year=year)
+
+    if transaction_type:
+        category_filter &= Q(transaction_type=transaction_type)
+        parent_filter &= Q(transaction_type=transaction_type)
+
+    # Fetch summaries with filters
+    category_summaries = MonthlyCategorySummary.objects.filter(category_filter)
+    parent_summaries = MonthlyParentCategorySummary.objects.filter(parent_filter)
+
+    # Prepare defaultdicts for amounts (12 months indexed 0-11)
+    category_amounts = defaultdict(lambda: [0]*12)
+    for s in category_summaries:
+        category_amounts[(s.parent_category_name, s.category_name)][s.month - 1] = s.amount
+
+    parent_amounts = defaultdict(lambda: [0]*12)
+    for s in parent_summaries:
+        parent_amounts[s.parent_category_name][s.month - 1] = s.amount
+
+    # Query parent categories with prefetched categories
+    parents = ParentCategory.objects.all().order_by('name').prefetch_related('category_set')
+
+    result_rows = []
+
+    for parent in parents:
+        # Prepare amounts list with total sum as 13th value
+        parent_values = parent_amounts.get(parent.name, [0]*12)
+        parent_sum = sum(parent_values)
+        result_rows.append({
+            'is_parent_category': True,
+            'name': parent.name,
+            'amounts': parent_values + [parent_sum],
+        })
+
+        # Add child categories rows with sums
+        categories = parent.category_set.all().order_by('name')
+        for cat in categories:
+            cat_values = category_amounts.get((parent.name, cat.name), [0]*12)
+            cat_sum = sum(cat_values)
+            result_rows.append({
+                'is_parent_category': False,
+                'name': cat.name,
+                'amounts': cat_values + [cat_sum],
+            })
+
+    return result_rows
+
+def monthly_summary_detailed_view(request):
+    months = ['January', 'February', 'March', 'April', 'May', 'June',
+              'July', 'August', 'September', 'October', 'November', 'December']
+
+    rows = get_parent_category_summary_rows(2025)
+
+    context = {
+        "months": months,
+        'rows': rows
+    }
+
+    return render(request, 'budget/monthly_summary_detailed.html', context)
+
 
 def monthly_income_summary_view(request):
     summary_table, summary_table_total = create_summary_table(2025, "income")
@@ -182,7 +264,7 @@ def transaction_add(request):
         if form.is_valid():
             api_url = request.build_absolute_uri(reverse('budget:transaction_add_api'))
             response = requests.post(api_url, data=get_data_from_form(form))
-            return get_response_by_status_code(response, 204, HttpResponse(status=204), HttpResponseBadRequest())
+            return get_response_by_status_code(response, 201, HttpResponse(status=201), HttpResponseBadRequest())
 
     else:
         if not ('HX-Request' in request.headers):

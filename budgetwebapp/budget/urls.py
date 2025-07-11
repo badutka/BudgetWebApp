@@ -9,6 +9,7 @@ from .views import (
     monthly_expense_summary_view,
     monthly_income_summary_view,
     yearly_expense_summary_view,
+    monthly_summary_detailed_view,
     chart_summary,
     BalanceHistoryAPIView,
     balance_history_view,
@@ -23,6 +24,9 @@ from api.views import (
     TransactionFormAPIView,
     ChartDataAPIView,
     BalanceHistoryRefreshAPIView,
+    MonthlySummaryAPIView,
+    MonthlyCategorySummaryAPIView,
+    MonthlyParentCategorySummaryAPIView,
 )
 
 from rest_framework import permissions
@@ -61,6 +65,7 @@ urlpatterns = [
     path('transactions/<int:transaction_id>/duplicate/', duplicate_transaction, name='duplicate_transaction'),
     # 9. Monthly Expense Summary
     path('transactions/monthly-expense-summary/', monthly_expense_summary_view, name='monthly_expense_summary'),
+    path('transactions/monthly-summary-detailed/', monthly_summary_detailed_view, name='monthly_summary_detailed'),
     # 10. Monthly Income Summary
     path('transactions/monthly-income-summary/', monthly_income_summary_view, name='monthly_income_summary'),
     # 11. Yearly Summary
@@ -92,7 +97,9 @@ urlpatterns = urlpatterns + [
     # 8. Outgoing Transactions List
 
     # 9. Monthly Expense Summary
-
+    path('api/monthly-summaries/', MonthlySummaryAPIView.as_view(), name='monthly-summaries'),
+    path('api/monthly-category-summaries/', MonthlyCategorySummaryAPIView.as_view(), name='monthly-category-summaries'),
+    path('api/monthly-parent-category-summaries/', MonthlyParentCategorySummaryAPIView.as_view(), name='monthly-parent-category-summaries'),
     # 10. Monthly Income Summary
 
     # 11. Yearly Summary

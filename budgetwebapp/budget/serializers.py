@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.db.models import Q
 
-from .models import BalanceHistory, Transaction, MoneyAccount, Category, ParentCategory
+from .models import BalanceHistory, Transaction, MoneyAccount, Category, ParentCategory, MonthlySummary, MonthlyCategorySummary, MonthlyParentCategorySummary
 
 
 class ChartDataSerializer(serializers.Serializer):
@@ -91,7 +91,6 @@ class ParentCategorySerializer(serializers.ModelSerializer):
 
 
 class CategorySerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Category
         fields = '__all__'
@@ -128,3 +127,21 @@ class TransactionSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 f"Transaction type mismatch: expected {category.transaction_type}, got {transaction_type}")
         return data
+
+
+class MonthlySummarySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MonthlySummary
+        fields = '__all__'
+
+
+class MonthlyCategorySummarySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MonthlyCategorySummary
+        fields = '__all__'
+
+
+class MonthlyParentCategorySummarySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MonthlyParentCategorySummary
+        fields = '__all__'

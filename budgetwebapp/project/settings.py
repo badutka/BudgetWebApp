@@ -128,4 +128,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CRISPY_TEMPLATE_PACK = 'bootstrap5'
 
+# https://stackoverflow.com/questions/39527629/template-syntax-error-when-rendering-crispy-form
+CRISPY_ALLOWED_TEMPLATE_PACKS = ['bootstrap5']
+
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
