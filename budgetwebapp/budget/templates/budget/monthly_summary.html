@@ -1,0 +1,19 @@
+{% extends "budget/base.html" %}
+{% load static %}
+
+{% block content %}
+
+<!-- Flex container -->
+<div style="display: flex; margin-top: 1%; margin-left: 10px;">
+
+    <!-- Filters Sidebar -->
+    {% include 'budget/summaries_filters.html' %}
+
+    <!-- Summaries Table -->
+    <div id="summaries-table" style="width: 90%;">
+        {% include 'budget/monthly_summary_tbl.html'%}
+    </div>
+
+</div>
+
+{% endblock content %}

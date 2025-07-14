@@ -1,4 +1,10 @@
+import requests
 from datetime import datetime
+from collections import defaultdict
+
+from django.http import HttpResponseBadRequest, HttpResponse, HttpRequest
+from django.urls import reverse
+from django.db.models import Q
 
 
 def get_data_from_form(form):
@@ -36,6 +42,38 @@ def get_response_by_status_code(response, status_code, responseA, responseB=None
         return responseB
 
 
+def fetch_api_and_get_response(
+        request: HttpRequest,
+        api_url: str,
+        status_code_expected: int,
+        params: list[tuple[str, str]] | None = None,
+        response_failure: HttpResponse | None = None
+) -> HttpResponse:
+    """
+    Fetches a response from an internal API endpoint and returns a processed HttpResponse.
+
+    Args:
+        request (HttpRequest): The incoming HTTP request object.
+        api_url (str): The name of the URL pattern to reverse for the API endpoint.
+        status_code_expected (int): The expected HTTP status code from the API response.
+        params (list[tuple[str, str]] | None): Optional list of query parameter key-value pairs.
+        response_failure (HttpResponse | None): Response to return if API status code is unexpected.
+
+    Returns:
+        HttpResponse: A response based on the API call result and status code check.
+    """
+    absolute_api_uri = request.build_absolute_uri(reverse(api_url))
+    parent_response = requests.get(absolute_api_uri, params=params)
+    response_failure = response_failure if response_failure else HttpResponseBadRequest()
+    response = get_response_by_status_code(
+        parent_response,
+        status_code_expected,
+        parent_response.json(),
+        response_failure
+    )
+    return response
+
+
 def update_request_data_for_transaction(request):
     data = request.data.copy()
 
@@ -57,6 +95,12 @@ def flatten_querydict(querydict):
     That's because of interface mismatch between Django’s multi-value QueryDict and requests params.
     """
     return list(querydict.lists())
+
+
+def ts_to_readable(timestamp_str):
+    timestamp = datetime.fromisoformat(timestamp_str[:-1])  # Remove trailing 'Z'
+    return timestamp.strftime('%Y-%m-%d %I:%M %p')
+    # return timestamp.strftime('%b %d, %Y %I:%M %p')
 
 
 def update_transactions_details(transactions, money_accounts, categories):
@@ -99,7 +143,64 @@ def get_transactions_totals(transactions):
     return totals, balance
 
 
-def ts_to_readable(timestamp_str):
-    timestamp = datetime.fromisoformat(timestamp_str[:-1])  # Remove trailing 'Z'
-    return timestamp.strftime('%Y-%m-%d %I:%M %p')
-    # return timestamp.strftime('%b %d, %Y %I:%M %p')
+class SummaryViewUtils:
+    @staticmethod
+    def get_summary_rows(data):
+        income = [0] * 12
+        expenses = [0] * 12
+        net_savings = [0] * 12
+        ending_balance = [0] * 12
+
+        for s in data:
+            idx = s['month'] - 1
+            income[idx] = float(s['income'])
+            expenses[idx] = float(s['expenses'])
+            net_savings[idx] = float(s['net_savings'])
+            ending_balance[idx] = float(s['ending_balance'])
+
+        return [
+            {
+                'name': 'Income',
+                'amounts': income + [sum(income)],
+            },
+            {
+                'name': 'Expenses',
+                'amounts': expenses + [sum(expenses)],
+            },
+            {
+                'name': 'Net Savings',
+                'amounts': net_savings + [sum(net_savings)],
+            },
+            {
+                'name': 'Ending Balance',
+                'amounts': ending_balance + [ending_balance[-1] if any(ending_balance) else 0],
+            }
+        ]
+
+    @staticmethod
+    def get_parent_type_rows_separated(data):
+        income_totals = defaultdict(lambda: [0] * 12)
+        expense_totals = defaultdict(lambda: [0] * 12)
+
+        for s in data:
+            idx = s['month'] - 1
+            if s['transaction_type'] == 'INCOMING':
+                income_totals[s['parent_category_name']][idx] += float(s['amount'])
+            elif s['transaction_type'] == 'OUTGOING':
+                expense_totals[s['parent_category_name']][idx] += float(s['amount'])
+
+        def build_rows(source_dict):
+            rows = []
+            for parent_name in sorted(source_dict.keys()):
+                vals = source_dict[parent_name]
+                rows.append({
+                    'name': parent_name,
+                    'amounts': vals + [sum(vals)],
+                })
+            return rows
+
+        return build_rows(income_totals), build_rows(expense_totals)
+
+    @staticmethod
+    def get_available_years(monthly_summaries):
+        return sorted({s['year'] for s in monthly_summaries}, reverse=True)

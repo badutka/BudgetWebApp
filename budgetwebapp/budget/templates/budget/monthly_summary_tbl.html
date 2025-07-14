@@ -1,0 +1,81 @@
+{% load humanize %}
+{% load template_filters %}
+{% block content %}
+
+<div id="summary-table-content">
+<div class="table-responsive border rounded-2">
+    <table class="table table-bordered table-dark table-hover table-striped align-middle table_morecondensed">
+
+        <thead>
+            <tr>
+                <th colspan="14" class="text-center">
+                   <i class="bi bi-arrow-down"></i> <span class="badge bg-success td-summary-text">Monthly Totals For {{ year }} </span> <i class="bi bi-arrow-down"></i>
+                </th>
+            </tr>
+            <tr class="text-center">
+                <th></th>
+                {% for month in months %}
+                <th><span class="badge bg-success">{{ month }}</span></th>
+                {% endfor %}
+                <th><span class="badge bg-danger">Total</span></th>
+            </tr>
+        </thead>
+
+        <tbody class="text-end">
+            {% for row in totals %}
+                <tr>
+                    {% if row.name == 'Ending Balance' %}
+                        <th><span class="badge bg-danger">Ending Balance</span> <i class="bi bi-arrow-right"></i></th>
+                    {% else %}
+                        <th>{{ row.name }}</th>
+                    {% endif %}
+                    {% for amount in row.amounts %}
+                        <th class="nowrap">
+                            <span {% if amount != 0 %} style="color: #5F9EA0;" {% endif %} class="td-summary-text">
+                                {{ amount|floatformat:2|intcomma }}
+                            </span><span class="td-summary-text"> PLN</span>
+                        </th>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+            <tr>
+                <th colspan="14" class="text-center">
+                   <i class="bi bi-arrow-down"></i> <span class="badge bg-success">Monthly Expenses Per Parent Category</span> <i class="bi bi-arrow-down"></i>
+                </th>
+            </tr>
+            {% for row in outgoing_rows %}
+                <tr>
+                    <th><span class="badge bg-primary">{{ row.name }}</span> <i class="bi bi-arrow-right"></i></th>
+                    {% for amount in row.amounts %}
+                        <th class="nowrap">
+                            <span {% if amount != 0 %} style="color: #5F9EA0;" {% endif %} class="td-summary-text">
+                                {{ amount|floatformat:2|intcomma }}
+                            </span><span class="td-summary-text"> PLN</span>
+                        </th>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+            <tr>
+                <th colspan="14" class="text-center">
+                   <i class="bi bi-arrow-down"></i> <span class="badge bg-success">Monthly Income Per Parent Category</span> <i class="bi bi-arrow-down"></i>
+                </th>
+            </tr>
+            {% for row in incoming_rows %}
+                <tr>
+                    <th><span class="badge bg-primary">{{ row.name }}</span> <i class="bi bi-arrow-right"></i></th>
+                    {% for amount in row.amounts %}
+                        <th class="nowrap">
+                            <span {% if amount != 0 %} style="color: #5F9EA0;" {% endif %} class="td-summary-text">
+                                {{ amount|floatformat:2|intcomma }}
+                            </span><span class="td-summary-text"> PLN</span>
+                        </th>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+</div>
+</div>
+{% endblock content %}

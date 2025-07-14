@@ -10,6 +10,7 @@ from .views import (
     monthly_income_summary_view,
     yearly_expense_summary_view,
     monthly_summary_detailed_view,
+    monthly_summary_view,
     chart_summary,
     BalanceHistoryAPIView,
     balance_history_view,
@@ -66,6 +67,7 @@ urlpatterns = [
     # 9. Monthly Expense Summary
     path('transactions/monthly-expense-summary/', monthly_expense_summary_view, name='monthly_expense_summary'),
     path('transactions/monthly-summary-detailed/', monthly_summary_detailed_view, name='monthly_summary_detailed'),
+    path('transactions/monthly-summary/', monthly_summary_view, name='monthly_summary'),
     # 10. Monthly Income Summary
     path('transactions/monthly-income-summary/', monthly_income_summary_view, name='monthly_income_summary'),
     # 11. Yearly Summary
@@ -97,9 +99,9 @@ urlpatterns = urlpatterns + [
     # 8. Outgoing Transactions List
 
     # 9. Monthly Expense Summary
-    path('api/monthly-summaries/', MonthlySummaryAPIView.as_view(), name='monthly-summaries'),
-    path('api/monthly-category-summaries/', MonthlyCategorySummaryAPIView.as_view(), name='monthly-category-summaries'),
-    path('api/monthly-parent-category-summaries/', MonthlyParentCategorySummaryAPIView.as_view(), name='monthly-parent-category-summaries'),
+    path('api/monthly-summaries/', MonthlySummaryAPIView.as_view(), name='monthly_summaries'),
+    path('api/monthly-category-summaries/', MonthlyCategorySummaryAPIView.as_view(), name='monthly_category_summaries'),
+    path('api/monthly-parent-category-summaries/', MonthlyParentCategorySummaryAPIView.as_view(), name='monthly_parent_category_summaries'),
     # 10. Monthly Income Summary
 
     # 11. Yearly Summary

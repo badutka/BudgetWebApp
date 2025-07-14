@@ -1,7 +1,7 @@
 import django_filters
 from django.db.models import Q
 
-from budget.models import Transaction, Category, ParentCategory, MonthlySummary
+from budget.models import Transaction, Category, ParentCategory, MonthlySummary, MonthlyCategorySummary, MonthlyParentCategorySummary
 from django import forms
 
 
@@ -56,10 +56,18 @@ class TransactionFilter(django_filters.FilterSet):
 
 class MonthlySummaryFilter(django_filters.FilterSet):
     year = django_filters.NumberFilter()
-    month = django_filters.NumberFilter()
-    min_income = django_filters.NumberFilter(field_name='income', lookup_expr='gte')
-    max_expenses = django_filters.NumberFilter(field_name='expenses', lookup_expr='lte')
+    # month = django_filters.NumberFilter()
+    # min_income = django_filters.NumberFilter(field_name='income', lookup_expr='gte')
+    # max_expenses = django_filters.NumberFilter(field_name='expenses', lookup_expr='lte')
 
     class Meta:
         model = MonthlySummary
-        fields = ['year', 'month', 'income', 'expenses']
+        # fields = ['year', 'month', 'income', 'expenses']
+        fields = ['year']
+
+class MonthlyParentCategorySummaryFilter(django_filters.FilterSet):
+    year = django_filters.NumberFilter(field_name='year')
+
+    class Meta:
+        model = MonthlyParentCategorySummary
+        fields = ['year']

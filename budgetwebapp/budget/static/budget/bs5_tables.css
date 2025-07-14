@@ -87,7 +87,8 @@
   }
 }
 
-#transaction-table-content .td-t9ns-text{ /* */
+#transaction-table-content .td-t9ns-text,
+#summary-table-content .td-summary-text {
   animation: fadeInCell 0.3s ease-in-out;
 }
 
@@ -98,6 +99,7 @@
 }
 
 /* For WebKit-based browsers (Chrome, Safari) */
-#transaction-table-content .table-responsive::-webkit-scrollbar {
+#transaction-table-content .table-responsive::-webkit-scrollbar,
+#summary-table-content .table-responsive::-webkit-scrollbar {
   display: none;
 }

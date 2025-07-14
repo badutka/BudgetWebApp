@@ -1,0 +1,18 @@
+{% load static %}
+<form style="width: 150px; margin-right: 10px;"
+      id="summary-filter-form"
+      hx-get="{% url 'budget:monthly_summary' %}"
+      hx-target="#summary-table-content"
+      hx-push-url="true"
+      hx-trigger="change from:select">
+
+    <label for="year" class="form-label filter-label" style="font-size: 24px; width: 150px;">Year:</label>
+    <select name="year" id="year" class="form-select">
+        {% for y in years %}
+        <option value="{{ y }}" {% if year == y|stringformat:"s" %}selected{% endif %}>
+            {{ y }}
+        </option>
+        {% endfor %}
+    </select>
+
+</form>

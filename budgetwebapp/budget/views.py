@@ -1,7 +1,7 @@
 import requests, json
 from django.core.paginator import Paginator
 from django.db.models import Sum
-from django.http import HttpResponseBadRequest, HttpResponse
+from django.http import HttpResponseBadRequest, HttpResponse, HttpRequest
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
 from rest_framework.exceptions import ValidationError
@@ -9,14 +9,21 @@ from django.http import JsonResponse
 
 from api.views import BalanceHistoryAPIView
 from .forms import BudgetExpenseEntryForm
-from .models import Transaction, MoneyAccount, Category, ParentCategory, MonthlyCategorySummary, MonthlyParentCategorySummary, MonthlySummary
+from .models import (Transaction,
+                     MoneyAccount,
+                     Category, ParentCategory,
+                     MonthlyCategorySummary,
+                     MonthlyParentCategorySummary,
+                     MonthlySummary)
 from .serializers import BalanceHistorySerializer, BalanceHistoryRefreshSerializer
 from .summary import create_summary_table, create_yearly_summary
 from .utils import (get_data_from_form,
                     get_response_by_status_code,
                     update_transactions_details,
                     flatten_querydict,
-                    get_transactions_totals)
+                    get_transactions_totals,
+                    fetch_api_and_get_response,
+                    SummaryViewUtils)
 from .filters import TransactionFilter
 
 
@@ -97,16 +104,21 @@ def monthly_expense_summary_view(request):
 
     return render(request, 'budget/monthly_expense_summary.html', context)
 
+
 def chunked(iterable, size):
     """Yield successive chunks of given size from iterable."""
     for i in range(0, len(iterable), size):
         yield iterable[i:i + size]
 
+
 def product_list(summaries):
     rows = list(chunked(summaries, 12))
     return rows
+
+
 from collections import defaultdict
 from django.db.models import Q
+
 
 def get_parent_category_summary_rows(year, transaction_type=None):
     """
@@ -130,11 +142,11 @@ def get_parent_category_summary_rows(year, transaction_type=None):
     parent_summaries = MonthlyParentCategorySummary.objects.filter(parent_filter)
 
     # Prepare defaultdicts for amounts (12 months indexed 0-11)
-    category_amounts = defaultdict(lambda: [0]*12)
+    category_amounts = defaultdict(lambda: [0] * 12)
     for s in category_summaries:
         category_amounts[(s.parent_category_name, s.category_name)][s.month - 1] = s.amount
 
-    parent_amounts = defaultdict(lambda: [0]*12)
+    parent_amounts = defaultdict(lambda: [0] * 12)
     for s in parent_summaries:
         parent_amounts[s.parent_category_name][s.month - 1] = s.amount
 
@@ -145,7 +157,7 @@ def get_parent_category_summary_rows(year, transaction_type=None):
 
     for parent in parents:
         # Prepare amounts list with total sum as 13th value
-        parent_values = parent_amounts.get(parent.name, [0]*12)
+        parent_values = parent_amounts.get(parent.name, [0] * 12)
         parent_sum = sum(parent_values)
         result_rows.append({
             'is_parent_category': True,
@@ -156,7 +168,7 @@ def get_parent_category_summary_rows(year, transaction_type=None):
         # Add child categories rows with sums
         categories = parent.category_set.all().order_by('name')
         for cat in categories:
-            cat_values = category_amounts.get((parent.name, cat.name), [0]*12)
+            cat_values = category_amounts.get((parent.name, cat.name), [0] * 12)
             cat_sum = sum(cat_values)
             result_rows.append({
                 'is_parent_category': False,
@@ -165,6 +177,7 @@ def get_parent_category_summary_rows(year, transaction_type=None):
             })
 
     return result_rows
+
 
 def monthly_summary_detailed_view(request):
     months = ['January', 'February', 'March', 'April', 'May', 'June',
@@ -178,6 +191,43 @@ def monthly_summary_detailed_view(request):
     }
 
     return render(request, 'budget/monthly_summary_detailed.html', context)
+
+
+def monthly_summary_view(request):
+    if request.method == 'GET':
+
+        months = ['January', 'February', 'March', 'April', 'May', 'June',
+                  'July', 'August', 'September', 'October', 'November', 'December']
+        params = flatten_querydict(request.GET)
+
+        # --- Fetch parent category summaries ---
+        parent_summaries = fetch_api_and_get_response(request, 'budget:monthly_parent_category_summaries', 200, params)
+        monthly_summaries = fetch_api_and_get_response(request, 'budget:monthly_summaries', 200, params)
+
+        # --- Pass API data to helpers ---
+        incoming_rows, outgoing_rows = SummaryViewUtils.get_parent_type_rows_separated(parent_summaries)
+        totals = SummaryViewUtils.get_summary_rows(monthly_summaries)
+
+        all_summaries = fetch_api_and_get_response(request, 'budget:monthly_summaries', 200, None)  # No filters
+        years = SummaryViewUtils.get_available_years(all_summaries)
+        year = request.GET.get('year', years)
+
+        if 'year' not in request.GET and years:
+            return redirect(f"{request.path}?year={years[-1]}")
+
+        context = {
+            "months": months,
+            'totals': totals,
+            'incoming_rows': incoming_rows,
+            'outgoing_rows': outgoing_rows,
+            'year': year,
+            'years': years
+        }
+
+        if request.headers.get('HX-Request'):
+            return render(request, 'budget/monthly_summary_tbl.html', context)
+
+    return render(request, 'budget/monthly_summary.html', context)
 
 
 def monthly_income_summary_view(request):
