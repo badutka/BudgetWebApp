@@ -1,7 +1,8 @@
 import django_filters
 from django.db.models import Q
 
-from budget.models import Transaction, Category, ParentCategory, MonthlySummary, MonthlyCategorySummary, MonthlyParentCategorySummary
+from budget.models import Transaction, Category, ParentCategory, MonthlySummary, MonthlyCategorySummary, \
+    MonthlyParentCategorySummary
 from django import forms
 
 
@@ -65,9 +66,22 @@ class MonthlySummaryFilter(django_filters.FilterSet):
         # fields = ['year', 'month', 'income', 'expenses']
         fields = ['year']
 
+
 class MonthlyParentCategorySummaryFilter(django_filters.FilterSet):
     year = django_filters.NumberFilter(field_name='year')
+    parent_category  = django_filters.ModelMultipleChoiceFilter(
+        field_name='parent_category_name',
+        # to_field_name='id',
+        queryset=ParentCategory.objects.all(),
+        label='Parent Category',
+        # method='filter_by_parent_category'
+    )
 
     class Meta:
         model = MonthlyParentCategorySummary
-        fields = ['year']
+        fields = ['year', 'parent_category_name']
+
+    # def filter_by_parent_category(self, queryset, name, value):
+    #     if value:
+    #         return queryset.filter(parent_category_name__in=value)
+    #     return queryset

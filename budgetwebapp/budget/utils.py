@@ -202,5 +202,36 @@ class SummaryViewUtils:
         return build_rows(income_totals), build_rows(expense_totals)
 
     @staticmethod
+    def build_summary_totals(income_rows, expense_rows, starting_balance=0.0):
+        def sum_vertically(rows):
+            totals = [0.0] * 13
+            for row in rows:
+                for i in range(13):
+                    totals[i] += row['amounts'][i]
+            return totals
+
+        income_total = sum_vertically(income_rows)
+        expense_total = sum_vertically(expense_rows)
+
+        # Net savings: monthly income - expense
+        net_savings = [income_total[i] - expense_total[i] for i in range(12)]
+        net_savings.append(sum(net_savings))  # 13th value is total
+
+        # Ending balance: cumulative net savings starting from a given balance
+        ending_balance = []
+        running_balance = starting_balance
+        for ns in net_savings[:12]:
+            running_balance += ns
+            ending_balance.append(running_balance)
+        ending_balance.append(running_balance)  # 13th value same as last month
+
+        return [
+            {'name': 'Income', 'amounts': income_total},
+            {'name': 'Expenses', 'amounts': expense_total},
+            {'name': 'Net Savings', 'amounts': net_savings},
+            {'name': 'Ending Balance', 'amounts': ending_balance},
+        ]
+
+    @staticmethod
     def get_available_years(monthly_summaries):
         return sorted({s['year'] for s in monthly_summaries}, reverse=True)

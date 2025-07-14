@@ -28,6 +28,7 @@ from api.views import (
     MonthlySummaryAPIView,
     MonthlyCategorySummaryAPIView,
     MonthlyParentCategorySummaryAPIView,
+    ParentCategoryAPIView,
 )
 
 from rest_framework import permissions
@@ -102,6 +103,7 @@ urlpatterns = urlpatterns + [
     path('api/monthly-summaries/', MonthlySummaryAPIView.as_view(), name='monthly_summaries'),
     path('api/monthly-category-summaries/', MonthlyCategorySummaryAPIView.as_view(), name='monthly_category_summaries'),
     path('api/monthly-parent-category-summaries/', MonthlyParentCategorySummaryAPIView.as_view(), name='monthly_parent_category_summaries'),
+    path('api/parent-categories/', ParentCategoryAPIView.as_view(), name='parent_categories'),
     # 10. Monthly Income Summary
 
     # 11. Yearly Summary

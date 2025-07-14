@@ -5,27 +5,30 @@
 //})
 
 //https://blog.benoitblanchon.fr/django-htmx-modal-form/
-const modal = new bootstrap.Modal(document.getElementById("modal"))
+const modalElement = document.getElementById("modal");
+let modal = null;
 
-htmx.on("htmx:afterSwap", (e) => {
-  // Response targeting #dialog => show the modal
-  if (e.detail.target.id == "dialog") {
-    modal.show()
-  }
-})
+if (modalElement) {
+  modal = new bootstrap.Modal(modalElement);
 
-htmx.on("htmx:beforeSwap", (e) => {
-  // Empty response targeting #dialog => hide the modal
-  if (e.detail.target.id == "dialog" && !e.detail.xhr.response) {
-    modal.hide()
-    document.location.reload();
-    e.detail.shouldSwap = false
-  }
-})
+  htmx.on("htmx:afterSwap", (e) => {
+    if (e.detail.target.id == "dialog") {
+      modal.show();
+    }
+  });
 
-htmx.on("hidden.bs.modal", () => {
-  document.getElementById("dialog").innerHTML = ""
-})
+  htmx.on("htmx:beforeSwap", (e) => {
+    if (e.detail.target.id == "dialog" && !e.detail.xhr.response) {
+      modal.hide();
+      document.location.reload();
+      e.detail.shouldSwap = false;
+    }
+  });
+
+  htmx.on("hidden.bs.modal", () => {
+    document.getElementById("dialog").innerHTML = "";
+  });
+}
 
 function updateDropdownText(filterName) {
     const checkboxes = document.querySelectorAll(`.form-check-input[name="${filterName}"]`);
@@ -34,7 +37,7 @@ function updateDropdownText(filterName) {
     if (!dropdownButton) return;
 
     const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
-    dropdownButton.textContent = checkedCount > 0 ? `${checkedCount} selected` : 'Expand';
+    dropdownButton.textContent = checkedCount >= 0 ? `${checkedCount} selected` : 'Expand';
 }
 
 function setupFilterSelectAll(filterName) {
@@ -42,8 +45,6 @@ function setupFilterSelectAll(filterName) {
     const checkboxes = document.querySelectorAll(`.form-check-input[name="${filterName}"]`);
 
     if (!selectAllCheckbox || checkboxes.length === 0) return;
-
-
 
     // "Select All" toggle
     console.log(selectAllCheckbox)
@@ -68,6 +69,7 @@ function setupFilterSelectAll(filterName) {
 
 document.addEventListener('DOMContentLoaded', function () {
     // 🧠 Call the function for each filter you want to activate
+    console.log('hello')
     setupFilterSelectAll('category');
     setupFilterSelectAll('parent_category');
     // Add more as needed: setupFilterSelectAll('status'), etc.
