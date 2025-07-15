@@ -195,10 +195,8 @@ def monthly_summary_detailed_view(request):
 
 def monthly_summary_view(request):
     if request.method == 'GET':
-
-        months = ['January', 'February', 'March', 'April', 'May', 'June',
-                  'July', 'August', 'September', 'October', 'November', 'December']
         params = flatten_querydict(request.GET)
+
         # --- Fetch parent category summaries ---
         monthly_parent_category_summaries = fetch_api_and_get_response(request, 'budget:monthly_parent_category_summaries', 200, params)
         monthly_summaries = fetch_api_and_get_response(request, 'budget:monthly_summaries', 200, params)
@@ -220,7 +218,6 @@ def monthly_summary_view(request):
             return redirect(f"{request.path}?year={years[-1]}")
 
         context = {
-            "months": months,
             'totals': totals,
             'incoming_rows': incoming_rows,
             'outgoing_rows': outgoing_rows,

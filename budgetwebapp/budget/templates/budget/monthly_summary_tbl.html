@@ -14,8 +14,8 @@
             </tr>
             <tr class="text-center">
                 <th></th>
-                {% for month in months %}
-                <th><span class="badge bg-success">{{ month }}</span></th>
+                {% for i in 1|to_range:12 %}
+                    <th><span class="badge bg-success">{{ i|month_name }}</span></th>
                 {% endfor %}
                 <th><span class="badge bg-danger">Total</span></th>
             </tr>

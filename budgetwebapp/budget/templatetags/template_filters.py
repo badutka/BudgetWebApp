@@ -2,6 +2,7 @@ from django.template.defaulttags import register
 from django import template
 from django.utils.safestring import mark_safe
 from urllib.parse import urlencode
+import calendar
 
 
 # Custom template filter to get data from a dictionary using key in template
@@ -14,6 +15,17 @@ def get_item(dictionary, key):
 @register.filter
 def getlist(qdict, key):
     return qdict.getlist(key)
+
+
+@register.filter
+def month_name(month_number):
+    return calendar.month_name[month_number]
+
+
+@register.filter
+def to_range(start, end):
+    return range(start, end + 1)
+
 
 @register.simple_tag(takes_context=True)
 def htmx_pagelink(context, label, page_number, target='transaction-table-content'):
