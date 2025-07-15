@@ -204,11 +204,11 @@ def monthly_summary_view(request):
         monthly_summaries = fetch_api_and_get_response(request, 'budget:monthly_summaries', 200, params)
 
         # --- Pass API data to helpers ---
-        incoming_rows, outgoing_rows = SummaryViewUtils.get_parent_type_rows_separated(monthly_parent_category_summaries)
+        incoming_rows, outgoing_rows = SummaryViewUtils.get_parent_category_monthly_totals_rows(monthly_parent_category_summaries)
         if 'parent_category' in request.GET:
-            totals = SummaryViewUtils.build_summary_totals(incoming_rows, outgoing_rows, starting_balance=float(monthly_summaries[0]['ending_balance']))
+            totals = SummaryViewUtils.build_totals_rows(incoming_rows, outgoing_rows, starting_balance=float(monthly_summaries[0]['ending_balance']))
         else:
-            totals = SummaryViewUtils.get_summary_rows(monthly_summaries)
+            totals = SummaryViewUtils.get_totals_rows(monthly_summaries)
 
         all_summaries = fetch_api_and_get_response(request, 'budget:monthly_summaries', 200, None)  # No filters
         years = SummaryViewUtils.get_available_years(all_summaries)

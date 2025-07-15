@@ -145,7 +145,7 @@ def get_transactions_totals(transactions):
 
 class SummaryViewUtils:
     @staticmethod
-    def get_summary_rows(data):
+    def get_totals_rows(data):
         income = [0] * 12
         expenses = [0] * 12
         net_savings = [0] * 12
@@ -178,7 +178,7 @@ class SummaryViewUtils:
         ]
 
     @staticmethod
-    def get_parent_type_rows_separated(data):
+    def get_parent_category_monthly_totals_rows(data):
         income_totals = defaultdict(lambda: [0] * 12)
         expense_totals = defaultdict(lambda: [0] * 12)
 
@@ -202,7 +202,7 @@ class SummaryViewUtils:
         return build_rows(income_totals), build_rows(expense_totals)
 
     @staticmethod
-    def build_summary_totals(income_rows, expense_rows, starting_balance=0.0):
+    def build_totals_rows(income_rows, expense_rows, starting_balance=0.0):
         def sum_vertically(rows):
             totals = [0.0] * 13
             for row in rows:
