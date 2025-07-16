@@ -25,6 +25,7 @@ from api.views import (
     TransactionFormAPIView,
     ChartDataAPIView,
     BalanceHistoryRefreshAPIView,
+    MoneyAccountAPIView,
     MonthlySummaryAPIView,
     MonthlyCategorySummaryAPIView,
     MonthlyParentCategorySummaryAPIView,
@@ -98,9 +99,10 @@ urlpatterns = urlpatterns + [
     # 7. Incoming Transactions List
 
     # 8. Outgoing Transactions List
-
+    path('api/money-accounts/', MoneyAccountAPIView.as_view(), name='money_accounts'),
     # 9. Monthly Expense Summary
     path('api/monthly-summaries/', MonthlySummaryAPIView.as_view(), name='monthly_summaries'),
+    path('api/monthly-summaries/<int:year>/<int:month>/', MonthlySummaryAPIView.as_view(), name='monthly_summaries'),
     path('api/monthly-category-summaries/', MonthlyCategorySummaryAPIView.as_view(), name='monthly_category_summaries'),
     path('api/monthly-parent-category-summaries/', MonthlyParentCategorySummaryAPIView.as_view(), name='monthly_parent_category_summaries'),
     path('api/parent-categories/', ParentCategoryAPIView.as_view(), name='parent_categories'),

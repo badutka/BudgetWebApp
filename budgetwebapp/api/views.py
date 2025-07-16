@@ -16,6 +16,7 @@ from budget.serializers import (
     ChartDataSerializer,
     BalanceHistorySerializer,
     BalanceHistoryRefreshSerializer,
+    MoneyAccountSerializer,
     MonthlySummarySerializer,
     MonthlyCategorySummarySerializer,
     MonthlyParentCategorySummarySerializer,
@@ -60,6 +61,11 @@ class ChartDataAPIView(APIView):
         serializer = ChartDataSerializer(summary)
 
         return Response(serializer.data)
+
+
+class MoneyAccountAPIView(generics.ListCreateAPIView):
+    queryset = MoneyAccount.objects.all()
+    serializer_class = MoneyAccountSerializer
 
 
 class TransactionFormAPIView(APIView):
@@ -143,6 +149,22 @@ class MonthlySummaryAPIView(generics.ListCreateAPIView):
     serializer_class = MonthlySummarySerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = MonthlySummaryFilter
+
+    def get_queryset(self):
+        queryset = MonthlySummary.objects.all()
+        year = self.kwargs.get('year')
+        month = self.kwargs.get('month')
+
+        if year is not None and month is not None:
+            return queryset.filter(year=year, month=month)
+
+        # Optionally: add support for query params if you want
+        # year = self.request.query_params.get('year')
+        # month = self.request.query_params.get('month')
+        # if year and month:
+        #     return queryset.filter(date__year=year, date__month=month)
+
+        return queryset
 
 
 class MonthlyCategorySummaryAPIView(generics.ListCreateAPIView):
