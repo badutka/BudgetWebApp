@@ -1,12 +1,10 @@
-import requests, json
+import requests
 from django.core.paginator import Paginator
 from django.db.models import Sum
-from django.http import HttpResponseBadRequest, HttpResponse, HttpRequest
+from django.http import HttpResponseBadRequest, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
 from rest_framework.exceptions import ValidationError
-from django.http import JsonResponse
-from django.core.exceptions import ObjectDoesNotExist
 
 from api.views import BalanceHistoryAPIView
 from .forms import BudgetExpenseEntryForm
@@ -14,18 +12,17 @@ from .models import (Transaction,
                      MoneyAccount,
                      Category, ParentCategory,
                      MonthlyCategorySummary,
-                     MonthlyParentCategorySummary,
-                     MonthlySummary)
+                     MonthlyParentCategorySummary)
 from .serializers import BalanceHistorySerializer, BalanceHistoryRefreshSerializer
 from .summary import create_summary_table, create_yearly_summary
-from .utils import (get_data_from_form,
-                    get_response_by_status_code,
-                    update_transactions_details,
-                    flatten_querydict,
-                    get_transactions_totals,
-                    fetch_api_and_get_response,
-                    SummaryViewUtils)
-from .filters import TransactionFilter
+from core.utils import (get_data_from_form,
+                        get_response_by_status_code,
+                        update_transactions_details,
+                        flatten_querydict,
+                        get_transactions_totals,
+                        fetch_api_and_get_response)
+
+from core.summaries import monthly_summary
 
 
 # ===============================================
@@ -201,7 +198,7 @@ def monthly_summary_view(request):
         params = flatten_querydict(request.GET)
 
         all_summaries = fetch_api_and_get_response(request, 'budget:monthly_summaries', 200, None)  # No filters
-        years = SummaryViewUtils.get_available_years(all_summaries)
+        years = monthly_summary.get_available_years(all_summaries)
         year = request.GET.get('year', years)
 
         if 'year' not in request.GET and years:
@@ -212,13 +209,13 @@ def monthly_summary_view(request):
         monthly_summaries = fetch_api_and_get_response(request, 'budget:monthly_summaries', 200, params)
 
         # --- Pass API data to helpers ---
-        incoming_rows, outgoing_rows = SummaryViewUtils.get_parent_category_monthly_totals_rows(monthly_parent_category_summaries)
+        incoming_rows, outgoing_rows = monthly_summary.get_parent_category_monthly_totals_rows(monthly_parent_category_summaries)
 
         if 'parent_category' in request.GET:
-            starting_balance = SummaryViewUtils.get_starting_balance(request, year)
-            totals = SummaryViewUtils.build_totals_rows(incoming_rows, outgoing_rows, starting_balance=starting_balance)
+            starting_balance = monthly_summary.get_starting_balance(request, year)
+            totals = monthly_summary.build_totals_rows(incoming_rows, outgoing_rows, starting_balance=starting_balance)
         else:
-            totals = SummaryViewUtils.get_totals_rows(monthly_summaries)
+            totals = monthly_summary.get_totals_rows(monthly_summaries)
 
         parent_categories = fetch_api_and_get_response(request, 'budget:parent_categories', 200, params)
 
