@@ -1,8 +1,7 @@
-from django.db import models
-from django.db.models.signals import pre_save, pre_delete, post_save, post_delete
+from django.db.models.signals import pre_save, post_save, post_delete
 from django.dispatch import receiver
-from .models import BalanceHistory, Transaction
-from .reporting import ReportsUtility, update_all_summaries
+from .models import Transaction
+from core.summaries.reporting import ReportsUtility, update_all_summaries
 
 
 # @receiver(pre_delete, sender=BudgetExpenseEntry)
