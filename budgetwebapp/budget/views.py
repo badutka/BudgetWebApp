@@ -6,6 +6,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
 from rest_framework.exceptions import ValidationError
 from django.http import JsonResponse
+from django.core.exceptions import ObjectDoesNotExist
 
 from api.views import BalanceHistoryAPIView
 from .forms import BudgetExpenseEntryForm
@@ -193,9 +194,18 @@ def monthly_summary_detailed_view(request):
     return render(request, 'budget/monthly_summary_detailed.html', context)
 
 
+
+
 def monthly_summary_view(request):
     if request.method == 'GET':
         params = flatten_querydict(request.GET)
+
+        all_summaries = fetch_api_and_get_response(request, 'budget:monthly_summaries', 200, None)  # No filters
+        years = SummaryViewUtils.get_available_years(all_summaries)
+        year = request.GET.get('year', years)
+
+        if 'year' not in request.GET and years:
+            return redirect(f"{request.path}?year={years[-1]}")
 
         # --- Fetch parent category summaries ---
         monthly_parent_category_summaries = fetch_api_and_get_response(request, 'budget:monthly_parent_category_summaries', 200, params)
@@ -203,19 +213,14 @@ def monthly_summary_view(request):
 
         # --- Pass API data to helpers ---
         incoming_rows, outgoing_rows = SummaryViewUtils.get_parent_category_monthly_totals_rows(monthly_parent_category_summaries)
+
         if 'parent_category' in request.GET:
-            totals = SummaryViewUtils.build_totals_rows(incoming_rows, outgoing_rows, starting_balance=float(monthly_summaries[0]['ending_balance']))
+            starting_balance = SummaryViewUtils.get_starting_balance(request, year)
+            totals = SummaryViewUtils.build_totals_rows(incoming_rows, outgoing_rows, starting_balance=starting_balance)
         else:
             totals = SummaryViewUtils.get_totals_rows(monthly_summaries)
 
-        all_summaries = fetch_api_and_get_response(request, 'budget:monthly_summaries', 200, None)  # No filters
-        years = SummaryViewUtils.get_available_years(all_summaries)
-        year = request.GET.get('year', years)
-
         parent_categories = fetch_api_and_get_response(request, 'budget:parent_categories', 200, params)
-
-        if 'year' not in request.GET and years:
-            return redirect(f"{request.path}?year={years[-1]}")
 
         context = {
             'totals': totals,
