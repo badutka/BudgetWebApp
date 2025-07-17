@@ -1,4 +1,4 @@
-#transaction-filter-form {
+.filter-form {
   width: 220px; /* a bit wider for better readability */
   padding: 0.5rem;
   /*background: #f8f9fa;*/ /* light background */
@@ -8,7 +8,7 @@
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-#transaction-filter-form .filter-label {
+.filter-form .filter-label {
   font-size: 1.1rem;
   font-weight: 600;
   color: #ecf0f1;
@@ -16,27 +16,27 @@
   display: block;
 }
 
-#transaction-filter-form select.form-select,
-#transaction-filter-form input.form-control,
-#transaction-filter-form .dropdown-menu {
+.filter-form select.form-select,
+.filter-form input.form-control,
+.filter-form .dropdown-menu {
   font-size: 0.95rem;
   border-radius: 8px;
   border: 1.5px solid #ccc;
   transition: border-color 0.3s ease;
 }
 
-#transaction-filter-form select.form-select:focus,
-#transaction-filter-form input.form-control:focus {
+.filter-form select.form-select:focus,
+.filter-form input.form-control:focus {
   border-color: #1abc9c;
   box-shadow: 0 0 8px rgba(26, 188, 156, 0.3);
   outline: none;
 }
 
-#transaction-filter-form .dropdown {
+.filter-form .dropdown {
   margin-bottom: 1rem;
 }
 
-#transaction-filter-form .dropdown-toggle {
+.filter-form .dropdown-toggle {
   width: 100%;
   background-color: white;
   color: #333;
@@ -47,15 +47,15 @@
   padding-left: 1rem;
 }
 
-#transaction-filter-form .dropdown-toggle:hover,
-#transaction-filter-form .dropdown-toggle:focus {
+.filter-form .dropdown-toggle:hover,
+.filter-form .dropdown-toggle:focus {
   background-color: #eaf6f4;
   border-color: #1abc9c;
   color: #1abc9c;
   outline: none;
 }
 
-#transaction-filter-form .dropdown-menu {
+.filter-form .dropdown-menu {
   max-height: 250px;
   overflow-y: auto;
   border-radius: 12px;
@@ -65,11 +65,11 @@
   box-shadow: 0 8px 20px rgba(0,0,0,0.1);
 }
 
-#transaction-filter-form .form-check {
+.filter-form .form-check {
   margin-bottom: 0.4rem;
 }
 
-#transaction-filter-form .form-check-input {
+.filter-form .form-check-input {
   cursor: pointer;
   border-radius: 4px;
   border: 1.5px solid #bbb;
@@ -78,16 +78,16 @@
   transition: border-color 0.2s ease, background-color 0.3s ease;
 }
 
-#transaction-filter-form .form-check-input:checked {
+.filter-form .form-check-input:checked {
   background-color: #1abc9c;
   border-color: #16a085;
 }
 
-#transaction-filter-form .form-check-input:hover {
+.filter-form .form-check-input:hover {
   border-color: #1abc9c;
 }
 
-#transaction-filter-form hr {
+.filter-form hr {
   margin: 0.6rem 0;
   border-color: #ddd;
 }

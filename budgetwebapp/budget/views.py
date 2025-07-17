@@ -191,8 +191,6 @@ def monthly_summary_detailed_view(request):
     return render(request, 'budget/monthly_summary_detailed.html', context)
 
 
-
-
 def monthly_summary_view(request):
     if request.method == 'GET':
         params = flatten_querydict(request.GET)

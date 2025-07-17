@@ -1,5 +1,7 @@
 {% load static %}
-<form style="width: 150px; margin-right: 10px;" id="transaction-filter-form"
+<form style="width: 150px; margin-right: 10px;"
+      id="transaction-filter-form"
+      class="filter-form"
       hx-get="{% url 'budget:transactions' %}"
       hx-target="#transaction-table-content"
       hx-push-url="true"

@@ -1,6 +1,7 @@
 {% load static %}
 <form style="width: 150px; margin-right: 10px;"
       id="summary-filter-form"
+      class="filter-form"
       hx-get="{% url 'budget:monthly_summary' %}"
       hx-target="#summary-table-content"
       hx-push-url="true"
