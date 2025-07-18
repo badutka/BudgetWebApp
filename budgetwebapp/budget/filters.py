@@ -85,3 +85,22 @@ class MonthlyParentCategorySummaryFilter(django_filters.FilterSet):
     #     if value:
     #         return queryset.filter(parent_category_name__in=value)
     #     return queryset
+
+class MonthlyCategorySummaryFilter(django_filters.FilterSet):
+    year = django_filters.NumberFilter(field_name='year')
+    # parent_category  = django_filters.ModelMultipleChoiceFilter(
+    #     field_name='parent_category_name',
+    #     # to_field_name='id',
+    #     queryset=ParentCategory.objects.all(),
+    #     label='Parent Category',
+    #     # method='filter_by_parent_category'
+    # )
+
+    class Meta:
+        model = MonthlyCategorySummary
+        fields = ['year']
+
+    # def filter_by_parent_category(self, queryset, name, value):
+    #     if value:
+    #         return queryset.filter(parent_category_name__in=value)
+    #     return queryset

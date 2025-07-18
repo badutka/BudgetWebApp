@@ -30,7 +30,7 @@ from budget.models import (
 from budget.summary import create_yearly_summary
 from budget.forms import BudgetExpenseEntryForm
 from core.utils import update_request_data_for_transaction
-from budget.filters import TransactionFilter, MonthlySummaryFilter, MonthlyParentCategorySummaryFilter
+from budget.filters import TransactionFilter, MonthlySummaryFilter, MonthlyCategorySummaryFilter, MonthlyParentCategorySummaryFilter
 
 
 class BalanceHistoryRefreshAPIView(APIView):
@@ -167,7 +167,7 @@ class MonthlyCategorySummaryAPIView(generics.ListCreateAPIView):
     queryset = MonthlyCategorySummary.objects.all()
     serializer_class = MonthlyCategorySummarySerializer
     filter_backends = [DjangoFilterBackend]
-    # filterset_class = MonthlySummaryFilter
+    filterset_class = MonthlyCategorySummaryFilter
 
 
 class MonthlyParentCategorySummaryAPIView(generics.ListCreateAPIView):

@@ -1,0 +1,61 @@
+{% load humanize %}
+{% load template_filters %}
+{% block content %}
+
+<div id="summary-detailed-table-content">
+<div class="table-responsive border rounded-2">
+    <table class="table table-bordered table-dark table-hover table-striped align-middle table_morecondensed">
+
+        <thead>
+            <tr>
+              <th colspan="14" class="text-center">
+                 <span class="badge bg-success">{{ header }} 2023</span>
+              </th>
+            </tr>
+            <tr class="text-center">
+              <th></th>
+                {% for i in 1|to_range:12 %}
+                    <th><span class="badge bg-success">{{ i|month_name }}</span></th>
+                {% endfor %}
+              <th><span class="badge bg-danger">Total</span></th>
+            </tr>
+        </thead>
+
+        <tbody class="text-end">
+        {% for parent_category, values in summary.items %}
+            <tr>
+                <th colspan="14" class="text-center">
+                  <i class="bi bi-arrow-down"></i> <span class="badge rounded-pill bg-primary">{{ parent_category }}</span> <i class="bi bi-arrow-down"></i>
+                </th>
+            </tr>
+
+            <tr>
+                <th><span class="badge bg-danger">Monthly totals:</span></th>
+                {% for amount in values.totals %}
+                    <th class="nowrap">
+                        <span {% if amount != 0 %} style="color: #5F9EA0;" {% endif %}>
+                          {{ amount|floatformat:2|intcomma }}
+                      </span> PLN
+                  </th>
+                {% endfor %}
+            </tr>
+            {% for category, amounts in values.categories.items %}
+                <tr>
+                    <td class="nowrap"><span class="badge rounded-pill bg-secondary">{{ category }}</span></td>
+                    {% for amount in amounts %}
+                        <td class="nowrap">
+                            <span {% if amount != 0 %} style="color: #5F9EA0;" {% endif %}>
+                              {{ amount|floatformat:2|intcomma }}
+                          </span> PLN
+                      </td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+
+          {% endfor %}
+      </tbody>
+
+    </table>
+</div>
+</div>
+{% endblock content %}

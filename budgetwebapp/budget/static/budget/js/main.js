@@ -69,7 +69,6 @@ function setupFilterSelectAll(filterName) {
 
 document.addEventListener('DOMContentLoaded', function () {
     // 🧠 Call the function for each filter you want to activate
-    console.log('hello')
     setupFilterSelectAll('category');
     setupFilterSelectAll('parent_category');
     // Add more as needed: setupFilterSelectAll('status'), etc.

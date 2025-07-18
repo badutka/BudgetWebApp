@@ -1,0 +1,62 @@
+{% load static %}
+<form style="width: 150px; margin-right: 10px;"
+      id="summary-detailed-filter-form"
+      class="filter-form"
+      hx-get="{% url 'budget:monthly_summary_detailed' %}"
+      hx-target="#summary-detailed-table-content"
+      hx-push-url="true"
+      hx-trigger="change from:select,
+                  change from:input[name='parent_category']:not(#parent-category-select-all)">
+
+    <label class="form-label filter-label" style="font-size: 24px; width: 150px;">Filters:</label>
+
+    <label for="year" class="form-label filter-label">Year</label>
+    <select name="year" id="year" class="form-select">
+        {% for y in years %}
+        <option value="{{ y }}" {% if year == y|stringformat:"s" %}selected{% endif %}>
+            {{ y }}
+        </option>
+        {% endfor %}
+    </select>
+
+    <!-- Dropdown-style Parent Category Filter -->
+    <label class="form-label filter-label">PCategory</label>
+    <div class="dropdown">
+        <button class="btn btn-light dropdown-toggle" type="button" id="parent_categoryDropdownButton"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                style="width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+            Expand
+        </button>
+
+        <div class="dropdown-menu p-3"
+             style="width: 100%; max-width: 100%; box-sizing: border-box;"
+             aria-labelledby="parentCategoryDropdownButton">
+            <fieldset class="mb-0">
+                <div class="form-check">
+                    <input class="form-check-input"
+                           type="checkbox"
+                           id="parent_category-select-all"
+                           checked>
+                    <label class="form-check-label fw-bold" for="parent_category-select-all">
+                        Select All
+                    </label>
+                </div>
+                <hr>
+                {% for parent_category in parent_categories %}
+                <div class="form-check">
+                    <input class="form-check-input"
+                           type="checkbox"
+                           name="parent_category"
+                           value="{{ parent_category.id }}"
+                           id="parent-category-{{ parent_category.id }}"
+                           {% if not request.GET.parent_category or parent_category.id|stringformat:"s" in request.GET|getlist:"parent_category" %}checked{% endif %}>
+                    <label class="form-check-label" for="parent-category-{{ parent_category.id }}">
+                        {{ parent_category.name }}
+                    </label>
+                </div>
+                {% endfor %}
+            </fieldset>
+        </div>
+    </div>
+
+</form>
