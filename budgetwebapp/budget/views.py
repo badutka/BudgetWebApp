@@ -129,7 +129,9 @@ def monthly_summary_detailed_view(request):
         monthly_parent_category_summaries = fetch_api_and_get_response(request,'budget:monthly_parent_category_summaries', 200, params)
         monthly_category_summaries = fetch_api_and_get_response(request, 'budget:monthly_category_summaries', 200, params)
 
-        summary = monthly_summary_detailed.get_summary_detailed(parent_categories, monthly_parent_category_summaries, monthly_category_summaries, 'expense')
+        parent_categories_filtered = monthly_summary_detailed.get_filtered_parent_categories(request, parent_categories)
+
+        summary = monthly_summary_detailed.get_summary_detailed(parent_categories_filtered, monthly_parent_category_summaries, monthly_category_summaries, 'expense')
         # todo: filter no-cat parent, filter 0-totals parent
 
         context = {

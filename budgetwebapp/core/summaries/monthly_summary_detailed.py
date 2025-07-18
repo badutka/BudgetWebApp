@@ -1,6 +1,8 @@
 from collections import defaultdict
 
-def get_summary_detailed(parent_categories, monthly_parent_category_summaries, monthly_category_summaries, summary_type):
+
+def get_summary_detailed(parent_categories, monthly_parent_category_summaries, monthly_category_summaries,
+                         summary_type):
     summary = {}
     summary_types = {"income": ['INNER', 'INCOMING'], "expense": ['INNER', 'OUTGOING']}
 
@@ -41,3 +43,11 @@ def get_summary_detailed(parent_categories, monthly_parent_category_summaries, m
         }
 
     return summary
+
+
+def get_filtered_parent_categories(request, parent_categories):
+    parent_category_ids = list(map(int, request.GET.getlist('parent_category')))
+    return [
+        p for p in parent_categories
+        if not parent_category_ids or p['id'] in parent_category_ids
+    ]

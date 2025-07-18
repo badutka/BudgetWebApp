@@ -136,8 +136,7 @@ class TransactionsAPIView(generics.ListCreateAPIView):
 class ParentCategoryAPIView(generics.ListCreateAPIView):
     queryset = ParentCategory.objects.all()
     serializer_class = ParentCategorySerializer
-    # filter_backends = [DjangoFilterBackend]
-    # filterset_class = MonthlySummaryFilter
+    filter_backends = [DjangoFilterBackend]
 
 
 class MonthlySummaryAPIView(generics.ListCreateAPIView):
