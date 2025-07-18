@@ -18,9 +18,8 @@
           <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
             <li><a class="dropdown-item" href="{% url 'budget:transactions' %}">Transactions</a></li>
             <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="{% url 'budget:monthly_expense_summary' %}">Monthly Expense Summary</a></li>
-            <li><a class="dropdown-item" href="{% url 'budget:monthly_income_summary' %}">Monthly Income Summary</a></li>
-            <li><a class="dropdown-item" href="{% url 'budget:yearly_expense_summary' %}">Yearly Expense Summary</a></li>
+            <li><a class="dropdown-item" href="{% url 'budget:monthly_summary' %}">Monthly Summary</a></li>
+            <li><a class="dropdown-item" href="{% url 'budget:monthly_summary_detailed' %}">Monthly Summary Detailed</a></li>
             <li><hr class="dropdown-divider"></li>
             <li><a class="dropdown-item" href="{% url 'budget:chart_summary' %}">Charts Summary</a></li>
           </ul>

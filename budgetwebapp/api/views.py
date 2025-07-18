@@ -27,7 +27,6 @@ from budget.models import (
     MonthlyCategorySummary,
     MonthlyParentCategorySummary,
     ParentCategory)
-from budget.summary import create_yearly_summary
 from budget.forms import BudgetExpenseEntryForm
 from core.utils import update_request_data_for_transaction
 from budget.filters import TransactionFilter, MonthlySummaryFilter, MonthlyCategorySummaryFilter, MonthlyParentCategorySummaryFilter
@@ -53,10 +52,10 @@ class BalanceHistoryAPIView(ListAPIView):
 
 class ChartDataAPIView(APIView):
     def get(self, request, format=None):
-        summary, totals = create_yearly_summary(2025)
-        serializer = ChartDataSerializer(summary)
+        # summary, totals = create_yearly_summary(2025)
+        # serializer = ChartDataSerializer(summary)
 
-        return Response(serializer.data)
+        return Response()
 
 
 class MoneyAccountAPIView(generics.ListCreateAPIView):

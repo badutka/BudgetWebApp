@@ -1,42 +1,12 @@
 from django.urls import path
-
-from .views import (
-    transactions_list_view,
-    transaction_add,
-    transaction,
-    transaction_edit,
-    transaction_delete,
-    monthly_expense_summary_view,
-    monthly_income_summary_view,
-    yearly_expense_summary_view,
-    monthly_summary_detailed_view,
-    monthly_summary_view,
-    chart_summary,
-    BalanceHistoryAPIView,
-    balance_history_view,
-    duplicate_transaction,
-    refresh_balance_history
-)
-
-from api.views import (
-    TransactionsAPIView,
-    TransactionAPIView,
-    TransactionDuplicateAPIView,
-    TransactionFormAPIView,
-    ChartDataAPIView,
-    BalanceHistoryRefreshAPIView,
-    MoneyAccountAPIView,
-    MonthlySummaryAPIView,
-    MonthlyCategorySummaryAPIView,
-    MonthlyParentCategorySummaryAPIView,
-    ParentCategoryAPIView,
-)
-
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 # from rest_framework.schemas import get_schema_view  # openAPI  # https://www.django-rest-framework.org/api-guide/schemas/
 # from rest_framework_swagger.views import get_swagger_view  # django-rest-swagger
 from drf_yasg import openapi
+
+import budget.views as budget_views
+import api.views as api_views
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -52,72 +22,64 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
-    # 0. Home (default)
-    path('', transactions_list_view, name='transactions'),
-    # 1. Get Transactions
-    path('transactions/', transactions_list_view, name='transactions'),
-    # 2. Create a new Transaction
-    path('transactions/add/', transaction_add, name='transaction_add'),
-    # 3. Get Transaction
-    path('transactions/<int:transaction_id>/', transaction, name='transaction'),
-    # 4. Update the Transaction
-    path('transactions/<int:transaction_id>/edit/', transaction_edit, name='transaction_edit'),
-    # 5. Delete the Transaction
-    path('transactions/<int:transaction_id>/delete/', transaction_delete, name='transaction_delete'),
-    # 6. Duplicate Transaction
-    path('transactions/<int:transaction_id>/duplicate/', duplicate_transaction, name='duplicate_transaction'),
-    # 9. Monthly Expense Summary
-    path('transactions/monthly-expense-summary/', monthly_expense_summary_view, name='monthly_expense_summary'),
-    path('transactions/monthly-summary-detailed/', monthly_summary_detailed_view, name='monthly_summary_detailed'),
-    path('transactions/monthly-summary/', monthly_summary_view, name='monthly_summary'),
-    # 10. Monthly Income Summary
-    path('transactions/monthly-income-summary/', monthly_income_summary_view, name='monthly_income_summary'),
-    # 11. Yearly Summary
-    path('transactions/yearly-expense-summary/', yearly_expense_summary_view, name='yearly_expense_summary'),
-    # 12. Charts view
-    path('transactions/chart-summary/', chart_summary, name='chart_summary'),
-    # 13. Balance History View
-    path('balance-history/<str:money_account_name>/', balance_history_view, name='balance_history'),
-    # 14. Balance History Refresh
-    path('balance-history/refresh/<str:money_account_name>/', refresh_balance_history, name='balance_history_refresh'),
-
+    # Home (default)
+    path('', budget_views.transactions_list_view, name='transactions'),
+    # Get Transactions
+    path('transactions/', budget_views.transactions_list_view, name='transactions'),
+    # Create a new Transaction
+    path('transactions/add/', budget_views.transaction_add, name='transaction_add'),
+    # Get Transaction
+    path('transactions/<int:transaction_id>/', budget_views.transaction, name='transaction'),
+    # Update the Transaction
+    path('transactions/<int:transaction_id>/edit/', budget_views.transaction_edit, name='transaction_edit'),
+    # Delete the Transaction
+    path('transactions/<int:transaction_id>/delete/', budget_views.transaction_delete, name='transaction_delete'),
+    # Duplicate Transaction
+    path('transactions/<int:transaction_id>/duplicate/', budget_views.duplicate_transaction, name='duplicate_transaction'),
+    # Get Detailed Summaries
+    path('transactions/monthly-summary-detailed/', budget_views.monthly_summary_detailed_view, name='monthly_summary_detailed'),
+    # Get Summaries
+    path('transactions/monthly-summary/', budget_views.monthly_summary_view, name='monthly_summary'),
+    # Charts View
+    path('transactions/chart-summary/', budget_views.chart_summary, name='chart_summary'),
+    # Balance History View
+    path('balance-history/<str:money_account_name>/', budget_views.balance_history_view, name='balance_history'),
+    # Balance History Refresh
+    path('balance-history/refresh/<str:money_account_name>/', budget_views.refresh_balance_history, name='balance_history_refresh'),
 ]
 
 urlpatterns = urlpatterns + [
-    # 1. Get Transactions
-    path('api/transactions/', TransactionsAPIView.as_view(), name='transactions_api'),
-    # 2. Create a new Transaction
-    path('api/transactions/', TransactionsAPIView.as_view(), name='transaction_add_api'),
-    # 3. Get Transaction
-    path('api/transactions/<int:transaction_id>/', TransactionAPIView.as_view(), name='transaction_api'),
-    # 4. Update the Transaction
-    path('api/transactions/<int:transaction_id>/', TransactionAPIView.as_view(), name='transaction_update_api'),
-    # 5. Delete the Transaction
-    path('api/transactions/<int:transaction_id>/', TransactionAPIView.as_view(), name='transaction_delete_api'),
-    # 6. Duplicate Transaction
-    path('api/transactions/<int:transaction_id>/duplicate/', TransactionDuplicateAPIView.as_view(), name='transaction_duplicate_api'),
-    # 7. Incoming Transactions List
-
-    # 8. Outgoing Transactions List
-    path('api/money-accounts/', MoneyAccountAPIView.as_view(), name='money_accounts'),
-    # 9. Monthly Expense Summary
-    path('api/monthly-summaries/', MonthlySummaryAPIView.as_view(), name='monthly_summaries'),
-    path('api/monthly-summaries/<int:year>/<int:month>/', MonthlySummaryAPIView.as_view(), name='monthly_summaries'),
-    path('api/monthly-category-summaries/', MonthlyCategorySummaryAPIView.as_view(), name='monthly_category_summaries'),
-    path('api/monthly-parent-category-summaries/', MonthlyParentCategorySummaryAPIView.as_view(), name='monthly_parent_category_summaries'),
-    path('api/parent-categories/', ParentCategoryAPIView.as_view(), name='parent_categories'),
-    # 10. Monthly Income Summary
-
-    # 11. Yearly Summary
-
-    # 12. Charts view
-    path('api/chart-data/', ChartDataAPIView.as_view(), name='chart-data'),
-    # 13. Balance History View
-    path('api/balance-history/<str:money_account_name>/', BalanceHistoryAPIView.as_view(), name='balance-history-api'),
-    # 14. Balance History Refresh
-    path('api/balance-history/refresh/<str:money_account_name>/', BalanceHistoryRefreshAPIView.as_view(), name='balance-history-refresh-api'),
-
-    # 4.2. Edit Transaction Form
+    # Get Transactions
+    path('api/transactions/', api_views.TransactionsAPIView.as_view(), name='transactions_api'),
+    # Create a new Transaction
+    path('api/transactions/', api_views.TransactionsAPIView.as_view(), name='transaction_add_api'),
+    # Get Transaction
+    path('api/transactions/<int:transaction_id>/', api_views.TransactionAPIView.as_view(), name='transaction_api'),
+    # Update the Transaction
+    path('api/transactions/<int:transaction_id>/', api_views.TransactionAPIView.as_view(), name='transaction_update_api'),
+    # Delete the Transaction
+    path('api/transactions/<int:transaction_id>/', api_views.TransactionAPIView.as_view(), name='transaction_delete_api'),
+    # Duplicate Transaction
+    path('api/transactions/<int:transaction_id>/duplicate/', api_views.TransactionDuplicateAPIView.as_view(), name='transaction_duplicate_api'),
+    # Get Money Accounts
+    path('api/money-accounts/', api_views.MoneyAccountAPIView.as_view(), name='money_accounts'),
+    # Get Summaries
+    path('api/monthly-summaries/', api_views.MonthlySummaryAPIView.as_view(), name='monthly_summaries'),
+    # Get Summary
+    path('api/monthly-summaries/<int:year>/<int:month>/', api_views.MonthlySummaryAPIView.as_view(), name='monthly_summaries'),
+    # Get Category Summaries
+    path('api/monthly-category-summaries/', api_views.MonthlyCategorySummaryAPIView.as_view(), name='monthly_category_summaries'),
+    # Get Parent Category Summaries
+    path('api/monthly-parent-category-summaries/', api_views.MonthlyParentCategorySummaryAPIView.as_view(), name='monthly_parent_category_summaries'),
+    # Get Parent Categories
+    path('api/parent-categories/', api_views.ParentCategoryAPIView.as_view(), name='parent_categories'),
+    # Charts view
+    path('api/chart-data/', api_views.ChartDataAPIView.as_view(), name='chart-data'),
+    # Balance History View
+    path('api/balance-history/<str:money_account_name>/', api_views.BalanceHistoryAPIView.as_view(), name='balance-history-api'),
+    # Balance History Refresh
+    path('api/balance-history/refresh/<str:money_account_name>/', api_views.BalanceHistoryRefreshAPIView.as_view(), name='balance-history-refresh-api'),
+    # Edit Transaction Form
     # path('api/transactions/form/<int:transaction_id>/', TransactionFormAPIView.as_view(), name='transaction_form_api'),  # todo: create a separate, better suited form
 
     # API DOCS

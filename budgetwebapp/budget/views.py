@@ -14,7 +14,6 @@ from .models import (Transaction,
                      MonthlyCategorySummary,
                      MonthlyParentCategorySummary)
 from .serializers import BalanceHistorySerializer, BalanceHistoryRefreshSerializer
-from .summary import create_summary_table, create_yearly_summary
 from core.utils import (get_data_from_form,
                         get_response_by_status_code,
                         update_transactions_details,
@@ -74,44 +73,6 @@ def chart_summary(request):
 # ===============================================
 #               TABLE SUMMARIES
 # ===============================================
-
-def yearly_expense_summary_view(request):
-    summary, totals = create_yearly_summary(2025)
-    expense_summary_detailed, total_expense_summary_detailed = create_summary_table(2025, "expense")
-    income_summary_detailed, total_income_summary_detailed = create_summary_table(2025, "income")
-
-    context = {
-        'summary': summary,
-        'totals': totals,
-        'expense_summary_detailed': expense_summary_detailed,
-        'total_expense_summary_detailed': total_expense_summary_detailed,
-        'income_summary_detailed': income_summary_detailed,
-        'total_income_summary_detailed': total_income_summary_detailed
-    }
-
-    return render(request, 'budget/yearly_expense_summary.html', context)
-
-
-def monthly_expense_summary_view(request):
-    summary_table, summary_table_total = create_summary_table(2025, "expense")
-
-    context = {
-        'summary_table': summary_table,
-        'summary_table_total': summary_table_total
-    }
-
-    return render(request, 'budget/monthly_expense_summary.html', context)
-
-
-def chunked(iterable, size):
-    """Yield successive chunks of given size from iterable."""
-    for i in range(0, len(iterable), size):
-        yield iterable[i:i + size]
-
-
-def product_list(summaries):
-    rows = list(chunked(summaries, 12))
-    return rows
 
 
 def monthly_summary_detailed_view(request):
@@ -186,17 +147,6 @@ def monthly_summary_view(request):
             return render(request, 'budget/monthly_summary_tbl.html', context)
 
     return render(request, 'budget/monthly_summary.html', context)
-
-
-def monthly_income_summary_view(request):
-    summary_table, summary_table_total = create_summary_table(2025, "income")
-
-    context = {
-        'summary_table': summary_table,
-        'summary_table_total': summary_table_total
-    }
-
-    return render(request, 'budget/monthly_income_summary.html', context)
 
 
 # ===============================================
