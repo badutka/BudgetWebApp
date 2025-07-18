@@ -9,4 +9,18 @@
 
 body {
     background-color: #010409;
+    /*font-family: 'Manrope', sans-serif;*/
+    font-family: 'Satoshi', sans-serif;
+    /* font-family: 'IBM Plex Sans', sans-serif; */ /* maybe good for dashboard? */
+    /* font-family: 'Space Grotesk', sans-serif; */ /* not a fan of numbers */
+    /* font-family: 'Orbitron', sans-serif; */ /* only for some headers */
+    /* font-family: 'DM Sans', sans-serif; */ /* looks like sligthly bolder satoshi, rounder and fuller? */
+    /* font-family: 'Urbanist', sans-serif; */ /* more like Manrope than Satoshi */
+    /* font-family: 'Outfit', sans-serif; */ /* bold Satoshi */
+}
+
+.budget-content {
+    display: flex;
+    margin-top: 1%; 
+    margin-left: 10px;   
 }
