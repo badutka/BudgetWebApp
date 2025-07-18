@@ -20,8 +20,9 @@ def get_summary_detailed(parent_categories, monthly_parent_category_summaries, m
 
         # Fill totals (parent-level)
         for entry in parent_category_summaries:
-            month = entry['month'] - 1  # convert 1-indexed to 0-indexed
-            totals[month] = float(entry['amount'])
+            if entry['transaction_type'] in summary_types[summary_type]:
+                month = entry['month'] - 1  # convert 1-indexed to 0-indexed
+                totals[month] = float(entry['amount'])
 
         # Append 13th value as sum
         totals.append(round(sum(totals), 2))
