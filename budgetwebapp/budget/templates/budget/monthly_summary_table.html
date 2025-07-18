@@ -45,7 +45,7 @@
             </tr>
             {% for row in outgoing_rows %}
                 <tr>
-                    <th><span class="badge bg-primary">{{ row.name }}</span> <i class="bi bi-arrow-right"></i></th>
+                    <th><span class="badge bg-primary td-summary-text">{{ row.name }}</span> <i class="bi bi-arrow-right td-summary-text"></i></th>
                     {% for amount in row.amounts %}
                         <th class="nowrap">
                             <span {% if amount != 0 %} style="color: #5F9EA0;" {% endif %} class="td-summary-text">
@@ -62,7 +62,7 @@
             </tr>
             {% for row in incoming_rows %}
                 <tr>
-                    <th><span class="badge bg-primary">{{ row.name }}</span> <i class="bi bi-arrow-right"></i></th>
+                    <th><span class="badge bg-primary td-summary-text">{{ row.name }}</span> <i class="bi bi-arrow-right td-summary-text"></i></th>
                     {% for amount in row.amounts %}
                         <th class="nowrap">
                             <span {% if amount != 0 %} style="color: #5F9EA0;" {% endif %} class="td-summary-text">

@@ -4,14 +4,14 @@
 {% block content %}
 
 <!-- Flex container -->
-<div style="display: flex; margin-top: 1%; margin-left: 10px;">
+<div class="budget-content">
 
     <!-- Filters Sidebar -->
-    {% include 'budget/summaries_filters.html' %}
+    {% include 'budget/monthly_summary_filters.html' %}
 
     <!-- Summaries Table -->
     <div style="width: 90%;">
-        {% include 'budget/monthly_summary_tbl.html'%}
+        {% include 'budget/monthly_summary_table.html'%}
     </div>
 
 </div>

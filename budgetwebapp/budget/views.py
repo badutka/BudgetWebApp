@@ -144,7 +144,7 @@ def monthly_summary_view(request):
         }
 
         if request.headers.get('HX-Request'):
-            return render(request, 'budget/monthly_summary_tbl.html', context)
+            return render(request, 'budget/monthly_summary_table.html', context)
 
     return render(request, 'budget/monthly_summary.html', context)
 

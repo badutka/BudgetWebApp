@@ -88,8 +88,9 @@
 }
 
 #transaction-table-content .td-t9ns-text,
-#summary-table-content .td-summary-text {
-  animation: fadeInCell 0.3s ease-in-out;
+#summary-table-content .td-summary-text,
+#summary-detailed-table-content .td-summary-text {
+  animation: fadeInCell 0.4s ease-in-out;
 }
 
 /* Prevent scrollbar flickering during animations */
@@ -100,6 +101,7 @@
 
 /* For WebKit-based browsers (Chrome, Safari) */
 #transaction-table-content .table-responsive::-webkit-scrollbar,
-#summary-table-content .table-responsive::-webkit-scrollbar {
+#summary-table-content .table-responsive::-webkit-scrollbar,
+#summary-detailed-table-content .table-responsive::-webkit-scrollbar {
   display: none;
 }

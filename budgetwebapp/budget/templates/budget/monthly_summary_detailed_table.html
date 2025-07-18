@@ -9,7 +9,7 @@
         <thead>
             <tr>
               <th colspan="14" class="text-center">
-                 <span class="badge bg-success">{{ header }} 2023</span>
+                 <span class="badge bg-success">Monthly Summary Detailed For {{ year }}</span>
               </th>
             </tr>
             <tr class="text-center">
@@ -25,28 +25,28 @@
         {% for parent_category, values in summary.items %}
             <tr>
                 <th colspan="14" class="text-center">
-                  <i class="bi bi-arrow-down"></i> <span class="badge rounded-pill bg-primary">{{ parent_category }}</span> <i class="bi bi-arrow-down"></i>
+                  <i class="bi bi-arrow-down td-summary-text"></i> <span class="badge rounded-pill bg-primary td-summary-text">{{ parent_category }}</span> <i class="bi bi-arrow-down td-summary-text"></i>
                 </th>
             </tr>
 
             <tr>
-                <th><span class="badge bg-danger">Monthly totals:</span></th>
+                <th><span class="badge bg-danger td-summary-text">Monthly totals:</span></th>
                 {% for amount in values.totals %}
                     <th class="nowrap">
-                        <span {% if amount != 0 %} style="color: #5F9EA0;" {% endif %}>
+                        <span {% if amount != 0 %} style="color: #5F9EA0;" {% endif %} class="td-summary-text">
                           {{ amount|floatformat:2|intcomma }}
-                      </span> PLN
+                      </span></span><span class="td-summary-text"> PLN</span>
                   </th>
                 {% endfor %}
             </tr>
             {% for category, amounts in values.categories.items %}
                 <tr>
-                    <td class="nowrap"><span class="badge rounded-pill bg-secondary">{{ category }}</span></td>
+                    <td class="nowrap"><span class="badge rounded-pill bg-secondary td-summary-text">{{ category }}</span></td>
                     {% for amount in amounts %}
                         <td class="nowrap">
-                            <span {% if amount != 0 %} style="color: #5F9EA0;" {% endif %}>
+                            <span {% if amount != 0 %} style="color: #5F9EA0;" {% endif %} class="td-summary-text">
                               {{ amount|floatformat:2|intcomma }}
-                          </span> PLN
+                          </span></span><span class="td-summary-text"> PLN</span>
                       </td>
                     {% endfor %}
                 </tr>
