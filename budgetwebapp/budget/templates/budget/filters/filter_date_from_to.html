@@ -1,0 +1,13 @@
+{% load static %}
+
+<!-- Date From -->
+<label for="id_date_from" class="form-label filter-label">From</label>
+<input type="date" name="date_from" id="id_date_from"
+       class="form-control"
+       value="{{ request.GET.date_from }}">
+
+<!-- Date To -->
+<label for="id_date_to" class="form-label filter-label">To</label>
+<input type="date" name="date_to" id="id_date_to"
+       class="form-control"
+       value="{{ request.GET.date_to }}">

@@ -10,109 +10,14 @@
          change from:input[name='parent_category']:not(#parent-category-select-all),
          change from:input[name='date_from'],
          change from:input[name='date_to']">
-    <label class="form-label filter-label" style="font-size: 24px; width: 150px;">Filters:</label>
 
-    <!-- Transaction Type Dropdown -->
-    <label for="transaction_type" class="form-label filter-label">Type</label>
-    <select name="transaction_type" id="transaction_type" class="form-select">
-        <option value="">Any</option>
-        {% for val, label in transaction_type_choices %}
-        <option value="{{ val }}" {% if request.GET.transaction_type == val %}selected{% endif %}>
-            {{ label }}
-        </option>
-        {% endfor %}
-    </select>
+    {% include 'budget/filters/filters_label.html'%}
 
-    <!-- Dropdown-style Parent Category Filter -->
-    <label class="form-label filter-label">PCategory</label>
-    <div class="dropdown">
-        <button class="btn btn-light dropdown-toggle" type="button" id="parent_categoryDropdownButton"
-                data-bs-toggle="dropdown" aria-expanded="false"
-                style="width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-            Expand
-        </button>
+    {% include 'budget/filters/filter_transaction_type.html'%}
 
-        <div class="dropdown-menu p-3"
-             style="width: 100%; max-width: 100%; box-sizing: border-box;"
-             aria-labelledby="parentCategoryDropdownButton">
-            <fieldset class="mb-0">
-                <div class="form-check">
-                    <input class="form-check-input"
-                           type="checkbox"
-                           id="parent_category-select-all"
-                           checked>
-                    <label class="form-check-label fw-bold" for="parent_category-select-all">
-                        Select All
-                    </label>
-                </div>
-                <hr>
-                {% for parent_category in parent_categories %}
-                <div class="form-check">
-                    <input class="form-check-input"
-                           type="checkbox"
-                           name="parent_category"
-                           value="{{ parent_category.id }}"
-                           id="parent-category-{{ parent_category.id }}"
-                           {% if not request.GET.parent_category or parent_category.id|stringformat:"s" in request.GET|getlist:"parent_category" %}checked{% endif %}>
-                    <label class="form-check-label" for="parent-category-{{ parent_category.id }}">
-                        {{ parent_category.name }}
-                    </label>
-                </div>
-                {% endfor %}
-            </fieldset>
-        </div>
-    </div>
+    {% include 'budget/filters/filter_parent_category.html'%}
 
-    <!-- Dropdown-style Category Filter -->
-    <label class="form-label filter-label">Category</label>
-    <div class="dropdown">
-        <button class="btn btn-light dropdown-toggle" type="button" id="categoryDropdownButton"
-                data-bs-toggle="dropdown" aria-expanded="false"
-                style="width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-            Expand
-        </button>
+    {% include 'budget/filters/filter_category.html'%}
 
-        <div class="dropdown-menu p-3"
-             style="width: 100%; max-width: 100%; box-sizing: border-box;"
-             aria-labelledby="categoryDropdownButton">
-            <fieldset class="mb-0">
-                <div class="form-check">
-                    <input class="form-check-input"
-                           type="checkbox"
-                           id="category-select-all"
-                           checked>
-                    <label class="form-check-label fw-bold" for="category-select-all">
-                        Select All
-                    </label>
-                </div>
-                <hr>
-                {% for category in categories %}
-                <div class="form-check">
-                    <input class="form-check-input"
-                           type="checkbox"
-                           name="category"
-                           value="{{ category.id }}"
-                           id="category-{{ category.id }}"
-                           {% if not request.GET.category or category.id|stringformat:"s" in request.GET|getlist:"category" %}checked{% endif %}>
-                    <label class="form-check-label" for="category-{{ category.id }}">
-                        {{ category.name }}
-                    </label>
-                </div>
-                {% endfor %}
-            </fieldset>
-        </div>
-    </div>
-
-    <!-- Date From -->
-    <label for="id_date_from" class="form-label filter-label">From</label>
-    <input type="date" name="date_from" id="id_date_from"
-           class="form-control"
-           value="{{ request.GET.date_from }}">
-
-    <!-- Date To -->
-    <label for="id_date_to" class="form-label filter-label">To</label>
-    <input type="date" name="date_to" id="id_date_to"
-           class="form-control"
-           value="{{ request.GET.date_to }}">
-
+    {% include 'budget/filters/filter_date_from_to.html'%}
 </form>

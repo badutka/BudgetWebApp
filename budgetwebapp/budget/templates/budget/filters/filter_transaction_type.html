@@ -1,0 +1,12 @@
+{% load static %}
+
+<!-- Transaction Type Dropdown -->
+<label for="transaction_type" class="form-label filter-label">Type</label>
+<select name="transaction_type" id="transaction_type" class="form-select">
+    <option value="">Any</option>
+    {% for val, label in transaction_type_choices %}
+    <option value="{{ val }}" {% if request.GET.transaction_type == val %}selected{% endif %}>
+        {{ label }}
+    </option>
+    {% endfor %}
+</select>

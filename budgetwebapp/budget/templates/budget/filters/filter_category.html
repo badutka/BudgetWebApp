@@ -1,0 +1,41 @@
+{% load static %}
+
+<!-- Dropdown-style Category Filter -->
+<label class="form-label filter-label">Category</label>
+<div class="dropdown">
+    <button class="btn btn-light dropdown-toggle" type="button" id="categoryDropdownButton"
+            data-bs-toggle="dropdown" aria-expanded="false"
+            style="width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+        Expand
+    </button>
+
+    <div class="dropdown-menu p-3"
+         style="width: 100%; max-width: 100%; box-sizing: border-box;"
+         aria-labelledby="categoryDropdownButton">
+        <fieldset class="mb-0">
+            <div class="form-check">
+                <input class="form-check-input"
+                       type="checkbox"
+                       id="category-select-all"
+                       checked>
+                <label class="form-check-label fw-bold" for="category-select-all">
+                    Select All
+                </label>
+            </div>
+            <hr>
+            {% for category in categories %}
+            <div class="form-check">
+                <input class="form-check-input"
+                       type="checkbox"
+                       name="category"
+                       value="{{ category.id }}"
+                       id="category-{{ category.id }}"
+                       {% if not request.GET.category or category.id|stringformat:"s" in request.GET|getlist:"category" %}checked{% endif %}>
+                <label class="form-check-label" for="category-{{ category.id }}">
+                    {{ category.name }}
+                </label>
+            </div>
+            {% endfor %}
+        </fieldset>
+    </div>
+</div>

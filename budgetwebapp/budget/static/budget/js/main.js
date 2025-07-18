@@ -47,7 +47,6 @@ function setupFilterSelectAll(filterName) {
     if (!selectAllCheckbox || checkboxes.length === 0) return;
 
     // "Select All" toggle
-    console.log(selectAllCheckbox)
     selectAllCheckbox.addEventListener('change', function () {
         checkboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
         checkboxes[0].dispatchEvent(new Event('change', { bubbles: true }));

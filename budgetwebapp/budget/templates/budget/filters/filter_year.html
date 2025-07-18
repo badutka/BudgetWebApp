@@ -1,0 +1,10 @@
+{% load static %}
+
+<label for="year" class="form-label filter-label">Year</label>
+<select name="year" id="year" class="form-select">
+    {% for y in years %}
+    <option value="{{ y }}" {% if year == y|stringformat:"s" %}selected{% endif %}>
+        {{ y }}
+    </option>
+    {% endfor %}
+</select>
