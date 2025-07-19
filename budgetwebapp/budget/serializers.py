@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.db.models import Q
 
-from .models import BalanceHistory, Transaction, MoneyAccount, Category, ParentCategory, MonthlySummary, MonthlyCategorySummary, MonthlyParentCategorySummary
+from budget import models
 
 
 class ChartDataSerializer(serializers.Serializer):
@@ -31,7 +31,7 @@ class ChartDataSerializer(serializers.Serializer):
 
 
 def create_balance_history(transaction, account, balance, amount):
-    balance_history = BalanceHistory.objects.create(
+    balance_history = models.BalanceHistory.objects.create(
         money_account=account,
         balance_before=balance,
         balance_after=balance + amount,
@@ -50,17 +50,17 @@ class BalanceHistoryRefreshSerializer(serializers.Serializer):
     def validate_money_account_name(self, value):
         # Perform any validation specific to the money_account_name field
         # For example, you can check if the money account exists in the database
-        if not MoneyAccount.objects.filter(name=value).exists():
+        if not models.MoneyAccount.objects.filter(name=value).exists():
             raise serializers.ValidationError('Invalid money account name')
         return value
 
     def create(self, validated_data):
         money_account_name = validated_data['money_account_name']
-        transactions = Transaction.objects.filter(
+        transactions = models.Transaction.objects.filter(
             Q(origin__name=money_account_name) | Q(destination__name=money_account_name)).reverse()
-        account = MoneyAccount.objects.get(name=money_account_name)
+        account = models.MoneyAccount.objects.get(name=money_account_name)
         balance = account.starting_balance
-        BalanceHistory.objects.filter(money_account__name=money_account_name).delete()  # !!!!!!!!!!!!!!!!!!!!!
+        models.BalanceHistory.objects.filter(money_account__name=money_account_name).delete()  # !!!!!!!!!!!!!!!!!!!!!
 
         for transaction in transactions:
             if transaction.origin and transaction.origin.name == money_account_name:
@@ -74,31 +74,31 @@ class BalanceHistoryRefreshSerializer(serializers.Serializer):
 
 class BalanceHistorySerializer(serializers.ModelSerializer):
     class Meta:
-        model = BalanceHistory
+        model = models.BalanceHistory
         fields = '__all__'
 
 
 class MoneyAccountSerializer(serializers.ModelSerializer):
     class Meta:
-        model = MoneyAccount
+        model = models.MoneyAccount
         fields = '__all__'
 
 
 class ParentCategorySerializer(serializers.ModelSerializer):
     class Meta:
-        model = ParentCategory
+        model = models.ParentCategory
         fields = '__all__'
 
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
-        model = Category
+        model = models.Category
         fields = '__all__'
 
 
 class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Transaction
+        model = models.Transaction
         fields = '__all__'
 
     def validate(self, data):
@@ -131,17 +131,17 @@ class TransactionSerializer(serializers.ModelSerializer):
 
 class MonthlySummarySerializer(serializers.ModelSerializer):
     class Meta:
-        model = MonthlySummary
+        model = models.MonthlySummary
         fields = '__all__'
 
 
 class MonthlyCategorySummarySerializer(serializers.ModelSerializer):
     class Meta:
-        model = MonthlyCategorySummary
+        model = models.MonthlyCategorySummary
         fields = '__all__'
 
 
 class MonthlyParentCategorySummarySerializer(serializers.ModelSerializer):
     class Meta:
-        model = MonthlyParentCategorySummary
+        model = models.MonthlyParentCategorySummary
         fields = '__all__'
