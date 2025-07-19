@@ -9,45 +9,26 @@ from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Sum
 
-from budget.serializers import (
-    TransactionSerializer,
-    ChartDataSerializer,
-    BalanceHistorySerializer,
-    BalanceHistoryRefreshSerializer,
-    MoneyAccountSerializer,
-    MonthlySummarySerializer,
-    MonthlyCategorySummarySerializer,
-    MonthlyParentCategorySummarySerializer,
-    ParentCategorySerializer,
-)
-from budget.models import (
-    Transaction,
-    MoneyAccount,
-    BalanceHistory,
-    MonthlySummary,
-    MonthlyCategorySummary,
-    MonthlyParentCategorySummary,
-    ParentCategory)
+from budget import models, serializers, filters
 from budget.forms import BudgetExpenseEntryForm
 from core.utils import update_request_data_for_transaction
-from budget.filters import TransactionFilter, MonthlySummaryFilter, MonthlyCategorySummaryFilter, MonthlyParentCategorySummaryFilter
 
 
 class BalanceHistoryRefreshAPIView(APIView):
     def get(self, request, money_account_name):
-        serializer = BalanceHistoryRefreshSerializer(money_account_name)
+        serializer = serializers.BalanceHistoryRefreshSerializer(money_account_name)
 
         # return JsonResponse({'message': 'Balance history refreshed successfully'})  # can do as well
         return Response(serializer.data)
 
 
 class BalanceHistoryAPIView(ListAPIView):
-    serializer_class = BalanceHistorySerializer
+    serializer_class = serializers.BalanceHistorySerializer
 
     def get_queryset(self):
         money_account_name = self.kwargs['money_account_name']
-        money_account = MoneyAccount.objects.get(name=money_account_name)
-        queryset = BalanceHistory.objects.filter(money_account=money_account)
+        money_account = models.MoneyAccount.objects.get(name=money_account_name)
+        queryset = models.BalanceHistory.objects.filter(money_account=money_account)
         return queryset
 
 
@@ -60,22 +41,23 @@ class ChartDataAPIView(APIView):
 
 
 class MoneyAccountAPIView(generics.ListCreateAPIView):
-    queryset = MoneyAccount.objects.all()
-    serializer_class = MoneyAccountSerializer
+    queryset = models.MoneyAccount.objects.all()
+    serializer_class = serializers.MoneyAccountSerializer
 
 
 class TransactionFormAPIView(APIView):
     def get(self, request, transaction_id):
-        transaction = get_object_or_404(Transaction, id=transaction_id)
+        transaction = get_object_or_404(models.Transaction, id=transaction_id)
         form = BudgetExpenseEntryForm(instance=transaction)
         form_html = render_to_string('budget/transaction_form.html', {'form': form})
         return HttpResponse(form_html)
 
+
 class TransactionsByCategoryAPIView(APIView):
     def get(self, request, category_id):
         # Optional: support filtering by user/account/date later
-        transactions = Transaction.objects.filter(category_id=category_id)
-        serializer = TransactionSerializer(transactions, many=True)
+        transactions = models.Transaction.objects.filter(category_id=category_id)
+        serializer = serializers.TransactionSerializer(transactions, many=True)
         total = transactions.aggregate(Sum('amount'))['amount__sum'] or 0
 
         return Response({
@@ -83,12 +65,13 @@ class TransactionsByCategoryAPIView(APIView):
             'total': total
         })
 
+
 class TransactionDuplicateAPIView(APIView):
     def post(self, request, transaction_id):
-        transaction = get_object_or_404(Transaction, id=transaction_id)
+        transaction = get_object_or_404(models.Transaction, id=transaction_id)
         data = update_request_data_for_transaction(request)
 
-        serializer = TransactionSerializer(transaction, data=data, partial=True)
+        serializer = serializers.TransactionSerializer(transaction, data=data, partial=True)
 
         if serializer.is_valid():
             new_transaction = serializer.save(pk=None)  # Create a new entry without a primary key
@@ -99,16 +82,16 @@ class TransactionDuplicateAPIView(APIView):
 
 class TransactionAPIView(APIView):
     def get(self, request, transaction_id):
-        transaction = get_object_or_404(Transaction, id=transaction_id)
-        serializer = TransactionSerializer(transaction)
+        transaction = get_object_or_404(models.Transaction, id=transaction_id)
+        serializer = serializers.TransactionSerializer(transaction)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def put(self, request, transaction_id):
-        transaction = get_object_or_404(Transaction, id=transaction_id)
+        transaction = get_object_or_404(models.Transaction, id=transaction_id)
         data = update_request_data_for_transaction(request)
         print(f'{transaction.origin = }')
         print(f'{transaction.destination = }')
-        serializer = TransactionSerializer(transaction, data=data, partial=True)
+        serializer = serializers.TransactionSerializer(transaction, data=data, partial=True)
         print(f'{data = }')
         if serializer.is_valid():
             serializer.save()
@@ -118,7 +101,7 @@ class TransactionAPIView(APIView):
 
     def delete(self, request, transaction_id):
         # todo: figure out if also use a serializer?
-        transaction = get_object_or_404(Transaction, id=transaction_id)
+        transaction = get_object_or_404(models.Transaction, id=transaction_id)
         transaction.delete()
         return Response({"message": "Transaction deleted successfully"}, status=status.HTTP_200_OK)
 
@@ -131,10 +114,10 @@ class TransactionsAPIView(generics.ListCreateAPIView):
     You add SerializerMethodFields that reference related fields.
     You use filters or annotations that touch related models.
     """
-    queryset = Transaction.objects.select_related('origin', 'destination', 'category').all()
-    serializer_class = TransactionSerializer
+    queryset = models.Transaction.objects.select_related('origin', 'destination', 'category').all()
+    serializer_class = serializers.TransactionSerializer
     filter_backends = [DjangoFilterBackend]
-    filterset_class = TransactionFilter
+    filterset_class = filters.TransactionFilter
 
     def filter_queryset(self, queryset):
         """For debugging"""
@@ -145,21 +128,38 @@ class TransactionsAPIView(generics.ListCreateAPIView):
 
 
 class ParentCategoryAPIView(generics.ListCreateAPIView):
-    queryset = ParentCategory.objects.all()
-    serializer_class = ParentCategorySerializer
+    queryset = models.ParentCategory.objects.all()
+    serializer_class = serializers.ParentCategorySerializer
     filter_backends = [DjangoFilterBackend]
+
+
+class CategoryAPIView(generics.ListCreateAPIView):
+    queryset = models.Category.objects.all()
+    serializer_class = serializers.CategorySerializer
+    filter_backends = [DjangoFilterBackend]
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        category_id = self.kwargs.get('category_id')
+
+        if category_id:
+            return queryset.filter(id=category_id)
+
+        return queryset
 
 
 class MonthlySummaryAPIView(generics.ListCreateAPIView):
-    queryset = MonthlySummary.objects.all()
-    serializer_class = MonthlySummarySerializer
+    queryset = models.MonthlySummary.objects.all()
+    serializer_class = serializers.MonthlySummarySerializer
     filter_backends = [DjangoFilterBackend]
-    filterset_class = MonthlySummaryFilter
+    filterset_class = filters.MonthlySummaryFilter
 
     def get_queryset(self):
-        queryset = MonthlySummary.objects.all()
+        """This is used to make sure that starting balance for a new year is properly fetched"""
+        queryset = super().get_queryset()
         year = self.kwargs.get('year')
         month = self.kwargs.get('month')
+        print(f'{self.request.query_params = }')
 
         if year is not None and month is not None:
             return queryset.filter(year=year, month=month)
@@ -174,14 +174,14 @@ class MonthlySummaryAPIView(generics.ListCreateAPIView):
 
 
 class MonthlyCategorySummaryAPIView(generics.ListCreateAPIView):
-    queryset = MonthlyCategorySummary.objects.all()
-    serializer_class = MonthlyCategorySummarySerializer
+    queryset = models.MonthlyCategorySummary.objects.all()
+    serializer_class = serializers.MonthlyCategorySummarySerializer
     filter_backends = [DjangoFilterBackend]
-    filterset_class = MonthlyCategorySummaryFilter
+    filterset_class = filters.MonthlyCategorySummaryFilter
 
 
 class MonthlyParentCategorySummaryAPIView(generics.ListCreateAPIView):
-    queryset = MonthlyParentCategorySummary.objects.all()
-    serializer_class = MonthlyParentCategorySummarySerializer
+    queryset = models.MonthlyParentCategorySummary.objects.all()
+    serializer_class = serializers.MonthlyParentCategorySummarySerializer
     filter_backends = [DjangoFilterBackend]
-    filterset_class = MonthlyParentCategorySummaryFilter
+    filterset_class = filters.MonthlyParentCategorySummaryFilter

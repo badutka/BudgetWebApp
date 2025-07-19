@@ -74,6 +74,10 @@ urlpatterns = urlpatterns + [
     path('api/monthly-parent-category-summaries/', api_views.MonthlyParentCategorySummaryAPIView.as_view(), name='monthly_parent_category_summaries'),
     # Get Parent Categories
     path('api/parent-categories/', api_views.ParentCategoryAPIView.as_view(), name='parent_categories'),
+    # Get Categories
+    path('api/categories/', api_views.CategoryAPIView.as_view(), name='categories'),
+    # Get Category
+    path('api/categories/<int:category_id>', api_views.CategoryAPIView.as_view(), name='categories'),
     # Charts view
     path('api/chart-data/', api_views.ChartDataAPIView.as_view(), name='chart-data'),
     # Balance History View

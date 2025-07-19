@@ -29,19 +29,22 @@ from core.summaries import monthly_summary, monthly_summary_detailed
 # ===============================================
 
 def transactions_by_category_modal(request, category_id):
-    # You could fetch from your API or directly from DB
-    api_url = request.build_absolute_uri(reverse('budget:transactions_api'))
-    response = requests.get(api_url, params={'category': category_id})
+    params = flatten_querydict(request.GET)
+    # todo: utilize the new serializer?
+    # todo: check out if new serializer (api_transactions_by_category) could be better as ListCreateAPIView
 
-    transactions = get_response_by_status_code(response, 200, response.json(), [])
-    money_accounts = MoneyAccount.objects.all()
-    categories = Category.objects.all()
+    transactions = fetch_api_and_get_response(request, 'budget:transactions_api', 200, params)
+    money_accounts = fetch_api_and_get_response(request, 'budget:money_accounts', 200)
+    categories = fetch_api_and_get_response(request, 'budget:categories', 200)
     transactions = update_transactions_details(transactions, money_accounts, categories)
+    category_map = {cat['id']: cat['name'] for cat in categories}
     total = sum(float(t['amount']) for t in transactions)
+    category_name = category_map.get(category_id)
 
     context = {
         'transactions': transactions,
         'total': total,
+        'category_name': category_name
     }
     return render(request, 'budget/transactions_by_category_modal.html', context)
 
@@ -173,22 +176,19 @@ def monthly_summary_view(request):
 
 def transactions_list_view(request):
     if request.method == 'GET':
-        api_url = request.build_absolute_uri(reverse('budget:transactions_api'))  # API endpoint URL
-        # response = requests.get(api_url)
         params = flatten_querydict(request.GET)
-        response = requests.get(api_url, params=params)
 
-        transactions = get_response_by_status_code(response, 200, response.json(), [])
-        money_accounts = MoneyAccount.objects.all()
-        categories = Category.objects.all()
-        parent_categories = ParentCategory.objects.all()
+        transactions = fetch_api_and_get_response(request, 'budget:transactions_api', 200, params)
+        money_accounts = fetch_api_and_get_response(request, 'budget:money_accounts', 200, params)
+        categories = fetch_api_and_get_response(request, 'budget:categories', 200, params)
+        parent_categories = fetch_api_and_get_response(request, 'budget:parent_categories', 200, params)
         transactions = update_transactions_details(transactions, money_accounts, categories)
 
         paginator = Paginator(transactions, 30)  # 10 entries per page
         page_number = request.GET.get('page')
         transactions_page_obj = paginator.get_page(page_number)
 
-        money_accounts_sum = money_accounts.aggregate(total=Sum('balance'))['total']
+        money_accounts_sum = sum(float(acc['balance']) for acc in money_accounts)
         totals, balance = get_transactions_totals(transactions)
 
         # Remove `page` from query params and encode the rest to preserve filters
@@ -198,13 +198,13 @@ def transactions_list_view(request):
         filter_query = filter_params.urlencode()
 
         context = {
+            'sum_accs': money_accounts_sum,
+            'totals': totals,
+            'balance': balance,
             'transactions_page_obj': transactions_page_obj,
-            'sum_accs': round(money_accounts_sum, 2),
             'transaction_type_choices': Transaction.TRANSACTION_TYPE_CHOICES,
             'categories': categories,
             'parent_categories': parent_categories,
-            'totals': totals,
-            'balance': balance,
             'filter_query': filter_query,  # 🔥 needed for pagination links
         }
 

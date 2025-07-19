@@ -105,8 +105,8 @@ def ts_to_readable(timestamp_str):
 
 
 def update_transactions_details(transactions, money_accounts, categories):
-    account_map = {acc.id: acc.name for acc in money_accounts}
-    category_map = {cat.id: str(cat) for cat in categories}
+    account_map = {acc['id']: acc['name'] for acc in money_accounts}
+    category_map = {cat['id']: cat['name'] for cat in categories}
 
     for t9n in transactions:
         origin_id = t9n.get('origin')
