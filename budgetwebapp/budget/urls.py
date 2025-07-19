@@ -46,6 +46,7 @@ urlpatterns = [
     path('balance-history/<str:money_account_name>/', budget_views.balance_history_view, name='balance_history'),
     # Balance History Refresh
     path('balance-history/refresh/<str:money_account_name>/', budget_views.refresh_balance_history, name='balance_history_refresh'),
+    path('transactions/category/<int:category_id>/', budget_views.transactions_by_category_modal, name='transactions_by_category'),
 ]
 
 urlpatterns = urlpatterns + [
@@ -79,6 +80,8 @@ urlpatterns = urlpatterns + [
     path('api/balance-history/<str:money_account_name>/', api_views.BalanceHistoryAPIView.as_view(), name='balance-history-api'),
     # Balance History Refresh
     path('api/balance-history/refresh/<str:money_account_name>/', api_views.BalanceHistoryRefreshAPIView.as_view(), name='balance-history-refresh-api'),
+    path('api/transactions/category/<int:category_id>/', api_views.TransactionsByCategoryAPIView.as_view(), name='api_transactions_by_category'),
+
     # Edit Transaction Form
     # path('api/transactions/form/<int:transaction_id>/', TransactionFormAPIView.as_view(), name='transaction_form_api'),  # todo: create a separate, better suited form
 

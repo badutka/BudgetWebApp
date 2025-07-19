@@ -35,10 +35,18 @@
         </thead>
         <tbody>
         {% for transaction in transactions_page_obj %}
-        <tr data-bs-toggle="tooltip" data-bs-placement="top" title="Description: {{ transaction.description }}">
+        <tr hx-get="{% url 'budget:transactions_by_category' transaction.category_id %}"
+            hx-target="#dialog-transactions-by-cat"
+            hx-on="click"
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            title="Description: {{ transaction.description }}" class="transactions-row-hover">
 <!--            <td>duplicate</td>-->
             <td class="text-center narrow-column font-size-small" data-bs-toggle="tooltip" data-bs-placement="top" title="Create a copy"><span class="td-t9ns-text">
-                <a hx-get="{% url 'budget:duplicate_transaction' transaction.id %}" hx-target="#dialog" class="btn btn-outline-primary fa-regular fa-clone"></a>
+                <a hx-get="{% url 'budget:duplicate_transaction' transaction.id %}"
+                   hx-target="#dialog"
+                   hx-on="click"
+                   class="btn btn-outline-primary fa-regular fa-clone"></a>
             </span></td>
             <td class="text-center narrow-column font-size-medium"><span class="td-t9ns-text">{{ transactions_page_obj|length|sub:forloop.counter|add:1 }}</span></td>
             <td class="nowrap"><span class="td-t9ns-text">{{ transaction.date }}</span></td>

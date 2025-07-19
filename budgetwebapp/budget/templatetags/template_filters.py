@@ -3,6 +3,7 @@ from django import template
 from django.utils.safestring import mark_safe
 from urllib.parse import urlencode
 import calendar
+from django.urls import reverse
 
 
 # Custom template filter to get data from a dictionary using key in template
@@ -51,3 +52,17 @@ def htmx_pagelink(context, label, page_number, target='transaction-table-content
     '''
 
     return mark_safe(html)
+
+@register.simple_tag
+def hx_td_category(transaction):
+    url = reverse('budget:transactions_by_category', args=[transaction.category_id])
+    content = transaction.category
+    return mark_safe(f'''
+        <td class="nowrap"
+            hx-get="{url}"
+            hx-target="#dialog-transactions-by-cat"
+            hx-trigger="click"
+            style="cursor: pointer;">
+            <span class="td-t9ns-text">{content}</span>
+        </td>
+    ''')

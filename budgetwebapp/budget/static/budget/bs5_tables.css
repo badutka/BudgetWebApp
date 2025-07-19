@@ -87,10 +87,26 @@
   }
 }
 
-#transaction-table-content .td-t9ns-text,
+/* #transaction-table-content .td-t9ns-text,
 #summary-table-content .td-summary-text,
 #summary-detailed-table-content .td-summary-text {
   animation: fadeInCell 0.4s ease-in-out;
+} */
+
+.transactions-row-hover:hover {
+  cursor: pointer;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.td-t9ns-text,
+.td-summary-text {
+  opacity: 0;
+  transition: opacity 0.4s ease-in-out;
+}
+
+.td-t9ns-text.visible,
+.td-summary-text.visible {
+  opacity: 1;
 }
 
 /* Prevent scrollbar flickering during animations */

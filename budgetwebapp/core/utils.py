@@ -118,6 +118,7 @@ def update_transactions_details(transactions, money_accounts, categories):
         t9n['origin'] = account_map.get(origin_id) if origin_id is not None else "Out"
         t9n['destination'] = account_map.get(destination_id) if destination_id is not None else "Out"
         t9n['category'] = category_map.get(category_id) if category_id is not None else None
+        t9n['category_id'] = category_id if category_id is not None else None
         t9n['created_at'] = ts_to_readable(created_at)
         t9n['updated_at'] = ts_to_readable(updated_at)
 

@@ -19,9 +19,15 @@
 </div>
 <!--</div>-->
 
-<!-- Modal -->
-<div id="modal" class="modal fade">
+<!-- All Modals with id = #dialog -->
+<div id="modal" class="modal fade" tabindex="-1" aria-hidden="true">
     <div id="dialog" class="modal-dialog" hx-target="this"></div>
 </div>
+
+<!-- Modal for transactions by category -->
+<div id="modal-transactions-by-cat" class="modal fade" tabindex="-1" aria-hidden="true">
+    <div id="dialog-transactions-by-cat" class="modal-dialog modal-lg" hx-target="this"></div>
+</div>
+
 
 {% endblock content %}

@@ -1,0 +1,23 @@
+{% load static %}
+
+<div class="modal-content">
+  <div class="modal-header">
+    <h5 class="modal-title">Transactions in Category</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+  </div>
+
+  <div class="modal-body">
+    <p><strong>Total Amount:</strong> {{ total }}</p>
+
+    <ul class="list-group">
+      {% for txn in transactions %}
+        <li class="list-group-item d-flex justify-content-between">
+          <span>{{ txn.date }} - {{ txn.description }}</span>
+          <strong>{{ txn.amount }}</strong>
+        </li>
+      {% empty %}
+        <li class="list-group-item">No transactions found in this category.</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>

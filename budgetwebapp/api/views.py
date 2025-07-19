@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
+from django.db.models import Sum
 
 from budget.serializers import (
     TransactionSerializer,
@@ -70,6 +71,17 @@ class TransactionFormAPIView(APIView):
         form_html = render_to_string('budget/transaction_form.html', {'form': form})
         return HttpResponse(form_html)
 
+class TransactionsByCategoryAPIView(APIView):
+    def get(self, request, category_id):
+        # Optional: support filtering by user/account/date later
+        transactions = Transaction.objects.filter(category_id=category_id)
+        serializer = TransactionSerializer(transactions, many=True)
+        total = transactions.aggregate(Sum('amount'))['amount__sum'] or 0
+
+        return Response({
+            'transactions': serializer.data,
+            'total': total
+        })
 
 class TransactionDuplicateAPIView(APIView):
     def post(self, request, transaction_id):

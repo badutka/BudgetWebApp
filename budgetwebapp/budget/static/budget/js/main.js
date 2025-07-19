@@ -4,21 +4,29 @@
 //  return new bootstrap.Tooltip(tooltipTriggerEl)
 //})
 
-//https://blog.benoitblanchon.fr/django-htmx-modal-form/
-const modalElement = document.getElementById("modal");
-let modal = null;
+function preventRowClickFromButtons() {
+  document.querySelectorAll("td a, td button").forEach(el => {
+    el.addEventListener("click", function (e) {
+      e.stopPropagation(); // prevents the tr click from firing
+    });
+  });
+}
 
-if (modalElement) {
-  modal = new bootstrap.Modal(modalElement);
+function initModal(modalId, modalDialog) {
+  //https://blog.benoitblanchon.fr/django-htmx-modal-form/
+  const modalElement = document.getElementById(modalId);
+  if (!modalElement) return;
+
+  const modal = new bootstrap.Modal(modalElement);
 
   htmx.on("htmx:afterSwap", (e) => {
-    if (e.detail.target.id == "dialog") {
+    if (e.detail.target.id === modalDialog) {
       modal.show();
     }
   });
 
   htmx.on("htmx:beforeSwap", (e) => {
-    if (e.detail.target.id == "dialog" && !e.detail.xhr.response) {
+    if (e.detail.target.id === modalDialog && !e.detail.xhr.response) {
       modal.hide();
       document.location.reload();
       e.detail.shouldSwap = false;
@@ -26,51 +34,74 @@ if (modalElement) {
   });
 
   htmx.on("hidden.bs.modal", () => {
-    document.getElementById("dialog").innerHTML = "";
+    const dialog = document.getElementById(modalDialog);
+    if (dialog) dialog.innerHTML = "";
   });
 }
 
+// ===== Filter Dropdown Logic =====
 function updateDropdownText(filterName) {
-    const checkboxes = document.querySelectorAll(`.form-check-input[name="${filterName}"]`);
-    const dropdownButton = document.getElementById(`${filterName}DropdownButton`);
+  const checkboxes = document.querySelectorAll(`.form-check-input[name="${filterName}"]`);
+  const dropdownButton = document.getElementById(`${filterName}DropdownButton`);
+  if (!dropdownButton) return;
 
-    if (!dropdownButton) return;
-
-    const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
-    dropdownButton.textContent = checkedCount >= 0 ? `${checkedCount} selected` : 'Expand';
+  const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+  dropdownButton.textContent = `${checkedCount} selected`;
 }
 
 function setupFilterSelectAll(filterName) {
-    const selectAllCheckbox = document.getElementById(`${filterName}-select-all`);
-    const checkboxes = document.querySelectorAll(`.form-check-input[name="${filterName}"]`);
+  const selectAllCheckbox = document.getElementById(`${filterName}-select-all`);
+  const checkboxes = document.querySelectorAll(`.form-check-input[name="${filterName}"]`);
+  if (!selectAllCheckbox || checkboxes.length === 0) return;
 
-    if (!selectAllCheckbox || checkboxes.length === 0) return;
-
-    // "Select All" toggle
-    selectAllCheckbox.addEventListener('change', function () {
-        checkboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
-        checkboxes[0].dispatchEvent(new Event('change', { bubbles: true }));
-        updateDropdownText(filterName);
-    });
-
-    // Sync "Select All" checkbox when any individual one changes
-    checkboxes.forEach(cb => {
-        cb.addEventListener('change', function () {
-            const allChecked = Array.from(checkboxes).every(c => c.checked);
-            selectAllCheckbox.checked = allChecked;
-            updateDropdownText(filterName);
-        });
-    });
-
-    // Initial text update
+  // Select all
+  selectAllCheckbox.addEventListener('change', () => {
+    checkboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
+    checkboxes[0].dispatchEvent(new Event('change', { bubbles: true }));
     updateDropdownText(filterName);
+  });
+
+  // Sync select-all checkbox
+  checkboxes.forEach(cb => {
+    cb.addEventListener('change', () => {
+      selectAllCheckbox.checked = Array.from(checkboxes).every(c => c.checked);
+      updateDropdownText(filterName);
+    });
+  });
+
+  updateDropdownText(filterName);
 }
 
-document.addEventListener('DOMContentLoaded', function () {
-    // 🧠 Call the function for each filter you want to activate
-    setupFilterSelectAll('category');
-    setupFilterSelectAll('parent_category');
-    // Add more as needed: setupFilterSelectAll('status'), etc.
+// ===== Fade-in Animation =====
+function fadeInTableCells() {
+  document.querySelectorAll('.td-t9ns-text:not(.visible), .td-summary-text:not(.visible)').forEach(el => {
+    requestAnimationFrame(() => el.classList.add('visible'));
+  });
+}
+
+// ===== App Init =====
+document.addEventListener('DOMContentLoaded', () => {
+  // Init filter logic
+  setupFilterSelectAll('category');
+  setupFilterSelectAll('parent_category');
+
+  // Initial animation
+  fadeInTableCells();
+
+  // Init modal behavior
+  initModal('modal-transactions-by-cat', 'dialog-transactions-by-cat');
+  initModal('modal', 'dialog');
+
+  // Prevent event bubbling on buttons/links inside TDs
+  preventRowClickFromButtons();
+});
+
+// ===== HTMX Lifecycle Hooks =====
+document.body.addEventListener('htmx:afterSwap', (e) => {
+  fadeInTableCells();
+
+  // Also re-bind click handler when new content is swapped in
+  preventRowClickFromButtons();
 });
 
 //// check / uncheck all checklist boxes

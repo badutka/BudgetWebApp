@@ -28,6 +28,24 @@ from core.summaries import monthly_summary, monthly_summary_detailed
 #               BALANCE HISTORY
 # ===============================================
 
+def transactions_by_category_modal(request, category_id):
+    # You could fetch from your API or directly from DB
+    api_url = request.build_absolute_uri(reverse('budget:transactions_api'))
+    response = requests.get(api_url, params={'category': category_id})
+
+    transactions = get_response_by_status_code(response, 200, response.json(), [])
+    money_accounts = MoneyAccount.objects.all()
+    categories = Category.objects.all()
+    transactions = update_transactions_details(transactions, money_accounts, categories)
+    total = sum(float(t['amount']) for t in transactions)
+
+    context = {
+        'transactions': transactions,
+        'total': total,
+    }
+    return render(request, 'budget/transactions_by_category_modal.html', context)
+
+
 def refresh_balance_history(request, money_account_name):
     serializer = BalanceHistoryRefreshSerializer(data={'money_account_name': money_account_name})
 
