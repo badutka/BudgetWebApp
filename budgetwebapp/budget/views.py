@@ -29,16 +29,17 @@ from core.summaries import monthly_summary, monthly_summary_detailed
 # ===============================================
 
 def transactions_by_category_modal(request, category_id):
-    params = flatten_querydict(request.GET)
-    # todo: utilize the new serializer?
     # todo: check out if new serializer (api_transactions_by_category) could be better as ListCreateAPIView
+    transactions = fetch_api_and_get_response(request, 'budget:api_transactions_by_category', 200, args=[category_id])
+    total = transactions['total']
+    transactions = transactions['transactions']
 
-    transactions = fetch_api_and_get_response(request, 'budget:transactions_api', 200, params)
     money_accounts = fetch_api_and_get_response(request, 'budget:money_accounts', 200)
     categories = fetch_api_and_get_response(request, 'budget:categories', 200)
+
     transactions = update_transactions_details(transactions, money_accounts, categories)
     category_map = {cat['id']: cat['name'] for cat in categories}
-    total = sum(float(t['amount']) for t in transactions)
+    # total = sum(float(t['amount']) for t in transactions)
     category_name = category_map.get(category_id)
 
     context = {

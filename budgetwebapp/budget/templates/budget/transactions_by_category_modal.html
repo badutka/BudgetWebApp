@@ -2,7 +2,7 @@
 
 <div class="modal-content">
   <div class="modal-header">
-    <h5 class="modal-title">Transactions in Category: {{category_name}}</h5>
+    <h5 class="modal-title">Transactions in Category: {{ category_name }}</h5>
     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
   </div>
 
@@ -12,7 +12,14 @@
     <ul class="list-group">
       {% for txn in transactions %}
         <li class="list-group-item d-flex justify-content-between">
-          <span>{{ txn.date }} - {{ txn.description }}</span>
+          <span>
+            {{ txn.date }} -
+            {% if txn.description %}
+              {{ txn.description }}
+            {% else %}
+              <em>description not provided</em>
+            {% endif %}
+          </span>
           <strong>{{ txn.amount }}</strong>
         </li>
       {% empty %}
