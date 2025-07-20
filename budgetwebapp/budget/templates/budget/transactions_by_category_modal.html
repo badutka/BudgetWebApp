@@ -7,12 +7,24 @@
   </div>
 
   <div class="modal-body">
-    <p><strong>Total Amount:</strong> {{ total }}</p>
+    <p><strong>Number of Transactions:</strong> {{ transactions_stats.count }}</p>
+    <p><strong>Date Span:</strong> {{ transactions_stats.date_span_str }}</p>
+    <p><strong>Total Amount:</strong> {{ transactions_stats.total }} PLN</p>
+    <p><strong>Average Amount:</strong> {{ transactions_stats.average }} PLN</p>
+    <p><strong>Median Amount:</strong> {{ transactions_stats.median }} PLN</p>
+    <p><strong>10th Percentile Amount:</strong> {{ transactions_stats.percentile_10 }} PLN</p>
+    <p><strong>90th Percentile Amount:</strong> {{ transactions_stats.percentile_90 }} PLN</p>
 
-    <ul class="list-group">
+    <hr>
+
+    <ul class="list-group mt-3">
       {% for txn in transactions %}
-        <li class="list-group-item d-flex justify-content-between">
+        <li class="list-group-item d-flex justify-content-between
+          {% if txn.amount < transactions_stats.percentile_10 %} list-group-item-success
+          {% elif txn.amount > transactions_stats.percentile_90 %} list-group-item-danger
+          {% endif %}">
           <span>
+            <strong>{{ forloop.counter }}.</strong>
             {{ txn.date }} -
             {% if txn.description %}
               {{ txn.description }}
@@ -20,7 +32,7 @@
               <em>description not provided</em>
             {% endif %}
           </span>
-          <strong>{{ txn.amount }}</strong>
+          <strong>{{ txn.amount }} PLN</strong>
         </li>
       {% empty %}
         <li class="list-group-item">No transactions found in this category.</li>

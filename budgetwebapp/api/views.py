@@ -1,3 +1,6 @@
+from statistics import median
+import numpy as np
+
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView
 from rest_framework.views import APIView
@@ -55,14 +58,48 @@ class TransactionFormAPIView(APIView):
 
 class TransactionsByCategoryAPIView(APIView):
     def get(self, request, category_id):
-        # Optional: support filtering by user/account/date later
         transactions = models.Transaction.objects.filter(category_id=category_id)
-        serializer = serializers.TransactionSerializer(transactions, many=True)
-        total = transactions.aggregate(Sum('amount'))['amount__sum'] or 0
+
+        amounts = [float(a) for a in transactions.values_list('amount', flat=True)]
+
+        total = round(sum(amounts), 2)
+        count = len(amounts)
+        avg = round(total / count, 2) if count else 0
+        med = round(median(amounts), 2) if count else 0
+        perc10 = round(float(np.percentile(amounts, 10)), 2) if count else 0
+        perc90 = round(float(np.percentile(amounts, 90)), 2) if count else 0
+
+        if count:
+            first_date = transactions.first().date
+            last_date = transactions.last().date
+            delta_days = (first_date - last_date).days
+
+            if delta_days <= 30:
+                date_span_str = f"{delta_days} Days"
+            else:
+                months = round(delta_days / 30, 2)
+                date_span_str = f"{months} Months"
+        else:
+            date_span_str = "0 Days"
+
+        transactions_data = [
+            {
+                'date': txn.date,
+                'description': txn.description,
+                'amount': float(txn.amount),
+            }
+            for txn in transactions
+        ]
 
         return Response({
-            'transactions': serializer.data,
-            'total': total
+            'transactions': transactions_data,
+            'total': total,
+            'count': count,
+            'average': avg,
+            'median': med,
+            'percentile_10': perc10,
+            'percentile_90': perc90,
+            'date_span_str': date_span_str,
         })
 
 

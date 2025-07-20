@@ -30,21 +30,17 @@ from core.summaries import monthly_summary, monthly_summary_detailed
 
 def transactions_by_category_modal(request, category_id):
     # todo: check out if new serializer (api_transactions_by_category) could be better as ListCreateAPIView
-    transactions = fetch_api_and_get_response(request, 'budget:api_transactions_by_category', 200, args=[category_id])
-    total = transactions['total']
-    transactions = transactions['transactions']
+    transactions_info = fetch_api_and_get_response(request, 'budget:api_transactions_by_category', 200, args=[category_id])
+    transactions_stats = {k: v for k, v in transactions_info.items() if k != 'transactions'}
 
-    money_accounts = fetch_api_and_get_response(request, 'budget:money_accounts', 200)
     categories = fetch_api_and_get_response(request, 'budget:categories', 200)
-
-    transactions = update_transactions_details(transactions, money_accounts, categories)
     category_map = {cat['id']: cat['name'] for cat in categories}
-    # total = sum(float(t['amount']) for t in transactions)
     category_name = category_map.get(category_id)
 
+
     context = {
-        'transactions': transactions,
-        'total': total,
+        'transactions': transactions_info['transactions'],
+        'transactions_stats': transactions_stats,
         'category_name': category_name
     }
     return render(request, 'budget/transactions_by_category_modal.html', context)
