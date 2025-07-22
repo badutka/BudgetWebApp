@@ -64,10 +64,12 @@ class TransactionsByCategoryAPIView(APIView):
 
         total = round(sum(amounts), 2)
         count = len(amounts)
+        _min = min(amounts)
         avg = round(total / count, 2) if count else 0
         med = round(median(amounts), 2) if count else 0
         perc10 = round(float(np.percentile(amounts, 10)), 2) if count else 0
         perc90 = round(float(np.percentile(amounts, 90)), 2) if count else 0
+        _max = max(amounts)
 
         if count:
             first_date = transactions.first().date
@@ -95,10 +97,12 @@ class TransactionsByCategoryAPIView(APIView):
             'transactions': transactions_data,
             'total': total,
             'count': count,
+            'min': _min,
             'average': avg,
             'median': med,
             'percentile_10': perc10,
             'percentile_90': perc90,
+            'max': _max,
             'date_span_str': date_span_str,
         })
 

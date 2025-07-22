@@ -1,0 +1,70 @@
+/* Target the modal content */
+#dialog-transactions-by-cat .modal-content {
+  background: rgba(0, 12, 35, 0.95);
+  backdrop-filter: blur(6px);
+  border-radius: 12px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  color: #f0f0f0; /* Light text for dark background */
+}
+
+/* Optional: Customize modal header and footer if present */
+#dialog-transactions-by-cat .modal-header,
+#dialog-transactions-by-cat .modal-footer {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Neutral list items in the modal */
+#dialog-transactions-by-cat .modal-content .list-group-item {
+  background-color: rgba(255, 255, 255, 0.08); /* subtle dark-gray */
+  color: #e0e0e0;
+  border-color: rgba(255, 255, 255, 0.08); /* faint border to separate rows */
+}
+
+/* Override Bootstrap’s light bg for success and danger in dark mode */
+#dialog-transactions-by-cat .modal-content .list-group-item-success {
+  background-color: rgba(40, 167, 69, 0.2); /* greenish, dark-friendly */
+  color: #c8f7c5;
+}
+
+#dialog-transactions-by-cat .modal-content .list-group-item-danger {
+  background-color: rgba(220, 53, 69, 0.2); /* reddish, dark-friendly */
+  color: #f8c1c1;
+}
+
+/* Optional: subtle hover */
+#dialog-transactions-by-cat .modal-content .list-group-item:hover {
+  background-color: rgba(255, 255, 255, 0.07);
+}
+
+/* Hover for success (green) items */
+#dialog-transactions-by-cat .modal-content .list-group-item-success:hover {
+  background-color: rgba(40, 167, 69, 0.3); /* Slightly brighter green tint */
+  color: #d2ffce;
+}
+
+/* Hover for danger (red) items */
+#dialog-transactions-by-cat .modal-content .list-group-item-danger:hover {
+  background-color: rgba(220, 53, 69, 0.3); /* Slightly brighter red tint */
+  color: #ffd4d4;
+}
+
+.t9ns-stats-table-in-modal th,
+.t9ns-stats-table-in-modal td {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: white;
+  text-align: center;
+}
+
+.t9ns-stats-table-in-modal tr:hover{
+  background-color: rgba(255, 255, 255, 0.07);
+}
+
+.t9ns-stats-table-in-modal tr{
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.t9ns-stats-table-in-modal th {
+  width: 50%;
+  font-weight: 600;
+}

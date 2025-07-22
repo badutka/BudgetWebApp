@@ -1,19 +1,61 @@
 {% load static %}
 
-<div class="modal-content">
+<div id="categoryChartModal" class="modal-content">
   <div class="modal-header">
     <h5 class="modal-title">Transactions in Category: {{ category_name }}</h5>
-    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
   </div>
 
   <div class="modal-body">
-    <p><strong>Number of Transactions:</strong> {{ transactions_stats.count }}</p>
-    <p><strong>Date Span:</strong> {{ transactions_stats.date_span_str }}</p>
-    <p><strong>Total Amount:</strong> {{ transactions_stats.total }} PLN</p>
-    <p><strong>Average Amount:</strong> {{ transactions_stats.average }} PLN</p>
-    <p><strong>Median Amount:</strong> {{ transactions_stats.median }} PLN</p>
-    <p><strong>10th Percentile Amount:</strong> {{ transactions_stats.percentile_10 }} PLN</p>
-    <p><strong>90th Percentile Amount:</strong> {{ transactions_stats.percentile_90 }} PLN</p>
+    <div class="table-responsive rounded-3">
+      <table class="table table-sm t9ns-stats-table-in-modal">
+        <tbody>
+          <tr>
+            <th scope="row">Number of Transactions</th>
+            <td>{{ transactions_stats.count }}</td>
+          </tr>
+          <tr>
+            <th scope="row">Date Span</th>
+            <td>{{ transactions_stats.date_span_str }}</td>
+          </tr>
+          <tr>
+            <th scope="row">Total Amount</th>
+            <td>{{ transactions_stats.total }} PLN</td>
+          </tr>
+          <tr>
+            <th scope="row">Min Amount</th>
+            <td>{{ transactions_stats.min }} PLN</td>
+          </tr>
+          <tr>
+            <th scope="row">10th Percentile</th>
+            <td>{{ transactions_stats.percentile_10 }} PLN</td>
+          </tr>
+          <tr>
+            <th scope="row">Average Amount</th>
+            <td>{{ transactions_stats.average }} PLN</td>
+          </tr>
+          <tr>
+            <th scope="row">Median Amount</th>
+            <td>{{ transactions_stats.median }} PLN</td>
+          </tr>
+          <tr>
+            <th scope="row">90th Percentile</th>
+            <td>{{ transactions_stats.percentile_90 }} PLN</td>
+          </tr>
+          <tr>
+            <th scope="row">Max Amount</th>
+            <td>{{ transactions_stats.max }} PLN</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <hr>
+
+    <div id="container" style="height: 100px; min-width: 600px" class="rounded-3"></div>
+
+    <!-- Safely output JSON data -->
+    {{ chart_data|json_script:"chart-data" }}
 
     <hr>
 

@@ -37,6 +37,14 @@ function initModal(modalId, modalDialog) {
     const dialog = document.getElementById(modalDialog);
     if (dialog) dialog.innerHTML = "";
   });
+
+   // Only render chart if this specific modal was updated
+  document.addEventListener("htmx:afterSwap", function(evt) {
+    if (evt.target && evt.target.querySelector('#categoryChartModal')) {
+      renderChartInModal();
+    }
+  });
+
 }
 
 // ===== Filter Dropdown Logic =====
@@ -103,6 +111,7 @@ document.body.addEventListener('htmx:afterSwap', (e) => {
   // Also re-bind click handler when new content is swapped in
   preventRowClickFromButtons();
 });
+
 
 //// check / uncheck all checklist boxes
 //document.addEventListener('DOMContentLoaded', function () {

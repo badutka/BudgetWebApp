@@ -37,11 +37,20 @@ def transactions_by_category_modal(request, category_id):
     category_map = {cat['id']: cat['name'] for cat in categories}
     category_name = category_map.get(category_id)
 
+    chart_data = [
+        {"x": transactions_stats['min'], "y": -0.5, "name": "Min"},
+        {"x": transactions_stats['percentile_10'], "y": -0.5, "name": "10th %ile"},
+        {"x": transactions_stats['average'], "y": -0.5, "name": "Mean"},
+        {"x": transactions_stats['median'], "y": -0.5, "name": "Median"},
+        {"x": transactions_stats['percentile_90'], "y": -0.5, "name": "90th %ile"},
+        {"x": transactions_stats['max'], "y": -0.5, "name": "Max"},
+    ]
 
     context = {
         'transactions': transactions_info['transactions'],
         'transactions_stats': transactions_stats,
-        'category_name': category_name
+        'category_name': category_name,
+        "chart_data": chart_data
     }
     return render(request, 'budget/transactions_by_category_modal.html', context)
 
