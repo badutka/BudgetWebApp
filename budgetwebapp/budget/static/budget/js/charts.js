@@ -121,7 +121,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function renderChartInModal() {
 const chartData = JSON.parse(document.getElementById('chart-data').textContent);
 
-Highcharts.chart('container', {
+Highcharts.chart('t9ns-basic-stats-on-modal', {
   chart: {
     type: 'scatter',
     spacingTop: 10,
