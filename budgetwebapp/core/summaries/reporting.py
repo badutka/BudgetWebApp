@@ -237,15 +237,19 @@ class MonthlyParentCategoryReportBuilder:
         """
         all_parent_names = MonthlyParentCategoryReportBuilder._get_all_parent_names()
         incoming_parents = MonthlyParentCategoryReportBuilder._get_incoming_parent_names()
+        inner_parents = MonthlyParentCategoryReportBuilder._get_inner_parent_names()
+
         monthly_totals = MonthlyParentCategoryReportBuilder._get_monthly_totals(year, month)
 
         MonthlyParentCategoryReportBuilder._update_outgoing_summaries(year, month, all_parent_names, monthly_totals)
         MonthlyParentCategoryReportBuilder._update_incoming_summaries(year, month, incoming_parents, monthly_totals)
+        MonthlyParentCategoryReportBuilder._update_inner_summaries(year, month, inner_parents, monthly_totals)
 
     @staticmethod
     def _get_all_parent_names():
         return (
             Transaction.objects
+            .order_by('category__parent_category__name')  # required by distinct to work properly
             .values_list('category__parent_category__name', flat=True)
             .distinct()
         )
@@ -254,7 +258,18 @@ class MonthlyParentCategoryReportBuilder:
     def _get_incoming_parent_names() -> set:
         return set(
             Transaction.objects
-            .filter(category__transaction_type='INCOMING')
+            .filter(category__transaction_type = 'INCOMING')
+            .order_by('category__parent_category__name')  # required by distinct to work properly
+            .values_list('category__parent_category__name', flat=True)
+            .distinct()
+        )
+
+    @staticmethod
+    def _get_inner_parent_names() -> set:
+        return set(
+            Transaction.objects
+            .filter(category__transaction_type = 'INNER')
+            .order_by('category__parent_category__name')  # required by distinct to work properly
             .values_list('category__parent_category__name', flat=True)
             .distinct()
         )
@@ -295,6 +310,19 @@ class MonthlyParentCategoryReportBuilder:
                 transaction_type='INCOMING',
                 defaults={'amount': amount}
             )
+
+    @staticmethod
+    def _update_inner_summaries(year: int, month: int, parent_names, totals_lookup: Dict) -> None:
+        for parent_name in parent_names:
+            for t9n_type in ['OUTGOING', 'INCOMING']:
+                amount = totals_lookup.get((parent_name, 'INNER'), Decimal('0.00'))
+                MonthlyParentCategorySummary.objects.update_or_create(
+                    year=year,
+                    month=month,
+                    parent_category_name=parent_name,
+                    transaction_type=t9n_type,  # todo: create separate inner summary objects for inner t9ns
+                    defaults={'amount': amount}
+                )
 
 
 def update_all_summaries(year: int, month: int) -> None:

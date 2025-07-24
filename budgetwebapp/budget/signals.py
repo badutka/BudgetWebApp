@@ -49,12 +49,11 @@ def update_summary_on_save(sender, instance, created, **kwargs):
         update_all_summaries(old_year, old_month)
         ReportsUtility.delete_summaries_if_year_empty(old_year)
 
-    update_all_summaries(year, month)
-
     if is_first_transaction_in_year:
         for m in range(1, 13):
-            if m != month:
-                update_all_summaries(year, m)
+            update_all_summaries(year, m)
+    else:
+        update_all_summaries(year, month)
 
 
 # @receiver(post_delete, sender=Transaction)
