@@ -1,7 +1,7 @@
 from django.db.models.signals import pre_save, post_save, post_delete
 from django.dispatch import receiver
 from .models import Transaction
-from core.summaries.reporting import ReportsUtility, update_all_summaries
+from core.summaries.reporting import ReportsUtility, update_all_summaries, remove_parent_summary_on_last_object_delete
 
 
 # @receiver(pre_delete, sender=BudgetExpenseEntry)
@@ -72,3 +72,4 @@ def update_summary_on_save(sender, instance, created, **kwargs):
 def update_summary_on_delete(sender, instance, **kwargs):
     update_all_summaries(instance.date.year, instance.date.month)
     ReportsUtility.delete_summaries_if_year_empty(instance.date.year)
+    # remove_parent_summary_on_last_object_delete(instance.date.year, instance.date.month, instance)
