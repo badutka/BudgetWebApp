@@ -43,7 +43,8 @@ urlpatterns = [
     # Charts View
     path('transactions/chart-summary/', budget_views.chart_summary, name='chart_summary'),
     # Balance History View
-    path('balance-history/<str:money_account_name>/', budget_views.balance_history_view, name='balance_history'),
+    # path('balance-history/<str:money_account_name>/', budget_views.balance_history_view, name='balance_history'),
+    path('balance-history/<str:money_account_name>/', budget_views.balance_history_view_new, name='balance_history'),
     # Balance History Refresh
     path('balance-history/refresh/<str:money_account_name>/', budget_views.refresh_balance_history, name='balance_history_refresh'),
     path('transactions/category/<int:category_id>/', budget_views.transactions_by_category_modal, name='transactions_by_category'),

@@ -1,4 +1,5 @@
 import requests
+import pandas as pd
 from django.core.paginator import Paginator
 from django.db.models import Sum
 from django.http import HttpResponseBadRequest, HttpResponse
@@ -8,11 +9,13 @@ from rest_framework.exceptions import ValidationError
 
 from api.views import BalanceHistoryAPIView
 from .forms import BudgetExpenseEntryForm
+from budget import models
 from .models import (Transaction,
                      MoneyAccount,
                      Category, ParentCategory,
                      MonthlyCategorySummary,
                      MonthlyParentCategorySummary)
+
 from .serializers import BalanceHistorySerializer, BalanceHistoryRefreshSerializer
 from core.utils import (get_data_from_form,
                         get_response_by_status_code,
@@ -71,6 +74,41 @@ def refresh_balance_history(request, money_account_name):
 
     # response = balance_history_view(request, money_account_name=money_account_name)
     # return response
+
+from django.db.models import Q
+def balance_history_view_new(request, money_account_name):
+    account = models.MoneyAccount.objects.get(name=money_account_name)
+    transactions = models.Transaction.objects.filter(Q(origin__name=money_account_name) | Q(destination__name=money_account_name)).reverse()
+    balance = account.starting_balance
+    balance_history = []
+
+    for transaction in transactions:
+        old_balance = balance
+        if transaction.origin and transaction.origin.name == money_account_name:
+            amount = -transaction.amount
+        elif transaction.destination and transaction.destination.name == money_account_name:
+            amount = transaction.amount
+        else:
+            amount = 0
+
+        balance += amount
+        balance_history.append(
+            {'date': transaction.date,
+             'origin': transaction.origin,
+             'destination': transaction.destination,
+             'balance_before': old_balance,
+             'balance_after': balance,
+             'amount': amount,
+             'transaction_type': transaction.transaction_type,
+             }
+        )
+
+    context = {
+        'balance_history': balance_history[::-1],
+        'money_account_name': money_account_name
+    }
+
+    return render(request, 'budget/balance_history_new.html', context)
 
 
 def balance_history_view(request, money_account_name):
