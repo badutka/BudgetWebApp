@@ -112,7 +112,6 @@ document.body.addEventListener('htmx:afterSwap', (e) => {
   preventRowClickFromButtons();
 });
 
-
 //// check / uncheck all checklist boxes
 //document.addEventListener('DOMContentLoaded', function () {
 //    const selectAllCheckbox = document.getElementById('category-select-all');
