@@ -385,11 +385,11 @@ def remove_parent_summary_on_last_object_delete(year: int, month: int, instance:
     Deletes monthly summary records for a parent category if its last transaction
     in the given month was just deleted.
 
-    This is only necessary if your summary builder (_get_all_parent_names) is **based on
+    For Expenses, this is only necessary if summary builder (_get_all_parent_names) is **based on
     existing transactions**, rather than all ParentCategory objects.
 
-    If you're using the ParentCategory model directly (as above), this function
-    becomes redundant — but it's still safe to call just in case you change strategy later.
+    For Income / Inner transactions, this is going to be necessary, since the builder utilized current Transactions of
+    these types, rather than all ParentCategory objects.
     """
     parent_name = instance.category.parent_category.name
 

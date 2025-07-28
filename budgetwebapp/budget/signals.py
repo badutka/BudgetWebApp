@@ -72,4 +72,4 @@ def update_summary_on_save(sender, instance, created, **kwargs):
 def update_summary_on_delete(sender, instance, **kwargs):
     update_all_summaries(instance.date.year, instance.date.month)
     ReportsUtility.delete_summaries_if_year_empty(instance.date.year)
-    # remove_parent_summary_on_last_object_delete(instance.date.year, instance.date.month, instance)
+    remove_parent_summary_on_last_object_delete(instance.date.year, instance.date.month, instance)
