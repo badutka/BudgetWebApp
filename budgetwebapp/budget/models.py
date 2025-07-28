@@ -186,7 +186,8 @@ class Transaction(BaseModel):
 
     class Meta:
         verbose_name_plural = "Transactions"
-        ordering = ['-date', '-updated_at', '-id']
+        # ordering = ['-date', '-updated_at', '-id']
+        ordering = ['-date', '-created_at', '-id']
 
 
 class BalanceHistory(models.Model):
