@@ -3,10 +3,76 @@
 
 {% block content %}
 
-<div style="width: 40%; height: 400px; margin-left: 40%">
-    <canvas id="lineGraph" class="border rounded-2"></canvas>
+<!--<div style="display: flex;">-->
+<!-- <div id="balance-chart-container" class="chart-panel">-->
+<!--  <div id="balance-chart" ></div>-->
+<!-- </div>-->
+<!--</div>-->
+
+<div style="color: white; text-align: center;" class="mb-3 mt-3">
+ <h1>DASHBOARD</h1>
 </div>
 
-<script src="{% static 'budget/js/line_chart.js' %}"></script>
+<div class="chart-row chart-row-5 mb-3">
+  <div class="chart-col-1-5">
+    <div class="dashboard-card truncate">
+      <div class="dashboard-card-title">Revenue</div>
+      <hr>
+      <div class="dashboard-card-text">$32.4k</div>
+        <div class="date-range" style="font-size: 0.85em; color: #666; margin-top: 4px;">Mar 28 - Mar 29</div>
+      <hr>
+      <div class="dashboard-card-footer">
+        <div class="change nominal positive">120 PLN</div>
+<!--        <div class="change percent positive mt-1">5.69%</div>-->
+           <div class="date-range mt-1" style="font-size: 0.8em; color: #666;">Mar 28 - Mar 29</div>
+      </div>
+    </div>
+  </div>
+  <div class="chart-col-1-5">
+    <div class="dashboard-card">
+      <div class="dashboard-card-title">Users</div>
+      <div class="dashboard-card-text">1,205</div>
+    </div>
+  </div>
+  <div class="chart-col-1-5">
+    <div class="dashboard-card">
+      <div class="dashboard-card-title">Sessions</div>
+      <div class="dashboard-card-text">3.4k</div>
+    </div>
+  </div>
+  <div class="chart-col-1-5">
+    <div class="dashboard-card">
+      <div class="dashboard-card-title">Bounce Rate</div>
+      <div class="dashboard-card-text">42%</div>
+    </div>
+  </div>
+  <div class="chart-col-1-5">
+   <div class="dashboard-card">
+     <div class="dashboard-card-title">Bounce Rate</div>
+     <div class="dashboard-card-text">42%</div>
+   </div>
+ </div>
+</div>
+
+<div class="chart-row chart-row-3 mb-3">
+ <div id="balance-chart-container" class="chart-col-1-4 chart-panel">
+  <div id="balance-chart" ></div>
+ </div>
+ <div id="balance-chart-container2" class="chart-col-1-2 chart-panel">
+  <div id="balance-chart2" ></div>
+ </div>
+ <div id="balance-chart-container3" class="chart-col-1-4 chart-panel">
+  <div id="balance-chart3" ></div>
+ </div>
+</div>
+
+
+
+
+<!-- Embed the data in a <script> tag as a JSON object -->
+
+{{ monthly_data|json_script:"balance-chart-data" }}
+
+<script defer src="{% static 'budget/js/dashboard_charts/chart1.js' %}"></script>
 
 {% endblock content %}

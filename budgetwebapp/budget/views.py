@@ -131,7 +131,11 @@ def balance_history_view(request, money_account_name):
 # ===============================================
 
 def chart_summary(request):
-    context = {}
+    monthly_summaries = fetch_api_and_get_response(request, 'budget:monthly_summaries', 200, [('year', '2025')])
+    print(monthly_summaries)
+    context = {
+        'monthly_data': monthly_summaries
+    }
     return render(request, 'budget/chart_summary.html', context)
 
 
