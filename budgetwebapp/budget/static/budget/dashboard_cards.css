@@ -1,0 +1,127 @@
+/* Dashboard Card Container */
+.dashboard-card {
+  background-image: linear-gradient(#181f65, #101751, #0a0f3c);
+  color: #ecf0f1;
+  text-align: center;
+
+  border-radius: 16px;
+  box-shadow:
+    0px 0px 30px rgba(0, 0, 0, 0.5),
+    inset 0px 0px 5px rgba(0, 0, 0, 0.7);
+
+  padding: clamp(0.75rem, 2vw, 1.25rem);
+  max-width: 100%;
+  aspect-ratio: 1 / 1;
+
+  transition: transform 0.3s ease;
+  animation: fadeInDelayed 0.6s ease-out;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  will-change: transform, opacity;
+}
+
+/* Hover lift */
+.dashboard-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.45);
+}
+
+/* Animation */
+@keyframes fadeInDelayed {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Optional utility class to reuse truncation logic */
+.truncate > div,
+.truncate > div > div {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Title */
+.dashboard-card-title {
+  font-weight: 700;
+  /*font-size: 1.2rem;*/
+  font-size: clamp(0.8rem, 1.5vw, 4rem);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* Divider line */
+.dashboard-card hr {
+  border: none;
+  height: 2px;
+  /*background: rgba(236, 240, 241, 0.3);*/
+  background: rgba(26, 188, 156, 0.5);
+  margin: 0.75rem 0;
+}
+
+/* Main number */
+.dashboard-card-text {
+  font-weight: 600;
+  /*font-size: 2rem;*/
+  font-size: clamp(1.2rem, 3vw, 5rem);
+  color: #1abc9c;
+}
+
+/* Footer wrapper */
+.dashboard-card-footer {
+  font-weight: 600;
+  /*font-size: 1rem;*/
+  font-size: clamp(0.75rem, 1.2vw, 3.5rem);
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap; /* in case smaller widths */
+}
+
+.dashboard-card-footer .percent {
+  font-size: clamp(0.5rem, 1vw, 1rem);
+}
+
+.dashboard-card-footer .change {
+  align-items: center;
+  gap: 0.25rem;
+  white-space: nowrap;
+}
+
+/* Colors */
+.dashboard-card-footer .change.positive {
+  color: #2ecc71;
+}
+
+.dashboard-card-footer .change.negative {
+  color: #e74c3c;
+}
+
+/* Percentage change arrow + sign */
+.dashboard-card-footer .change.percent.positive::before {
+  content: "(+";
+}
+
+.dashboard-card-footer .change.percent.negative::before {
+  content: "(-";
+}
+
+.dashboard-card-footer .change.percent::after {
+  content: ")";
+}
+
+.dashboard-card-footer .change.nominal.positive::before {
+  content: "▲ ";
+}
+
+.dashboard-card-footer .change.nominal.negative::before {
+  content: "▼ ";
+}
