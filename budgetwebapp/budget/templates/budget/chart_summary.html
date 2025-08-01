@@ -13,7 +13,73 @@
  <h1>DASHBOARD</h1>
 </div>
 
-<div class="chart-row chart-row-5 mb-3">
+<div style="  margin-left: 10%;
+  margin-right: 10%;">
+
+  <div style="text-align: right; margin: 10px 10% 0;">
+    <button onclick="toggleRowFilters()" style="padding: 6px 12px; border-radius: 4px; cursor: pointer;">
+      Toggle Row Filters
+    </button>
+  </div>
+
+  <div class="filter-row-wrapper">
+    <i class="bi bi-filter" style="color: white;"></i>
+<!--    <span class="filter-title">Filters</span>-->
+    <div class="filter-row">
+      <label>From:</label>
+      <input type="date">
+      <label>To:</label>
+      <input type="date">
+      <button>Apply</button>
+    </div>
+  </div>
+
+<div class="cards-row chart-row-5 mb-5">
+  <div class="chart-col-1-5">
+    <div class="dashboard-card truncate">
+      <div class="dashboard-card-title">Revenue</div>
+      <hr>
+      <div class="dashboard-card-text">$32.4k</div>
+        <div class="date-range" style="font-size: 0.85em; color: white; margin-top: 4px;">Mar 28 - Mar 29</div>
+      <hr>
+      <div class="dashboard-card-footer">
+        <div class="change nominal positive">120 PLN</div>
+        <div class="change percent positive mt-1">5.69%</div>
+<!--           <div class="date-range mt-1" style="font-size: 0.8em; color: #666;">Mar 28 - Mar 29</div>-->
+      </div>
+    </div>
+  </div>
+  <div class="chart-col-1-5">
+    <div class="dashboard-card truncate" style="position: relative;">
+
+      <div style="display: flex; justify-content: center; align-items: center; gap: 0.4em;">
+        <!-- Centered Title -->
+        <div class="dashboard-card-title">Revenue</div>
+
+        <!-- Refresh Button -->
+        <button
+          class="refresh-button"
+          style="background: none; border: none; color: white; cursor: pointer; font-size: clamp(0.8rem, 1.5vw, 4rem); line-height: 1;"
+          onclick="refreshCard(this)">
+          &#x21bb;
+        </button>
+      </div>
+
+      <!-- Optional Date Filter -->
+<!--      <div style="margin-top: 6px;">-->
+<!--        <input type="date" class="date-filter" style="width: 100%; font-size: 0.75em; border-radius: 4px; padding: 2px 4px;" disabled>-->
+<!--      </div>-->
+
+      <hr>
+      <div class="dashboard-card-text">$32.4k</div>
+      <div class="date-range" style="font-size: 0.85em; color: white; margin-top: 4px;">Mar 28 - Mar 29</div>
+      <hr>
+      <div class="dashboard-card-footer">
+        <div class="change nominal positive">120 PLN</div>
+        <div class="change percent positive mt-1">5.69%</div>
+      </div>
+    </div>
+  </div>
   <div class="chart-col-1-5">
     <div class="dashboard-card truncate">
       <div class="dashboard-card-title">Revenue</div>
@@ -23,36 +89,48 @@
       <hr>
       <div class="dashboard-card-footer">
         <div class="change nominal positive">120 PLN</div>
-<!--        <div class="change percent positive mt-1">5.69%</div>-->
-           <div class="date-range mt-1" style="font-size: 0.8em; color: #666;">Mar 28 - Mar 29</div>
+        <div class="change percent positive mt-1">5.69%</div>
       </div>
     </div>
   </div>
   <div class="chart-col-1-5">
-    <div class="dashboard-card">
-      <div class="dashboard-card-title">Users</div>
-      <div class="dashboard-card-text">1,205</div>
+    <div class="dashboard-card truncate">
+      <div class="dashboard-card-title">Revenue</div>
+      <hr>
+      <div class="dashboard-card-text">$32.4k</div>
+        <div class="date-range" style="font-size: 0.85em; color: #666; margin-top: 4px;">Mar 28 - Mar 29</div>
+      <hr>
+      <div class="dashboard-card-footer">
+        <div class="change nominal positive">120 PLN</div>
+        <div class="change percent positive mt-1">5.69%</div>
+      </div>
     </div>
   </div>
   <div class="chart-col-1-5">
-    <div class="dashboard-card">
-      <div class="dashboard-card-title">Sessions</div>
-      <div class="dashboard-card-text">3.4k</div>
+    <div class="dashboard-card truncate">
+      <div class="dashboard-card-title">Revenue</div>
+      <hr>
+      <div class="dashboard-card-text">$32.4k</div>
+        <div class="date-range" style="font-size: 0.85em; color: #666; margin-top: 4px;">Mar 28 - Mar 29</div>
+      <hr>
+      <div class="dashboard-card-footer">
+        <div class="change nominal positive">120 PLN</div>
+        <div class="change percent positive mt-1">5.69%</div>
+      </div>
     </div>
   </div>
-  <div class="chart-col-1-5">
-    <div class="dashboard-card">
-      <div class="dashboard-card-title">Bounce Rate</div>
-      <div class="dashboard-card-text">42%</div>
-    </div>
-  </div>
-  <div class="chart-col-1-5">
-   <div class="dashboard-card">
-     <div class="dashboard-card-title">Bounce Rate</div>
-     <div class="dashboard-card-text">42%</div>
-   </div>
- </div>
 </div>
+</div>
+
+  <div class="filter-row-wrapper">
+    <div class="filter-row">
+      <label>From:</label>
+      <input type="date">
+      <label>To:</label>
+      <input type="date">
+      <button>Apply</button>
+    </div>
+  </div>
 
 <div class="chart-row chart-row-3 mb-3">
  <div id="balance-chart-container" class="chart-col-1-4 chart-panel">
@@ -74,5 +152,22 @@
 {{ monthly_data|json_script:"balance-chart-data" }}
 
 <script defer src="{% static 'budget/js/dashboard_charts/chart1.js' %}"></script>
+
+<script>
+let filtersVisible = false;
+
+function toggleRowFilters() {
+  filtersVisible = !filtersVisible;
+  const filterRows = document.querySelectorAll('.filter-row-wrapper');
+
+  filterRows.forEach(row => {
+    if (filtersVisible) {
+      row.classList.add('visible');
+    } else {
+      row.classList.remove('visible');
+    }
+  });
+}
+</script>
 
 {% endblock content %}

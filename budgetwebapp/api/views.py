@@ -37,10 +37,9 @@ class BalanceHistoryAPIView(ListAPIView):
 
 class ChartDataAPIView(APIView):
     def get(self, request, format=None):
-        # summary, totals = create_yearly_summary(2025)
-        # serializer = ChartDataSerializer(summary)
-
-        return Response()
+        monthly_summaries = models.MonthlySummary.objects.all()
+        serializer = serializers.MonthlySummarySerializer(monthly_summaries, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class MoneyAccountAPIView(generics.ListCreateAPIView):

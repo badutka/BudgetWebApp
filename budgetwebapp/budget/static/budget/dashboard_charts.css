@@ -3,9 +3,10 @@
   background-color: #101751;
 
   /*width: 50%;*/
-  height: 430px;
   /*margin: 40px auto;*/
-    min-width: 0;
+  height: 430px;
+  min-width: 0;
+  min-height: 0;
 
   box-sizing: border-box; /* ensures padding doesn't overflow */
 
@@ -16,6 +17,14 @@
 }
 
 .chart-row {
+  display: flex;
+  flex-wrap: nowrap;
+  box-sizing: border-box;
+  gap: 20px;
+  padding: 0 20px;
+}
+
+.cards-row {
   display: flex;
   flex-wrap: nowrap;
   box-sizing: border-box;

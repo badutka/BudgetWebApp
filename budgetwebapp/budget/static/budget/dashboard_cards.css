@@ -9,7 +9,7 @@
     0px 0px 30px rgba(0, 0, 0, 0.5),
     inset 0px 0px 5px rgba(0, 0, 0, 0.7);
 
-  padding: clamp(0.75rem, 2vw, 1.25rem);
+  padding: clamp(0.25rem, 2vw, 1.25rem);  /* set padding: 5px or 0.25rem clamp for gaps to not overflow with cards*/
   max-width: 100%;
   aspect-ratio: 1 / 1;
 
