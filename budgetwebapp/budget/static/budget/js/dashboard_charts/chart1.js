@@ -1,10 +1,9 @@
+import { months } from './charts_const.js';
+
 document.addEventListener('DOMContentLoaded', () => {
   const chartData = JSON.parse(
     document.getElementById('balance-chart-data').textContent
   );
-
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
   const income = chartData.map(item => parseFloat(item.income));
   const expenses = chartData.map(item => parseFloat(item.expenses));

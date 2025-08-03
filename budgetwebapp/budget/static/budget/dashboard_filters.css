@@ -108,7 +108,7 @@
 }
 
 /* COLLAPSE TRANSITION STATE - INITIAL */
-.filter-row-wrapper {
+.filter-row-collapsible {
   overflow: hidden; /* hide content while collapsed */
   max-height: 0; /* start fully collapsed */
   opacity: 0; /* fully transparent */
@@ -118,7 +118,7 @@
 }
 
 /* EXPAND/COLLAPSE LOGIC - ENHANCED TRANSITION */
-.filter-row-wrapper {
+.filter-row-collapsible {
   overflow: hidden;
   max-height: 0;
   opacity: 0;
@@ -137,10 +137,66 @@
 }
 
 /* VISIBLE STATE */
-.filter-row-wrapper.visible {
+.filter-row-collapsible.visible {
   max-height: 500px; /* big enough to fit full content */
   opacity: 1;
   pointer-events: auto; /* re-enable interaction */
   padding: 12px 20px;
   margin-bottom: 20px;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 28px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0;
+  right: 0; bottom: 0;
+  background: linear-gradient(to right, #1c2678, #141b5c); /* dark gradient background */
+  transition: background 0.4s, box-shadow 0.4s;
+  border-radius: 28px;
+  box-shadow: inset 0 0 4px rgba(255, 255, 255, 0.1);
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 4px;
+  bottom: 4px;
+  background-color: #e0e6f5; /* soft light knob */
+  transition: transform 0.4s, background-color 0.3s;
+  border-radius: 50%;
+  box-shadow: 0 0 4px rgba(0,0,0,0.3);
+}
+
+input:checked + .slider {
+  background: linear-gradient(to right, #3d61c6, #2a3ea3); /* active gradient */
+  box-shadow: 0 0 6px rgba(100, 150, 255, 0.4);
+}
+
+input:checked + .slider:before {
+  transform: translateX(22px);
+  background-color: #ffffff; /* brighter knob when active */
+}
+
+.toggle-switch-label {
+  color: #bfc6ec;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-left: 10px;
+  user-select: none;
+  /*cursor: pointer;*/
 }
