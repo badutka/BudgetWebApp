@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   },
   title: {
-    text: '2025 Monthly Financial Overview',
+    text: '',
     style: {color: '#ffffff'}
   },
   xAxis: {
@@ -91,6 +91,9 @@ document.addEventListener('DOMContentLoaded', () => {
     borderColor: '#ffffff',
     borderWidth: 0.1,
   },
+  exporting: {
+    enabled: false
+  },
   series: [
     { name: 'Income', data: income },
     { name: 'Expenses', data: expenses },
@@ -112,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   },
   title: {
-    text: '2025 Monthly Financial Overview',
+    text: '',
     style: {color: '#ffffff'}
   },
   xAxis: {

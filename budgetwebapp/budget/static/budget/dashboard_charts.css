@@ -1,10 +1,11 @@
+/* === CHART STYLES === */
 .chart-panel  {
   background: linear-gradient(#181f65, #101751, #0a0f3c);
   background-color: #101751;
 
   /*width: 50%;*/
   /*margin: 40px auto;*/
-  height: 430px;
+  height: 480px;
   min-width: 0;
   min-height: 0;
 
@@ -32,6 +33,54 @@
   padding: 0 20px;
 }
 
+/* === CHART HEADER, TITLE, AND DRILLDOWN === */
+.chart-header {
+  display: flex;
+  width: 100%;
+  gap: 1em;
+  align-items: center;      /* center text vertically */
+}
+
+.drilldown-button {
+  flex: 0 1 50px;     /* Don't grow, allow shrink, preferred size */
+  background: rgba(255, 255, 255, 0.1);
+  color: #0ff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  padding: 0.3em 0.6em;
+  line-height: 0.75;
+  cursor: pointer;
+  text-align: center;
+}
+
+.drilldown-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.chart-title {
+  flex: 1 1 auto;      /* Grow and shrink to fill remaining space */
+  text-align: center;
+  font-weight: bold;
+  color: #fff;
+  font-size: clamp(1.2rem, 1.5vw, 1.5rem);
+}
+
+.spacer {
+  flex: 0 1 50px; /* Same as drilldown-button */
+  visibility: hidden; /* takes space, not visible */
+}
+
+.drilldown-icon {
+  display: inline-block;
+  transition: transform 0.3s ease;
+}
+
+/* This class will rotate the icon 90 degrees */
+.drilldown-icon.rotate {
+  transform: rotate(-90deg);  /* Makes ▼ appear as ◀ */
+}
+
+/* === CHART ROW / COLUMN FRAMEWORK === */
 /* Set this based on how many items are in the row */
 .chart-row-1 .chart-panel { width: calc(100%); }
 .chart-row-2 .chart-panel { --gap-count: 1; }

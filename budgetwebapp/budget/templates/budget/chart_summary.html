@@ -47,7 +47,9 @@
 
 <div class="cards-row chart-row-5 mb-5 hoverable-items">
   <div class="chart-col-1-5">
-    <div class="dashboard-card truncate">
+    <div class="dashboard-card truncate"  hx-get="{% url 'budget:transactions_by_category' 194 %}"
+            hx-target="#dialog-transactions-by-cat"
+            hx-on="click">
       <div class="dashboard-card-title">Revenue</div>
       <hr>
       <div class="dashboard-card-text">$32.4k</div>
@@ -143,11 +145,27 @@
     </div>
   </div>
 
-<div class="chart-row chart-row-3 mb-3 hoverable-items">
- <div id="balance-chart-container" class="chart-col-1-4 chart-panel">
+<div class="chart-row chart-row-3 mb-3 hoverable-items truncate">
+ <div id="balance-chart-container" class="chart-col-1-4 chart-panel" style="overflow: hidden;">
+  <div class="chart-header truncate">
+    <div class="drilldown-button" hx-get="{% url 'budget:transactions_by_category' 194 %}"
+          hx-target="#dialog-transactions-by-cat"
+          hx-on="click"><span class="drilldown-icon">▼</span></div>
+    <div class="chart-title">2025 Monthly Financial Overview</div>
+    <div class="spacer"></div>
+  </div>
+  <hr class="mb-1" style="color:white;">
   <div id="balance-chart" ></div>
  </div>
  <div id="balance-chart-container2" class="chart-col-1-2 chart-panel">
+  <div class="chart-header truncate">
+    <div class="drilldown-button" hx-get="{% url 'budget:transactions_by_category' 194 %}"
+          hx-target="#dialog-transactions-by-cat"
+          hx-on="click"><span class="drilldown-icon">▼</span></div>
+    <div class="chart-title">2025 Monthly Financial Overview</div>
+    <div class="spacer"></div>
+  </div>
+  <hr class="mb-1" style="color:white;">
   <div id="balance-chart2" ></div>
  </div>
  <div id="balance-chart-container3" class="chart-col-1-4 chart-panel">
@@ -162,6 +180,12 @@
 
 <script defer type="module" src="{% static 'budget/js/dashboard_charts/chart1.js' %}"></script>
 
+<!-- Modal for transactions by category -->
+<div id="modal-transactions-by-cat" class="modal fade" tabindex="-1" aria-hidden="true">
+    <div id="dialog-transactions-by-cat" class="modal-dialog modal-lg" hx-target="this"></div>
+</div>
+
+
 <script>
 function toggleRowFilters() {
   const checkbox = document.getElementById('filterToggle');
@@ -175,6 +199,45 @@ function toggleRowFilters() {
     }
   });
 }
+
+// This variable will hold a reference to the icon inside the button that was clicked.
+// It helps us know *which* drilldown icon should get the rotate effect when the modal opens.
+let currentIcon = null;
+
+// Set up a global click event listener on the document.
+// This is event delegation — it will catch any click on an element with the `.drilldown-button` class,
+// even if the element was added dynamically later (e.g., by HTMX).
+document.addEventListener('click', function (e) {
+  // Check if the clicked element or one of its parents is a `.drilldown-button`
+  const button = e.target.closest('.drilldown-button');
+  if (button) {
+    // If so, find the `.drilldown-icon` *inside that specific button* and store it
+    currentIcon = button.querySelector('.drilldown-icon');
+  }
+});
+
+// Get a reference to the modal that will show the transaction details
+const modal = document.getElementById('modal-transactions-by-cat');
+
+// When the modal is about to be shown (Bootstrap fires `show.bs.modal`):
+modal.addEventListener('show.bs.modal', () => {
+  // If we have stored a reference to the icon that triggered the modal,
+  // add the `rotate` class to visually rotate it (e.g., arrow pointing up)
+  if (currentIcon) {
+    currentIcon.classList.add('rotate');
+  }
+});
+
+// When the modal is about to be hidden (Bootstrap fires `hide.bs.modal`):
+modal.addEventListener('hide.bs.modal', () => {
+  // Remove the `rotate` class to reset the icon's rotation
+  if (currentIcon) {
+    currentIcon.classList.remove('rotate');
+    // Clear the stored icon reference so it doesn't affect future clicks
+    currentIcon = null;
+  }
+});
+
 </script>
 
 {% endblock content %}
