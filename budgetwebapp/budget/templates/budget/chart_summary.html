@@ -179,65 +179,20 @@
 {{ monthly_data|json_script:"balance-chart-data" }}
 
 <script defer type="module" src="{% static 'budget/js/dashboard_charts/chart1.js' %}"></script>
+<script defer src="{% static 'budget/js/dashboard_charts/dashboard.js' %}"></script>
 
 <!-- Modal for transactions by category -->
 <div id="modal-transactions-by-cat" class="modal fade" tabindex="-1" aria-hidden="true">
     <div id="dialog-transactions-by-cat" class="modal-dialog modal-lg" hx-target="this"></div>
 </div>
 
+<!--<script type="module">-->
+<!--  import { initCharts } from "{% static 'budget/js/dashboard_charts/charts.js' %}";-->
+<!--  import "{% static 'budget/js/dashboard_charts/dashboard.js' %}";-->
 
-<script>
-function toggleRowFilters() {
-  const checkbox = document.getElementById('filterToggle');
-  const filterRows = document.querySelectorAll('.filter-row-wrapper');
-
-  filterRows.forEach(row => {
-    if (checkbox.checked) {
-      row.classList.add('visible');
-    } else {
-      row.classList.remove('visible');
-    }
-  });
-}
-
-// This variable will hold a reference to the icon inside the button that was clicked.
-// It helps us know *which* drilldown icon should get the rotate effect when the modal opens.
-let currentIcon = null;
-
-// Set up a global click event listener on the document.
-// This is event delegation — it will catch any click on an element with the `.drilldown-button` class,
-// even if the element was added dynamically later (e.g., by HTMX).
-document.addEventListener('click', function (e) {
-  // Check if the clicked element or one of its parents is a `.drilldown-button`
-  const button = e.target.closest('.drilldown-button');
-  if (button) {
-    // If so, find the `.drilldown-icon` *inside that specific button* and store it
-    currentIcon = button.querySelector('.drilldown-icon');
-  }
-});
-
-// Get a reference to the modal that will show the transaction details
-const modal = document.getElementById('modal-transactions-by-cat');
-
-// When the modal is about to be shown (Bootstrap fires `show.bs.modal`):
-modal.addEventListener('show.bs.modal', () => {
-  // If we have stored a reference to the icon that triggered the modal,
-  // add the `rotate` class to visually rotate it (e.g., arrow pointing up)
-  if (currentIcon) {
-    currentIcon.classList.add('rotate');
-  }
-});
-
-// When the modal is about to be hidden (Bootstrap fires `hide.bs.modal`):
-modal.addEventListener('hide.bs.modal', () => {
-  // Remove the `rotate` class to reset the icon's rotation
-  if (currentIcon) {
-    currentIcon.classList.remove('rotate');
-    // Clear the stored icon reference so it doesn't affect future clicks
-    currentIcon = null;
-  }
-});
-
-</script>
+<!--  document.addEventListener("DOMContentLoaded", () => {-->
+<!--    initCharts(); // Run chart rendering only if needed-->
+<!--  });-->
+<!--</script>-->
 
 {% endblock content %}

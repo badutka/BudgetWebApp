@@ -1,53 +1,75 @@
-
-//var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-//var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-//  return new bootstrap.Tooltip(tooltipTriggerEl)
-//})
-
+/**
+ * Prevents clicks on buttons/links inside table cells from triggering row-level events.
+ * Re-applies after HTMX swaps in case new rows are injected.
+ */
 function preventRowClickFromButtons() {
   document.querySelectorAll("td a, td button").forEach(el => {
     el.addEventListener("click", function (e) {
-      e.stopPropagation(); // prevents the tr click from firing
+      e.stopPropagation(); // Prevents the <tr> click from firing
     });
   });
 }
 
-function initModal(modalId, modalDialog) {
-  //https://blog.benoitblanchon.fr/django-htmx-modal-form/
-  const modalElement = document.getElementById(modalId);
-  if (!modalElement) return;
+/**
+ * Modal configuration for flexible, per-modal behavior.r
+ * Each modal has:
+ * - `dialogId`: the inner element where HTMX content is swapped
+ * - `onShow` (optional): function to run when the modal is shown
+ */
+const modalConfigs = {
+  'modal-transactions-by-cat': {
+    dialogId: 'dialog-transactions-by-cat',
+    onShow: () => renderChartInModal()
+  },
+  'modal': {
+    dialogId: 'dialog'
+    // No special behavior needed
+  }
+};
 
-  const modal = new bootstrap.Modal(modalElement);
+/**
+ * Initialize all modals defined in `modalConfigs`.
+ * - Shows modal after HTMX swap
+ * - Hides and clears modal content on dismiss or error
+ * - Runs optional per-modal behavior (e.g., rendering a chart)
+ */
+function initModals() {
+  Object.entries(modalConfigs).forEach(([modalId, config]) => {
+    const modalElement = document.getElementById(modalId);
+    if (!modalElement) return;
 
-  htmx.on("htmx:afterSwap", (e) => {
-    if (e.detail.target.id === modalDialog) {
-      modal.show();
-    }
+    const modal = new bootstrap.Modal(modalElement);
+    const dialogId = config.dialogId;
+
+    // Show modal after successful HTMX content swap
+    htmx.on("htmx:afterSwap", (e) => {
+      if (e.detail.target.id === dialogId) {
+        modal.show();
+        config.onShow?.(); // Run modal-specific logic if provided
+      }
+    });
+
+    // Hide modal and reload page on HTMX error or server returning empty
+    htmx.on("htmx:beforeSwap", (e) => {
+      if (e.detail.target.id === dialogId && !e.detail.xhr.response) {
+        modal.hide();
+        document.location.reload(); // Fallback to full reload on error
+        e.detail.shouldSwap = false;
+      }
+    });
+
+    // Clear modal contents when it’s hidden
+    modalElement.addEventListener("hidden.bs.modal", () => {
+      const dialog = document.getElementById(dialogId);
+      if (dialog) dialog.innerHTML = "";
+    });
   });
-
-  htmx.on("htmx:beforeSwap", (e) => {
-    if (e.detail.target.id === modalDialog && !e.detail.xhr.response) {
-      modal.hide();
-      document.location.reload();
-      e.detail.shouldSwap = false;
-    }
-  });
-
-  htmx.on("hidden.bs.modal", () => {
-    const dialog = document.getElementById(modalDialog);
-    if (dialog) dialog.innerHTML = "";
-  });
-
-   // Only render chart if this specific modal was updated
-  document.addEventListener("htmx:afterSwap", function(evt) {
-    if (evt.target && evt.target.querySelector('#categoryChartModal')) {
-      renderChartInModal();
-    }
-  });
-
 }
 
-// ===== Filter Dropdown Logic =====
+/**
+ * Update the dropdown button text based on how many checkboxes are selected
+ * Used for category filters and parent_category filters
+ */
 function updateDropdownText(filterName) {
   const checkboxes = document.querySelectorAll(`.form-check-input[name="${filterName}"]`);
   const dropdownButton = document.getElementById(`${filterName}DropdownButton`);
@@ -57,19 +79,22 @@ function updateDropdownText(filterName) {
   dropdownButton.textContent = `${checkedCount} selected`;
 }
 
+/**
+ * Set up filter dropdown with 'Select All' functionality and label updating
+ */
 function setupFilterSelectAll(filterName) {
   const selectAllCheckbox = document.getElementById(`${filterName}-select-all`);
   const checkboxes = document.querySelectorAll(`.form-check-input[name="${filterName}"]`);
   if (!selectAllCheckbox || checkboxes.length === 0) return;
 
-  // Select all
+  // Handle 'select all' checkbox change
   selectAllCheckbox.addEventListener('change', () => {
     checkboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
     checkboxes[0].dispatchEvent(new Event('change', { bubbles: true }));
     updateDropdownText(filterName);
   });
 
-  // Sync select-all checkbox
+  // Sync 'select all' checkbox with individual checkbox state
   checkboxes.forEach(cb => {
     cb.addEventListener('change', () => {
       selectAllCheckbox.checked = Array.from(checkboxes).every(c => c.checked);
@@ -77,92 +102,43 @@ function setupFilterSelectAll(filterName) {
     });
   });
 
+  // Initial label update
   updateDropdownText(filterName);
 }
 
-// ===== Fade-in Animation =====
+/**
+ * Fade in table cell contents using CSS class `visible`
+ * Useful for animations after content swap
+ */
 function fadeInTableCells() {
   document.querySelectorAll('.td-t9ns-text:not(.visible), .td-summary-text:not(.visible)').forEach(el => {
     requestAnimationFrame(() => el.classList.add('visible'));
   });
 }
 
-// ===== App Init =====
+/**
+ * Setup global event handlers and component initialization
+ */
 document.addEventListener('DOMContentLoaded', () => {
-  // Init filter logic
+  // Initialize filter dropdowns
   setupFilterSelectAll('category');
   setupFilterSelectAll('parent_category');
 
-  // Initial animation
+  // Initial fade-in animation
   fadeInTableCells();
 
-  // Init modal behavior
-  initModal('modal-transactions-by-cat', 'dialog-transactions-by-cat');
-  initModal('modal', 'dialog');
+  // Modal initialization with config-based behavior
+  initModals();
 
-  // Prevent event bubbling on buttons/links inside TDs
+  // Prevent row clicks triggered by inner buttons/links
   preventRowClickFromButtons();
 });
 
-// ===== HTMX Lifecycle Hooks =====
-document.body.addEventListener('htmx:afterSwap', (e) => {
+/**
+ * Handle HTMX lifecycle globally
+ * - Apply fade-in to swapped content
+ */
+document.body.addEventListener('htmx:afterSwap', () => {
   fadeInTableCells();
-
-  // Also re-bind click handler when new content is swapped in
-  preventRowClickFromButtons();
+  // No need to re-bind row button click logic thanks to delegation
 });
-
-//// check / uncheck all checklist boxes
-//document.addEventListener('DOMContentLoaded', function () {
-//    const selectAllCheckbox = document.getElementById('category-select-all');
-//    const categoryCheckboxes = document.querySelectorAll('.form-check-input[name="category"]');
-//    const form = document.getElementById('transaction-filter-form');
-//
-//    // Select all on first load if no category param is present
-//    // Use this if overriding filtering method (filter_category) to not show any results with no checkboxed values.
-////    if (!window.location.search.includes('category=')) {
-////        categoryCheckboxes.forEach(cb => cb.checked = true);
-////        // Submit after setting them
-////        categoryCheckboxes[0].dispatchEvent(new Event('change', { bubbles: true }));
-////    }
-//
-//    // When "Select All" is toggled
-//    selectAllCheckbox.addEventListener('change', function () {
-//        categoryCheckboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
-//
-//        // 🔥 Trigger a real 'change' event on one of the boxes to activate HTMX
-////        if (categoryCheckboxes.length > 0) {
-//            categoryCheckboxes[0].dispatchEvent(new Event('change', { bubbles: true }));
-////        }
-//    });
-//
-//    // When any category checkbox is manually changed
-//    categoryCheckboxes.forEach(cb => {
-//        cb.addEventListener('change', function () {
-//            const allChecked = Array.from(categoryCheckboxes).every(cb => cb.checked);
-//            selectAllCheckbox.checked = allChecked;
-//        });
-//    });
-//});
-
-
-//$(document).ready(function() {
-//    function handleDropdownChange(dropdownId, outputId) {
-//        $(dropdownId).change(function() {
-//            var selectedValue = $(this).val();
-//            $.ajax({
-//                url: '/transactions/',
-//                data: {
-//                    'selected_value': selectedValue
-//                },
-//                dataType: 'json',
-////                success: function(data) {
-////                    $(outputId).html(data.response);
-////                }
-//            });
-//        });
-//    }
-//
-//    handleDropdownChange('#dropdown', '#transactions-table');
-////    handleDropdownChange('#dropdown2', '#output2');
-//});
