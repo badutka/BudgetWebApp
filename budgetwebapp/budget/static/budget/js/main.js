@@ -3,7 +3,7 @@
  * Re-applies after HTMX swaps in case new rows are injected.
  */
 function preventRowClickFromButtons() {
-  document.querySelectorAll("td a, td button").forEach(el => {
+  document.querySelectorAll("td a, td button, .dashboard-card .refresh-button").forEach(el => {
     el.addEventListener("click", function (e) {
       e.stopPropagation(); // Prevents the <tr> click from firing
     });

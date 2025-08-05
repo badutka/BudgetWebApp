@@ -28,6 +28,22 @@ def to_range(start, end):
     return range(start, end + 1)
 
 
+@register.filter
+def to_float(value):
+    try:
+        return float(value)
+    except (ValueError, TypeError):
+        return 0.0
+
+
+@register.filter
+def abs_val(value):
+    try:
+        return abs(float(value))
+    except (ValueError, TypeError):
+        return value
+
+
 @register.simple_tag(takes_context=True)
 def htmx_pagelink(context, label, page_number, target='transaction-table-content'):
     # Get the current GET parameters from the request context
@@ -52,6 +68,7 @@ def htmx_pagelink(context, label, page_number, target='transaction-table-content
     '''
 
     return mark_safe(html)
+
 
 @register.simple_tag
 def hx_td_category(transaction):
