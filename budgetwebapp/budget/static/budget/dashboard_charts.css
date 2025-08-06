@@ -51,6 +51,7 @@
   line-height: 0.75;
   cursor: pointer;
   text-align: center;
+  min-width: 37.5px;
 }
 
 .drilldown-button:hover {
