@@ -130,12 +130,36 @@ def balance_history_view(request, money_account_name):
 #                    CHARTS
 # ===============================================
 
+from core.dashboard import kpi_saving, kpi_reading
+
+def dashboard_card_modal_view(request):
+    card_type = request.GET.get("type")
+    context = {
+        'card_type': card_type
+    }
+    return render(request, 'budget/dashboard/dashboard_card_modal.html', context)
+
 def chart_summary(request):
     monthly_summaries = fetch_api_and_get_response(request, 'budget:monthly_summaries', 200, [('year', '2025')])
-    print(monthly_summaries)
+
+    kpi_saving.calculate_daily_kpis()
+    # kpis = kpi_reading.get_kpis('day', '17.09.2025')
+    kpis = kpi_reading.get_kpis('month', '7.2025')
+    # kpis = kpi_reading.get_kpis('year', '2025')
+    # kpis = kpi_reading.get_kpis('all')
+    # todo: when first month/year of all time, then change = N/A -> for now handled in template to be 0
+    print(kpis)
+
+
     context = {
-        'monthly_data': monthly_summaries
+        'monthly_data': monthly_summaries,
+        'kpis': kpis[0],
+        'date_range': kpis[1]
     }
+
+    # if request.headers.get('HX-Request'):
+    #     return render(request, 'budget/dashboard/dashboard_card_modal.html', context)
+
     return render(request, 'budget/chart_summary.html', context)
 
 

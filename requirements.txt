@@ -8,3 +8,5 @@ requests
 django-filter
 
 pandas
+numpy
+django-pandas

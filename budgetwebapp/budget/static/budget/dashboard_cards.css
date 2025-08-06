@@ -48,7 +48,7 @@
 .dashboard-card-text {
   font-weight: 600;
   /*font-size: 2rem;*/
-  font-size: clamp(1.2rem, 3vw, 5rem);
+  font-size: clamp(1.2rem, 2.5vw, 4rem);
   color: #1abc9c;
 }
 
@@ -62,6 +62,15 @@
   gap: 1rem;
   flex-wrap: wrap; /* in case smaller widths */
 }
+
+.dashboard-card-footer > .date-range {
+  font-size: clamp(0.5rem, 1vw, 0.85rem);;
+  color: #b5b5b5;
+  margin-top: 5px;
+  font-weight: 200;
+  font-style: italic;
+}
+
 
 .dashboard-card-footer .percent {
   font-size: clamp(0.5rem, 1vw, 1rem);
@@ -83,6 +92,7 @@
 }
 
 /* Percentage change arrow + sign */
+/*
 .dashboard-card-footer .change.percent.positive::before {
   content: "(+";
 }
@@ -93,7 +103,7 @@
 
 .dashboard-card-footer .change.percent::after {
   content: ")";
-}
+}*/
 
 .dashboard-card-footer .change.nominal.positive::before {
   content: "▲ ";
@@ -101,4 +111,8 @@
 
 .dashboard-card-footer .change.nominal.negative::before {
   content: "▼ ";
+}
+
+.dashboard-card-footer .change.nominal.neutral::before {
+  content: "↔ ";
 }

@@ -2,8 +2,8 @@
 {% load template_filters %}
 
 <div class="dashboard-card truncate"
-     hx-get="{% url 'budget:transactions_by_category' 194 %}"
-     hx-target="#dialog-transactions-by-cat"
+     hx-get="{% url 'budget:dashboard_card_modal' %}?type={{ card_type }}"
+     hx-target="#dialog-dashboard-card-modal"
      hx-on="click">
 
     <div style="display: flex; justify-content: center; align-items: center; gap: 0.4em;">
@@ -20,15 +20,28 @@
     </div>
 
     <hr>
-    <div class="dashboard-card-text">{{ amount }}</div>
-    <div class="date-range" style="font-size: 0.85em; color: white; margin-top: 4px;">{{ date_range }}</div>
+    <div class="dashboard-card-text">{{ kpis.amount }}</div>
+<!--    <div class="date-range" style="font-size: 0.85em; color: white; margin-top: 4px;">{{ date_range }}</div>-->
     <hr>
     <div class="dashboard-card-footer">
-        <div class="change nominal {% if amount_change|to_float >= 0 %}positive{% else %}negative{% endif %}">
-            {{ amount_change|abs_val }} PLN
+        <div class="change nominal {% if kpis.change|to_float > 0 %}positive{% elif kpis.change|to_float == 0 %}neutral{% else %}negative{% endif %}">
+            {{ kpis.change|abs_val }} PLN
         </div>
-        <div class="change percent {% if percentage_change|to_float >= 0 %}positive{% else %}negative{% endif %} mt-1">
-            {{ percentage_change|abs_val }}%
-        </div>
+
+        {% if kpis.pct_change != 'N/A' %}
+            {% with pct=kpis.pct_change|mul:100 %}
+            <div class="change percent {% if pct > 0 %}positive{% elif pct == 0 %}neutral{% else %}negative{% endif %} mt-1">
+                ({% if pct >= 0 %}+{{ pct|floatformat:2 }}{% else %}{{ pct|floatformat:2 }}{% endif %}%)
+            </div>
+            {% endwith %}
+        {% else %}
+            <div class="change percent mt-1">
+                {{ kpis.pct_change }}
+            </div>
+        {% endif %}
+
+        <div class="date-range">{{ date_range }}</div>
+
     </div>
+
 </div>

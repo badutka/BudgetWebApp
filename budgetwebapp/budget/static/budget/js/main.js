@@ -24,6 +24,10 @@ const modalConfigs = {
   'modal': {
     dialogId: 'dialog'
     // No special behavior needed
+  },
+  'dashboard-card-modal': {
+    dialogId: 'dialog-dashboard-card-modal'
+    // No special behavior needed
   }
 };
 
@@ -140,5 +144,6 @@ document.addEventListener('DOMContentLoaded', () => {
  */
 document.body.addEventListener('htmx:afterSwap', () => {
   fadeInTableCells();
+  preventRowClickFromButtons();
   // No need to re-bind row button click logic thanks to delegation
 });

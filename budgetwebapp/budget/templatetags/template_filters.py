@@ -44,6 +44,14 @@ def abs_val(value):
         return value
 
 
+@register.filter
+def mul(value, arg):
+    try:
+        return float(value) * float(arg)
+    except (ValueError, TypeError):
+        return ''
+
+
 @register.simple_tag(takes_context=True)
 def htmx_pagelink(context, label, page_number, target='transaction-table-content'):
     # Get the current GET parameters from the request context

@@ -48,6 +48,7 @@ urlpatterns = [
     # Balance History Refresh
     path('balance-history/refresh/<str:money_account_name>/', budget_views.refresh_balance_history, name='balance_history_refresh'),
     path('transactions/category/<int:category_id>/', budget_views.transactions_by_category_modal, name='transactions_by_category'),
+    path('dashboard/dashboard_card_modal', budget_views.dashboard_card_modal_view, name='dashboard_card_modal'),
 ]
 
 urlpatterns = urlpatterns + [

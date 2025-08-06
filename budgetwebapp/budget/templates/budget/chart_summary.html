@@ -40,13 +40,13 @@
 
 <div class="cards-row chart-row-5 mb-5 hoverable-items">
   <div class="chart-col-1-5">
-    {% include 'budget/dashboard/dashboard_card.html' with title='Revenue' date_range='Mar 20 - Mar 31' amount='$32.4k' amount_change='120' percentage_change='5.69'%}
+    {% include 'budget/dashboard/dashboard_card.html' with card_type='incoming' title='Incoming' kpis=kpis.INCOMING date_range=date_range %}
   </div>
   <div class="chart-col-1-5">
-    {% include 'budget/dashboard/dashboard_card.html' with title='Revenue' date_range='Mar 21 - Mar 31' amount='$32.4k' amount_change='-120' percentage_change='-5.69'%}
+    {% include 'budget/dashboard/dashboard_card.html' with card_type='outgoing' title='Outgoing' kpis=kpis.OUTGOING date_range=date_range %}
   </div>
   <div class="chart-col-1-5">
-    {% include 'budget/dashboard/dashboard_card.html' with title='Revenue' date_range='Mar 22 - Mar 31' amount='$32.4k' amount_change='120' percentage_change='5.69'%}
+    {% include 'budget/dashboard/dashboard_card.html' with card_type='inner' title='Inner' kpis=kpis.INNER date_range=date_range %}
   </div>
   <div class="chart-col-1-5">
     {% include 'budget/dashboard/dashboard_card.html' with title='Revenue' date_range='Mar 23 - Mar 31' amount='$32.4k' amount_change='-120' percentage_change='-5.69'%}
@@ -103,7 +103,11 @@
 <script defer type="module" src="{% static 'budget/js/dashboard_charts/chart1.js' %}"></script>
 <script defer src="{% static 'budget/js/dashboard_charts/dashboard.js' %}"></script>
 
-<!-- Modal for transactions by category -->
+<!-- Modal for dashboard cards -->
+<div id="dashboard-card-modal" class="modal fade" tabindex="-1" aria-hidden="true">
+    <div id="dialog-dashboard-card-modal" class="modal-dialog modal-lg" hx-target="this"></div>
+</div>
+
 <div id="modal-transactions-by-cat" class="modal fade" tabindex="-1" aria-hidden="true">
     <div id="dialog-transactions-by-cat" class="modal-dialog modal-lg" hx-target="this"></div>
 </div>
