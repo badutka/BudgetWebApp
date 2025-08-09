@@ -25,7 +25,7 @@
     <hr>
     <div class="dashboard-card-footer">
         <div class="change nominal {% if kpis.change|to_float > 0 %}positive{% elif kpis.change|to_float == 0 %}neutral{% else %}negative{% endif %}">
-            {{ kpis.change|abs_val }} PLN
+            {{ kpis.change|abs_val }} {% if card_type != 'num_transactions' %} PLN{% endif %}
         </div>
 
         {% if kpis.pct_change != 'N/A' %}

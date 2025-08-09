@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 
+DEFAULT_KPI_KEYS = ['INCOMING', 'OUTGOING', 'INNER', 'NUM_TRANSACTIONS', 'BALANCE', "BALANCE_REAL"]
 
 def parse_date(date_str=None, mode='day'):
     if date_str:
@@ -79,11 +80,11 @@ def build_kpi_result(row, kpi_keys, prefix=None):
             'pct_change': row.get(pct_col, "N/A") if pct_col and pd.notna(row.get(pct_col)) else "N/A"
         }
 
+
     return result
 
 
-def get_daily_kpis(daily_kpis, date):
-    kpi_keys = ['INCOMING', 'OUTGOING', 'INNER']
+def get_daily_kpis(daily_kpis, date, kpi_keys):
     daily_row = daily_kpis[daily_kpis['day'].dt.date == date.date()]
     date_range = get_daily_date_range(date)
 
@@ -93,8 +94,7 @@ def get_daily_kpis(daily_kpis, date):
     return result, date_range
 
 
-def get_monthly_kpis(monthly_kpis, date):
-    kpi_keys = ['INCOMING', 'OUTGOING', 'INNER']
+def get_monthly_kpis(monthly_kpis, date, kpi_keys):
     current_month = date.replace(day=1)
 
     monthly_row = monthly_kpis[
@@ -110,8 +110,7 @@ def get_monthly_kpis(monthly_kpis, date):
     return result, date_range
 
 
-def get_yearly_kpis(yearly_kpis, date):
-    kpi_keys = ['INCOMING', 'OUTGOING', 'INNER']
+def get_yearly_kpis(yearly_kpis, date, kpi_keys):
     current_year = date.year
 
     yearly_row = yearly_kpis[yearly_kpis['year'].dt.year == current_year]
@@ -124,9 +123,11 @@ def get_yearly_kpis(yearly_kpis, date):
     return result, date_range
 
 
-def get_all_time_kpis(totals_kpis, daily_kpis):
-    kpi_keys = ['INCOMING', 'OUTGOING', 'INNER']
-    row = totals_kpis.iloc[0] if not totals_kpis.empty else None
+def get_all_time_kpis(totals_kpis, daily_kpis, kpi_keys):
+    # In other cases this row was of type 'object' and preserved types
+    # In this case there are no N/As, so the row would be a pd.Series of floats.
+    # This way we can preserve types
+    row = {col: totals_kpis[col].iloc[0] for col in totals_kpis.columns}
 
     result = build_kpi_result(row, kpi_keys, prefix=None)
 
@@ -150,19 +151,22 @@ def get_kpis(granularity='day', date_str=None):
     if granularity == 'day':
         daily_kpis = pd.read_csv('daily_kpis.csv')
         daily_kpis = prepare_kpi_df(daily_kpis, 'day')
-        return get_daily_kpis(daily_kpis, date)
+        return get_daily_kpis(daily_kpis, date, kpi_keys=DEFAULT_KPI_KEYS)
     elif granularity == 'month':
         monthly_kpis = pd.read_csv('monthly_kpis.csv')
         monthly_kpis = prepare_kpi_df(monthly_kpis, 'month')
-        return get_monthly_kpis(monthly_kpis, date)
+        return get_monthly_kpis(monthly_kpis, date, kpi_keys=DEFAULT_KPI_KEYS)
     elif granularity == 'year':
         yearly_kpis = pd.read_csv('yearly_kpis.csv')
         yearly_kpis = prepare_kpi_df(yearly_kpis, 'year')
-        return get_yearly_kpis(yearly_kpis, date)
+        # print(get_yearly_kpis(yearly_kpis, date, kpi_keys=DEFAULT_KPI_KEYS))
+        return get_yearly_kpis(yearly_kpis, date, kpi_keys=DEFAULT_KPI_KEYS)
     elif granularity == 'all':
         daily_kpis = pd.read_csv('daily_kpis.csv')
         daily_kpis = prepare_kpi_df(daily_kpis, 'day')
         totals_kpis = pd.read_csv('totals_kpis.csv')
-        return get_all_time_kpis(totals_kpis, daily_kpis)
+        # print(totals_kpis)
+        # print(get_all_time_kpis(totals_kpis, daily_kpis, kpi_keys=DEFAULT_KPI_KEYS))
+        return get_all_time_kpis(totals_kpis, daily_kpis, kpi_keys=DEFAULT_KPI_KEYS)
     else:
         raise ValueError("Granularity must be 'day', 'month', 'year', or 'all'")

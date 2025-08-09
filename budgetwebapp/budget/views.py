@@ -107,7 +107,7 @@ def balance_history_view_new(request, money_account_name):
         'balance_history': balance_history[::-1],
         'money_account_name': money_account_name
     }
-
+    # print(balance_history[::-1])
     return render(request, 'budget/balance_history_new.html', context)
 
 
@@ -144,11 +144,11 @@ def chart_summary(request):
 
     kpi_saving.calculate_daily_kpis()
     # kpis = kpi_reading.get_kpis('day', '17.09.2025')
-    kpis = kpi_reading.get_kpis('month', '7.2025')
+    # kpis = kpi_reading.get_kpis('month', '7.2025')
     # kpis = kpi_reading.get_kpis('year', '2025')
-    # kpis = kpi_reading.get_kpis('all')
+    kpis = kpi_reading.get_kpis('all')
     # todo: when first month/year of all time, then change = N/A -> for now handled in template to be 0
-    print(kpis)
+    # print(kpis)
 
 
     context = {
@@ -156,7 +156,7 @@ def chart_summary(request):
         'kpis': kpis[0],
         'date_range': kpis[1]
     }
-
+    # kpi_saving.calculate_balance()
     # if request.headers.get('HX-Request'):
     #     return render(request, 'budget/dashboard/dashboard_card_modal.html', context)
 

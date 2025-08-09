@@ -24,10 +24,17 @@
 
 </div>
 
-<div style="margin-left: 10%; margin-right: 10%;">
+<!--<div style="margin-left: 10%; margin-right: 10%;">-->
+<div style="margin-left: 2%; margin-right: 2%;">
+<!--<div >-->
 
   <div class="filter-row-wrapper filter-row-collapsible">
     <i class="bi bi-filter" style="color: white;"></i>
+
+      <button class="refresh-button" style="background: none; border: none; color: white; cursor: pointer; font-size: clamp(1.5rem, 1vw, 2rem); line-height: 1;" onclick="refreshCard(this)">
+        &#x21bb;
+      </button>
+      <div style="background: white; height: 33px; width: 1px; box-shadow: 0 0 30px white;"></div>
 <!--    <span class="filter-title">Filters</span>-->
     <div class="filter-row">
       <label>From:</label>
@@ -38,24 +45,28 @@
     </div>
   </div>
 
-<div class="cards-row chart-row-5 mb-5 hoverable-items">
-  <div class="chart-col-1-5">
+<div class="cards-row chart-row-6 mb-5 hoverable-items">
+  <div class="chart-col-1-6">
     {% include 'budget/dashboard/dashboard_card.html' with card_type='incoming' title='Incoming' kpis=kpis.INCOMING date_range=date_range %}
   </div>
-  <div class="chart-col-1-5">
+  <div class="chart-col-1-6">
     {% include 'budget/dashboard/dashboard_card.html' with card_type='outgoing' title='Outgoing' kpis=kpis.OUTGOING date_range=date_range %}
   </div>
-  <div class="chart-col-1-5">
+  <div class="chart-col-1-6">
     {% include 'budget/dashboard/dashboard_card.html' with card_type='inner' title='Inner' kpis=kpis.INNER date_range=date_range %}
   </div>
-  <div class="chart-col-1-5">
-    {% include 'budget/dashboard/dashboard_card.html' with title='Revenue' date_range='Mar 23 - Mar 31' amount='$32.4k' amount_change='-120' percentage_change='-5.69'%}
+  <div class="chart-col-1-6">
+    {% include 'budget/dashboard/dashboard_card.html' with card_type='balance' title='Balance' kpis=kpis.BALANCE date_range=date_range %}
   </div>
-  <div class="chart-col-1-5">
-    {% include 'budget/dashboard/dashboard_card.html' with title='Revenue' date_range='Mar 24 - Mar 31' amount='$32.4k' amount_change='120' percentage_change='5.69'%}
+  <div class="chart-col-1-6">
+    {% include 'budget/dashboard/dashboard_card.html' with card_type='balance' title='Accounts' kpis=kpis.BALANCE_REAL date_range=date_range %}
+  </div>
+  <div class="chart-col-1-6">
+    {% include 'budget/dashboard/dashboard_card.html' with card_type='num_transactions' title='#T9Ns' kpis=kpis.NUM_TRANSACTIONS date_range=date_range %}
   </div>
 </div>
 </div>
+
 
   <div class="filter-row-wrapper filter-row-collapsible">
     <div class="filter-row">
