@@ -88,6 +88,7 @@
 .chart-row-3 .chart-panel { --gap-count: 2; }
 .chart-row-4 .chart-panel { --gap-count: 3; }
 .chart-row-5 .chart-panel { --gap-count: 4; }
+.chart-row-6 .chart-panel { --gap-count: 5; }
 
 /* 1 to 5 denominators */
 .chart-col-1-2 { width: calc(((100% - (var(--gap-count, 1) * 20px)) / 2) * 1); }
@@ -107,3 +108,10 @@
 .chart-col-3-5 { width: calc(((100% - (var(--gap-count, 4) * 20px)) / 5) * 3); }
 .chart-col-4-5 { width: calc(((100% - (var(--gap-count, 4) * 20px)) / 5) * 4); }
 .chart-col-5-5 { width: calc(((100% - (var(--gap-count, 4) * 20px)) / 5) * 5); }
+
+.chart-col-1-6 { width: calc(((100% - (var(--gap-count, 5) * 20px)) / 6) * 1); }
+.chart-col-2-6 { width: calc(((100% - (var(--gap-count, 5) * 20px)) / 6) * 2); }
+.chart-col-3-6 { width: calc(((100% - (var(--gap-count, 5) * 20px)) / 6) * 3); }
+.chart-col-4-6 { width: calc(((100% - (var(--gap-count, 5) * 20px)) / 6) * 4); }
+.chart-col-5-6 { width: calc(((100% - (var(--gap-count, 5) * 20px)) / 6) * 5); }
+.chart-col-6-6 { width: calc(((100% - (var(--gap-count, 5) * 20px)) / 6) * 7); }
