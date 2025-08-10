@@ -7,16 +7,27 @@
      hx-on="click">
 
     <div style="display: flex; justify-content: center; align-items: center; gap: 0.4em;">
-        <!-- Centered Title -->
+        <i style="font-size: 1.2em;"
+           class="
+            {% if card_type == 'incoming' %}fas fa-arrow-down
+            {% elif card_type == 'outgoing' %}fas fa-arrow-up
+            {% elif card_type == 'inner' %}fas fa-arrows-left-right
+            {% elif card_type == 'balance' %}fas fa-dollar-sign
+            {% elif card_type == 'accounts' %}fas fa-wallet
+            {% elif card_type == 'num_transactions' %}fas fa-receipt
+            {% else %}fas fa-chart-bar
+            {% endif %}
+           ">
+        </i>
         <div class="dashboard-card-title">{{ title }}</div>
 
-        <!-- Refresh Button -->
-        <button
-                class="refresh-button"
-                style="background: none; border: none; color: white; cursor: pointer; font-size: clamp(0.8rem, 1.5vw, 4rem); line-height: 1;"
-                onclick="refreshCard(this)">
-            &#x21bb;
-        </button>
+<!--         Refresh Button -->
+<!--        <button-->
+<!--                class="refresh-button"-->
+<!--                style="background: none; border: none; color: white; cursor: pointer; font-size: clamp(0.8rem, 1.5vw, 4rem); line-height: 1;"-->
+<!--                onclick="refreshCard(this)">-->
+<!--            &#x21bb;-->
+<!--        </button>-->
     </div>
 
     <hr>
