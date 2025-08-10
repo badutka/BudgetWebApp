@@ -7,8 +7,7 @@
      hx-on="click">
 
     <div style="display: flex; justify-content: center; align-items: center; gap: 0.4em;">
-        <i style="font-size: 1.2em;"
-           class="
+        <i class="
             {% if card_type == 'incoming' %}fas fa-arrow-down
             {% elif card_type == 'outgoing' %}fas fa-arrow-up
             {% elif card_type == 'inner' %}fas fa-arrows-left-right
@@ -19,6 +18,7 @@
             {% endif %}
            ">
         </i>
+
         <div class="dashboard-card-title">{{ title }}</div>
 
 <!--         Refresh Button -->
