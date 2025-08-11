@@ -1,8 +1,10 @@
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
+from . import kpi_calc
 
 DEFAULT_KPI_KEYS = ['INCOMING', 'OUTGOING', 'INNER', 'NUM_TRANSACTIONS', 'BALANCE', "BALANCE_REAL"]
+
 
 def parse_date(date_str=None, mode='day'):
     if date_str:
@@ -51,7 +53,14 @@ def get_yearly_date_range(current_year):
     return f"{prev_year} - {current_year}"
 
 
+def prepare_kpi_df(kpis, col):
+    kpis[col] = pd.to_datetime(kpis[col])
+    kpis = kpis.fillna('N/A')
+    return kpis
+
+
 def get_all_time_date_range(daily_kpis):
+    daily_kpis = prepare_kpi_df(daily_kpis, 'day')
     start_date = daily_kpis['day'].min().strftime('%d.%m.%Y')
     end_date = daily_kpis['day'].max().strftime('%d.%m.%Y')
     return f"{start_date} - {end_date}"
@@ -80,11 +89,12 @@ def build_kpi_result(row, kpi_keys, prefix=None):
             'pct_change': row.get(pct_col, "N/A") if pct_col and pd.notna(row.get(pct_col)) else "N/A"
         }
 
-
     return result
 
 
 def get_daily_kpis(daily_kpis, date, kpi_keys):
+    daily_kpis = prepare_kpi_df(daily_kpis, 'day')
+
     daily_row = daily_kpis[daily_kpis['day'].dt.date == date.date()]
     date_range = get_daily_date_range(date)
 
@@ -95,6 +105,8 @@ def get_daily_kpis(daily_kpis, date, kpi_keys):
 
 
 def get_monthly_kpis(monthly_kpis, date, kpi_keys):
+    monthly_kpis = prepare_kpi_df(monthly_kpis, 'month')
+
     current_month = date.replace(day=1)
 
     monthly_row = monthly_kpis[
@@ -111,6 +123,7 @@ def get_monthly_kpis(monthly_kpis, date, kpi_keys):
 
 
 def get_yearly_kpis(yearly_kpis, date, kpi_keys):
+    yearly_kpis = prepare_kpi_df(yearly_kpis, 'year')
     current_year = date.year
 
     yearly_row = yearly_kpis[yearly_kpis['year'].dt.year == current_year]
@@ -139,34 +152,146 @@ def get_all_time_kpis(totals_kpis, daily_kpis, kpi_keys):
     return result, date_range
 
 
-
 def get_kpis(granularity='day', date_str=None):
-    def prepare_kpi_df(kpis, col):
-        kpis[col] = pd.to_datetime(kpis[col])
-        kpis = kpis.fillna('N/A')
-        return kpis
-
     date = parse_date(date_str, mode=granularity) if granularity != 'all' else None
+    starting_balance = kpi_calc.get_starting_balance()
+    # date_from = '2025-07-01'
+    # date_to = '2025-07-31'
+    # date_to = '2026-01-01'
+    date_from = None
+    date_to = None
+    categories = None
+    parent_categories = None
+    # parent_categories = ['Common', 'Shopping', 'Income', 'Investing', 'Loan']
 
     if granularity == 'day':
-        daily_kpis = pd.read_csv('daily_kpis.csv')
-        daily_kpis = prepare_kpi_df(daily_kpis, 'day')
-        return get_daily_kpis(daily_kpis, date, kpi_keys=DEFAULT_KPI_KEYS)
+        suffix = 'dod'
+        if date_from or date_to:
+            kpis = pd.read_csv('../artifacts/data/kpis_detailed.csv')
+            kpis = kpi_calc.calculate_kpis_between_dates(
+                kpis,
+                group_by_col=granularity,
+                categories=categories,
+                parent_categories=parent_categories,
+                date_from=date_from,
+                date_to=date_to,
+                starting_balance=starting_balance,
+                suffix=suffix
+            )
+        elif categories or parent_categories:
+            kpis = pd.read_csv('../artifacts/data/daily_kpis_detailed.csv')
+            kpis = kpi_calc.calculate_kpis(
+                kpis,
+                group_by_col=granularity,
+                categories=categories,
+                parent_categories=parent_categories,
+                starting_balance=starting_balance,
+                suffix=suffix
+            )
+        else:
+            kpis = pd.read_csv('../artifacts/data/daily_kpis.csv')
+
+        daily_kpis = get_daily_kpis(kpis, date, kpi_keys=DEFAULT_KPI_KEYS)
+
+        print(pd.DataFrame.from_dict(daily_kpis[0]))
+
+        return daily_kpis
+
     elif granularity == 'month':
-        monthly_kpis = pd.read_csv('monthly_kpis.csv')
-        monthly_kpis = prepare_kpi_df(monthly_kpis, 'month')
-        return get_monthly_kpis(monthly_kpis, date, kpi_keys=DEFAULT_KPI_KEYS)
+        suffix = 'mom'
+        if date_from or date_to:
+            monthly_kpis = pd.read_csv('../artifacts/data/kpis_detailed.csv')
+            monthly_kpis = kpi_calc.calculate_kpis_between_dates(
+                monthly_kpis,
+                group_by_col=granularity,
+                categories=categories,
+                parent_categories=parent_categories,
+                date_from=date_from,
+                date_to=date_to,
+                starting_balance=starting_balance,
+                suffix=suffix
+            )
+        elif categories or parent_categories:
+            monthly_kpis = pd.read_csv('../artifacts/data/monthly_kpis_detailed.csv')
+            monthly_kpis = kpi_calc.calculate_kpis(
+                monthly_kpis,
+                group_by_col=granularity,
+                categories=categories,
+                parent_categories=parent_categories,
+                starting_balance=starting_balance,
+                suffix=suffix
+            )
+        else:
+            monthly_kpis = pd.read_csv('../artifacts/data/monthly_kpis.csv')
+
+        monthly_kpis = get_monthly_kpis(monthly_kpis, date, kpi_keys=DEFAULT_KPI_KEYS)
+
+        print(pd.DataFrame.from_dict(monthly_kpis[0]))
+
+        return monthly_kpis
+
     elif granularity == 'year':
-        yearly_kpis = pd.read_csv('yearly_kpis.csv')
-        yearly_kpis = prepare_kpi_df(yearly_kpis, 'year')
-        # print(get_yearly_kpis(yearly_kpis, date, kpi_keys=DEFAULT_KPI_KEYS))
-        return get_yearly_kpis(yearly_kpis, date, kpi_keys=DEFAULT_KPI_KEYS)
+        suffix = 'yoy'
+        if date_from or date_to:
+            yearly_kpis = pd.read_csv('../artifacts/data/kpis_detailed.csv')
+            yearly_kpis = kpi_calc.calculate_kpis_between_dates(
+                yearly_kpis,
+                group_by_col=granularity,
+                categories=categories,
+                parent_categories=parent_categories,
+                date_from=date_from,
+                date_to=date_to,
+                starting_balance=starting_balance,
+                suffix=suffix
+            )
+        elif categories or parent_categories:
+            yearly_kpis = pd.read_csv('../artifacts/data/yearly_kpis_detailed.csv')
+            yearly_kpis = kpi_calc.calculate_kpis(
+                yearly_kpis,
+                group_by_col=granularity,
+                categories=categories,
+                parent_categories=parent_categories,
+                starting_balance=starting_balance,
+                suffix=suffix
+            )
+        else:
+            yearly_kpis = pd.read_csv('../artifacts/data/yearly_kpis.csv')
+
+        yearly_kpis = get_yearly_kpis(yearly_kpis, date, kpi_keys=DEFAULT_KPI_KEYS)
+
+        print(pd.DataFrame.from_dict(yearly_kpis[0]))
+
+        return yearly_kpis
+
     elif granularity == 'all':
-        daily_kpis = pd.read_csv('daily_kpis.csv')
-        daily_kpis = prepare_kpi_df(daily_kpis, 'day')
-        totals_kpis = pd.read_csv('totals_kpis.csv')
-        # print(totals_kpis)
-        # print(get_all_time_kpis(totals_kpis, daily_kpis, kpi_keys=DEFAULT_KPI_KEYS))
-        return get_all_time_kpis(totals_kpis, daily_kpis, kpi_keys=DEFAULT_KPI_KEYS)
+        if date_from or date_to:
+            print('HENLOOOOOOOOOOOOOOOOOOOOOO')
+            kpis = pd.read_csv('../artifacts/data/kpis_detailed.csv')
+            kpis = kpi_calc.calculate_kpis_between_dates(
+                kpis,
+                categories=categories,
+                parent_categories=parent_categories,
+                date_from=date_from,
+                date_to=date_to,
+                starting_balance=starting_balance
+            )
+        elif categories or parent_categories:
+            kpis = pd.read_csv('../artifacts/data/totals_kpis_detailed.csv')
+            kpis = kpi_calc.calculate_kpis(
+                kpis,
+                categories=categories,
+                parent_categories=parent_categories,
+                starting_balance=starting_balance
+            )
+        else:
+            kpis = pd.read_csv('../artifacts/data/totals_kpis.csv')
+
+        daily_kpis = pd.read_csv('../artifacts/data/daily_kpis.csv')
+        all_time_kpis = get_all_time_kpis(kpis, daily_kpis, kpi_keys=DEFAULT_KPI_KEYS)
+
+        print(pd.DataFrame.from_dict(all_time_kpis[0]))
+
+        return all_time_kpis
+
     else:
         raise ValueError("Granularity must be 'day', 'month', 'year', or 'all'")

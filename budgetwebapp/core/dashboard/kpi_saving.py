@@ -1,60 +1,51 @@
 import pandas as pd
 import numpy as np
+from django.db.models import Sum
 
 from django_pandas.io import read_frame
 
 from budget import models
+from . import kpi_calc
 
-def prepare_kpis(kpis):
+
+def prepare_kpis(kpis, starting_balance=None):
     if 'daily' in kpis and 'day' in kpis['daily'].columns:
         daily_df = kpis['daily'].copy()
         # daily_df['day'] = pd.to_datetime(daily_df['day'])
 
+        # Create a continuous date range
         full_range = pd.date_range(daily_df['day'].min(), daily_df['day'].max(), freq='D')
         daily_df = daily_df.set_index('day').reindex(full_range).rename_axis('day').reset_index()
 
-        # Fill missing INCOMING/OUTGOING/INNER with 0.0
-        for col in ['INCOMING', 'OUTGOING', 'INNER', 'BALANCE', 'BALANCE_REAL']:
+        # Fill missing KPI metrics with 0
+        for col in ['INCOMING', 'OUTGOING', 'INNER', 'BALANCE', 'NUM_TRANSACTIONS']:
             if col in daily_df.columns:
                 daily_df[col] = daily_df[col].fillna(0.0)
+
+        # BALANCE_REAL: carry forward last value
+        if 'BALANCE_REAL' in daily_df.columns:
+            # 1) Set only the first row if NaN
+            if starting_balance is not None and pd.isna(daily_df['BALANCE_REAL'].iloc[0]):
+                daily_df.loc[0, 'BALANCE_REAL'] = starting_balance
+
+            # 2) Forward fill everything else
+            daily_df['BALANCE_REAL'] = daily_df['BALANCE_REAL'].ffill()
 
         kpis['daily'] = daily_df
 
     return kpis
 
 
-def add_change_metrics(df, columns, suffix, as_string=False):
-    for col in columns:
-        pct_col = f"{col.lower()}_{suffix}_pct"
-        nom_col = f"{col.lower()}_{suffix}_chg"
-
-        # Nominal (raw) change
-        # The diff() result is a Series of np.float64,
-        # but calling fillna("N/A") mixes string with floats,
-        # so Pandas upcasts the column to object dtype.
-        df[nom_col] = round(df[col].diff(), 2).fillna("N/A")
-        # df[nom_col] = df[col].diff().fillna(0.0)  # Default: 0.0 change on first row
-
-        # Percent change (safe)
-        # pct = df[col].pct_change().replace([np.inf, -np.inf], pd.NA)
-        pct = round(df[col].pct_change(fill_method=None), 4).replace([np.inf, -np.inf, np.nan], "N/A")
-
-        if as_string:
-            pct = pct.apply(
-                lambda x: f"{round(x * 100, 2)}%" if isinstance(x, (int, float, np.floating)) else "N/A"
-            )
-
-        df[pct_col] = pct
-
 def extract_balance_kpis(df, time_col):
     kpis = (
         df.sort_values('date')
-          .groupby(time_col)
-          .last()
-          .reset_index()[[time_col, 'balance_after']]
-          .rename(columns={'balance_after': 'BALANCE_REAL'})
+        .groupby(time_col)
+        .last()
+        .reset_index()[[time_col, 'balance_after']]
+        .rename(columns={'balance_after': 'BALANCE_REAL'})
     )
     return kpis
+
 
 def calculate_balance():
     accounts = models.MoneyAccount.objects.all()
@@ -96,6 +87,10 @@ def calculate_balance():
 
     return df
 
+
+
+
+
 def calculate_daily_kpis():
     """
     IDEA:
@@ -116,7 +111,9 @@ def calculate_daily_kpis():
                                     'category__parent_category'])
 
     # Rename for clarity
-    df.rename(columns={'category__transaction_type': 'transaction_type'}, inplace=True)
+    df.rename(
+        columns={'category__transaction_type': 'transaction_type', 'category__parent_category': 'parent_category'},
+        inplace=True)
 
     # Step 3: Ensure datetime
     df['date'] = pd.to_datetime(df['date'])
@@ -152,16 +149,17 @@ def calculate_daily_kpis():
     all_time_kpis['NUM_TRANSACTIONS'] = all_time_kpis['NUM_TRANSACTIONS'].astype(int)
 
     # Add balance = INCOMING - OUTGOING
-    daily_kpis['BALANCE'] = daily_kpis['INCOMING'] - daily_kpis['OUTGOING']
-    monthly_kpis['BALANCE'] = monthly_kpis['INCOMING'] - monthly_kpis['OUTGOING']
-    yearly_kpis['BALANCE'] = yearly_kpis['INCOMING'] - yearly_kpis['OUTGOING']
-    all_time_kpis['BALANCE'] = all_time_kpis['INCOMING'] - all_time_kpis['OUTGOING']
+    daily_kpis['BALANCE'] = round(daily_kpis['INCOMING'] - daily_kpis['OUTGOING'], 2)
+    monthly_kpis['BALANCE'] = round(monthly_kpis['INCOMING'] - monthly_kpis['OUTGOING'], 2)
+    yearly_kpis['BALANCE'] = round(yearly_kpis['INCOMING'] - yearly_kpis['OUTGOING'], 2)
+    all_time_kpis['BALANCE'] = round(all_time_kpis['INCOMING'] - all_time_kpis['OUTGOING'], 2)
 
-    balance_df = calculate_balance()
-    real_daily = extract_balance_kpis(balance_df, 'day')
-    real_monthly = extract_balance_kpis(balance_df, 'month')
-    real_yearly = extract_balance_kpis(balance_df, 'year')
-    real_total = pd.DataFrame([{'BALANCE_REAL': balance_df['balance_after'].iloc[-1]}])
+    # CUMULATIVE ACCOUNTS BALANCE = starting_balance + (INCOMING - OUTGOING)
+    starting_balance = kpi_calc.get_starting_balance()
+    daily_kpis['BALANCE_REAL'] = round(starting_balance + (daily_kpis['INCOMING'] - daily_kpis['OUTGOING']).cumsum(), 2)
+    monthly_kpis['BALANCE_REAL'] = round(starting_balance + (monthly_kpis['INCOMING'] - monthly_kpis['OUTGOING']).cumsum(), 2)
+    yearly_kpis['BALANCE_REAL'] = round(starting_balance + (yearly_kpis['INCOMING'] - yearly_kpis['OUTGOING']).cumsum(), 2)
+    all_time_kpis['BALANCE_REAL'] = round(starting_balance + (all_time_kpis['INCOMING'] - all_time_kpis['OUTGOING']).cumsum(), 2)
 
     kpis = {
         'daily': daily_kpis,
@@ -170,24 +168,89 @@ def calculate_daily_kpis():
         'totals': all_time_kpis
     }
 
-    kpis['daily'] = pd.merge(kpis['daily'], real_daily, how='left', on='day')
-    kpis['monthly'] = pd.merge(kpis['monthly'], real_monthly, how='left', on='month')
-    kpis['yearly'] = pd.merge(kpis['yearly'], real_yearly, how='left', on='year')
-    kpis['totals'] = pd.concat([kpis['totals'], real_total], axis=1)
-
     kpis = prepare_kpis(kpis)
 
     kpi_cols = ['INCOMING', 'OUTGOING', 'INNER', 'BALANCE', 'NUM_TRANSACTIONS', 'BALANCE_REAL']
-    add_change_metrics(kpis['daily'], kpi_cols, 'dod')  # Day-over-day
-    add_change_metrics(kpis['monthly'], kpi_cols, 'mom')  # Month-over-month
-    add_change_metrics(kpis['yearly'], kpi_cols, 'yoy')  # Year-over-year
+    kpi_calc.add_change_metrics(kpis['daily'], kpi_cols, 'dod')  # Day-over-day
+    kpi_calc.add_change_metrics(kpis['monthly'], kpi_cols, 'mom')  # Month-over-month
+    kpi_calc.add_change_metrics(kpis['yearly'], kpi_cols, 'yoy')  # Year-over-year
 
     # Convert Period to timestamp for monthly and yearly
     kpis['daily']['day'] = pd.to_datetime(kpis['daily']['day'])
     kpis['monthly']['month'] = kpis['monthly']['month'].dt.to_timestamp()
     kpis['yearly']['year'] = kpis['yearly']['year'].dt.to_timestamp()
-    # print(kpis['totals']['NUM_TRANSACTIONS'])
-    kpis['daily'].to_csv('daily_kpis.csv', index=False)
-    kpis['monthly'].to_csv('monthly_kpis.csv', index=False)
-    kpis['yearly'].to_csv('yearly_kpis.csv', index=False)
-    kpis['totals'].to_csv('totals_kpis.csv', index=False)
+
+    kpis['daily'].to_csv('../artifacts/data/daily_kpis.csv', index=False)
+    kpis['monthly'].to_csv('../artifacts/data/monthly_kpis.csv', index=False)
+    kpis['yearly'].to_csv('../artifacts/data/yearly_kpis.csv', index=False)
+    kpis['totals'].to_csv('../artifacts/data/totals_kpis.csv', index=False)
+
+    # --- NEW: DETAILED KPI FILES ---
+    # Keep breakdown by category, but also store transaction_type for filtering
+    cols_with_balance = ['INCOMING', 'OUTGOING', 'INNER', 'NUM_TRANSACTIONS']
+
+    # Pivot at transaction_type level (needed for INCOMING, OUTGOING, INNER columns)
+    df_detailed = df.pivot_table(
+        index=['day', 'month', 'year', 'category', 'parent_category'],
+        columns='transaction_type',
+        values='amount',
+        aggfunc='sum',
+        fill_value=0
+    ).reset_index()
+
+    # Add NUM_TRANSACTIONS
+    counts_detailed = df.groupby(
+        ['day', 'month', 'year', 'category', 'parent_category']
+    ).size().reset_index(name='NUM_TRANSACTIONS')
+
+    df_detailed = pd.merge(
+        df_detailed, counts_detailed,
+        on=['day', 'month', 'year', 'category', 'parent_category'],
+        how='left'
+    )
+
+    df_detailed.columns.name = None
+    df_detailed['BALANCE'] = round(df_detailed['INCOMING'] - df_detailed['OUTGOING'], 2)
+
+    # Attach transaction_type (first value in group for each category)
+    type_map = df.groupby('category')['transaction_type'].first().to_dict()
+    df_detailed['transaction_type'] = df_detailed['category'].map(type_map)
+
+    # Save daily/monthly/yearly breakdowns
+    daily_detail = df_detailed.groupby(['day', 'category', 'parent_category']).agg({
+        **{col: 'sum' for col in cols_with_balance + ['BALANCE']},
+        'transaction_type': 'first'
+    }).reset_index().round(2)
+
+    monthly_detail = df_detailed.groupby(['month', 'category', 'parent_category']).agg({
+        **{col: 'sum' for col in cols_with_balance + ['BALANCE']},
+        'transaction_type': 'first'
+    }).reset_index().round(2)
+
+    yearly_detail = df_detailed.groupby(['year', 'category', 'parent_category']).agg({
+        **{col: 'sum' for col in cols_with_balance + ['BALANCE']},
+        'transaction_type': 'first'
+    }).reset_index().round(2)
+
+    # --- Totals detailed ---
+    totals_detail = df_detailed.groupby(['category', 'parent_category']).agg({
+        **{col: 'sum' for col in cols_with_balance + ['BALANCE']},
+        'transaction_type': 'first'
+    }).reset_index().round(2)
+
+    daily_detail['day'] = pd.to_datetime(daily_detail['day'])
+    monthly_detail['month'] = monthly_detail['month'].dt.to_timestamp()
+    yearly_detail['year'] = yearly_detail['year'].dt.to_timestamp()
+
+    df_detailed['day'] = pd.to_datetime(df_detailed['day'])
+    df_detailed['month'] = df_detailed['month'].dt.to_timestamp()
+    df_detailed['year'] = df_detailed['year'].dt.to_timestamp()
+
+    df_detailed.to_csv('../artifacts/data/kpis_detailed.csv', index=False)
+
+    daily_detail.to_csv('../artifacts/data/daily_kpis_detailed.csv', index=False)
+    monthly_detail.to_csv('../artifacts/data/monthly_kpis_detailed.csv', index=False)
+    yearly_detail.to_csv('../artifacts/data/yearly_kpis_detailed.csv', index=False)
+    totals_detail.to_csv('../artifacts/data/totals_kpis_detailed.csv', index=False)
+
+

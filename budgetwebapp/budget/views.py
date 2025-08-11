@@ -143,10 +143,10 @@ def chart_summary(request):
     monthly_summaries = fetch_api_and_get_response(request, 'budget:monthly_summaries', 200, [('year', '2025')])
 
     kpi_saving.calculate_daily_kpis()
-    # kpis = kpi_reading.get_kpis('day', '17.09.2025')
-    # kpis = kpi_reading.get_kpis('month', '7.2025')
+    # kpis = kpi_reading.get_kpis('day', '04.07.2025')
+    kpis = kpi_reading.get_kpis('month', '7.2025')
     # kpis = kpi_reading.get_kpis('year', '2025')
-    kpis = kpi_reading.get_kpis('all')
+    # kpis = kpi_reading.get_kpis('all')
     # todo: when first month/year of all time, then change = N/A -> for now handled in template to be 0
     # print(kpis)
 
