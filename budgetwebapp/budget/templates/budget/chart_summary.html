@@ -10,100 +10,69 @@
 <!--</div>-->
 
 <div style="color: white; text-align: center;" class="mb-3 mt-3">
- <h1>DASHBOARD</h1>
+    <h1>DASHBOARD</h1>
 </div>
 
 <div class="filter-row-wrapper transition-item">
-  <i class="bi bi-filter" style="color: white;"></i>
+    <i class="bi bi-filter" style="color: white;"></i>
 
-  <label for="" class="toggle-switch-label">Show Filters</label>
-  <label class="toggle-switch">
-    <input type="checkbox" id="filterToggle" onclick="toggleRowFilters()" />
-    <span class="slider"></span>
-  </label>
+    <label for="" class="toggle-switch-label">Show Filters</label>
+    <label class="toggle-switch">
+        <input type="checkbox" id="filterToggle" onclick="toggleRowFilters()"/>
+        <span class="slider"></span>
+    </label>
 
 </div>
 
 <!--<div style="margin-left: 10%; margin-right: 10%;">-->
 <div style="margin-left: 2%; margin-right: 2%;">
-<!--<div >-->
+    <!--<div >-->
 
-  <div class="filter-row-wrapper filter-row-collapsible">
-    <i class="bi bi-filter" style="color: white;"></i>
+    {% include 'budget/dashboard/dashboard_filter_row_cards.html'%}
 
-      <button class="refresh-button" style="background: none; border: none; color: white; cursor: pointer; font-size: clamp(1.5rem, 1vw, 2rem); line-height: 1;" onclick="refreshCard(this)">
-        &#x21bb;
-      </button>
-      <div style="background: white; height: 33px; width: 1px; box-shadow: 0 0 30px white;"></div>
-<!--    <span class="filter-title">Filters</span>-->
-    <div class="filter-row">
-      <label>From:</label>
-      <input type="date">
-      <label>To:</label>
-      <input type="date">
-      <button>Apply</button>
+    <div id="dashboard-cards-container" class="cards-row chart-row-6 mb-5 hoverable-items">
+        {% include 'budget/dashboard/dashboard_cards_partial.html'%}
     </div>
-  </div>
 
-<div class="cards-row chart-row-6 mb-5 hoverable-items">
-  <div class="chart-col-1-6">
-    {% include 'budget/dashboard/dashboard_card.html' with card_type='incoming' title='Incoming' kpis=kpis.INCOMING date_range=date_range %}
-  </div>
-  <div class="chart-col-1-6">
-    {% include 'budget/dashboard/dashboard_card.html' with card_type='outgoing' title='Outgoing' kpis=kpis.OUTGOING date_range=date_range %}
-  </div>
-  <div class="chart-col-1-6">
-    {% include 'budget/dashboard/dashboard_card.html' with card_type='inner' title='Inner' kpis=kpis.INNER date_range=date_range %}
-  </div>
-  <div class="chart-col-1-6">
-    {% include 'budget/dashboard/dashboard_card.html' with card_type='balance' title='Balance' kpis=kpis.BALANCE date_range=date_range %}
-  </div>
-  <div class="chart-col-1-6">
-    {% include 'budget/dashboard/dashboard_card.html' with card_type='accounts' title='Accounts' kpis=kpis.BALANCE_REAL date_range=date_range %}
-  </div>
-  <div class="chart-col-1-6">
-    {% include 'budget/dashboard/dashboard_card.html' with card_type='num_transactions' title='#T9Ns' kpis=kpis.NUM_TRANSACTIONS date_range=date_range %}
-  </div>
-</div>
 </div>
 
 
-  <div class="filter-row-wrapper filter-row-collapsible">
+<div class="filter-row-wrapper filter-row-collapsible">
     <div class="filter-row">
-      <label>From:</label>
-      <input type="date">
-      <label>To:</label>
-      <input type="date">
-      <button>Apply</button>
+        <label>From:</label>
+        <input type="date">
+        <label>To:</label>
+        <input type="date">
+        <button>Apply</button>
     </div>
-  </div>
+</div>
 
 <div class="chart-row chart-row-3 mb-3 hoverable-items truncate">
- <div id="balance-chart-container" class="chart-col-1-4 chart-panel" style="overflow: hidden;">
-  <div class="chart-header truncate">
-    <div class="drilldown-button" hx-get="{% url 'budget:transactions_by_category' 194 %}"
-          hx-target="#dialog-transactions-by-cat"
-          hx-on="click"><span class="drilldown-icon">▼</span></div>
-    <div class="chart-title">2025 Monthly Financial Overview</div>
-    <div class="spacer"></div>
-  </div>
-  <hr class="mb-1" style="color:white;">
-  <div id="balance-chart" ></div>
- </div>
- <div id="balance-chart-container2" class="chart-col-1-2 chart-panel">
-  <div class="chart-header truncate">
-    <div class="drilldown-button" hx-get="{% url 'budget:transactions_by_category' 194 %}"
-          hx-target="#dialog-transactions-by-cat"
-          hx-on="click"><span class="drilldown-icon">▼</span></div>
-    <div class="chart-title">2025 Monthly Financial Overview</div>
-    <div class="spacer"></div>
-  </div>
-  <hr class="mb-1" style="color:white;">
-  <div id="balance-chart2" ></div>
- </div>
- <div id="balance-chart-container3" class="chart-col-1-4 chart-panel">
-  <div id="balance-chart3" ></div>
- </div>
+    <div id="balance-chart-container" class="chart-col-1-4 chart-panel" style="overflow: hidden;">
+        <div class="chart-header truncate">
+            <div class="drilldown-button" hx-get="{% url 'budget:transactions_by_category' 194 %}"
+                 hx-target="#dialog-transactions-by-cat"
+                 hx-on="click"><span class="drilldown-icon">▼</span></div>
+            <div class="chart-title">2025 Monthly Financial Overview</div>
+            <div class="spacer"></div>
+        </div>
+        <hr class="mb-1" style="color:white;">
+        <div id="balance-chart"></div>
+    </div>
+    <div id="balance-chart-container2" class="chart-col-1-2 chart-panel">
+        <div class="chart-header truncate">
+            <div class="drilldown-button" hx-get="{% url 'budget:transactions_by_category' 194 %}"
+                 hx-target="#dialog-transactions-by-cat"
+                 hx-on="click"><span class="drilldown-icon">▼</span></div>
+            <div class="chart-title">2025 Monthly Financial Overview</div>
+            <div class="spacer"></div>
+        </div>
+        <hr class="mb-1" style="color:white;">
+        <div id="balance-chart2"></div>
+    </div>
+    <div id="balance-chart-container3" class="chart-col-1-4 chart-panel">
+        <div id="balance-chart3"></div>
+    </div>
 </div>
 
 

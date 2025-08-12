@@ -89,8 +89,10 @@ function updateDropdownText(filterName) {
 function setupFilterSelectAll(filterName) {
   const selectAllCheckbox = document.getElementById(`${filterName}-select-all`);
   const checkboxes = document.querySelectorAll(`.form-check-input[name="${filterName}"]`);
-  if (!selectAllCheckbox || checkboxes.length === 0) return;
+  console.log(selectAllCheckbox);
 
+  if (!selectAllCheckbox || checkboxes.length === 0) return;
+    console.log("after if");
   // Handle 'select all' checkbox change
   selectAllCheckbox.addEventListener('change', () => {
     checkboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
@@ -127,6 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize filter dropdowns
   setupFilterSelectAll('category');
   setupFilterSelectAll('parent_category');
+  setupFilterSelectAll('cards_row_parent_category');
 
   // Initial fade-in animation
   fadeInTableCells();

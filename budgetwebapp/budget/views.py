@@ -140,6 +140,8 @@ def dashboard_card_modal_view(request):
     return render(request, 'budget/dashboard/dashboard_card_modal.html', context)
 
 def chart_summary(request):
+    params = flatten_querydict(request.GET)
+
     monthly_summaries = fetch_api_and_get_response(request, 'budget:monthly_summaries', 200, [('year', '2025')])
 
     kpi_saving.calculate_daily_kpis()
@@ -149,13 +151,21 @@ def chart_summary(request):
     # kpis = kpi_reading.get_kpis('all')
     # todo: when first month/year of all time, then change = N/A -> for now handled in template to be 0
     # print(kpis)
+    print(params)
+    parent_categories = fetch_api_and_get_response(request, 'budget:parent_categories', 200, params)
 
+    print(f'{request.GET.getlist('cards_row_parent_category') = }')
 
     context = {
         'monthly_data': monthly_summaries,
         'kpis': kpis[0],
-        'date_range': kpis[1]
+        'date_range': kpis[1],
+        'parent_categories': parent_categories
     }
+
+    if request.headers.get('HX-Request'):
+        return render(request, 'budget/dashboard/dashboard_cards_partial.html', context)
+
     # kpi_saving.calculate_balance()
     # if request.headers.get('HX-Request'):
     #     return render(request, 'budget/dashboard/dashboard_card_modal.html', context)
