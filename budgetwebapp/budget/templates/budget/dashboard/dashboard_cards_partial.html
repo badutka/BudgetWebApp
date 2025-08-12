@@ -1,0 +1,19 @@
+{% load static %}
+<div class="chart-col-1-6">
+    {% include 'budget/dashboard/dashboard_card.html' with card_type='incoming' title='Incoming' kpis=kpis.INCOMING date_range=date_range %}
+</div>
+<div class="chart-col-1-6">
+    {% include 'budget/dashboard/dashboard_card.html' with card_type='outgoing' title='Outgoing' kpis=kpis.OUTGOING date_range=date_range %}
+</div>
+<div class="chart-col-1-6">
+    {% include 'budget/dashboard/dashboard_card.html' with card_type='inner' title='Inner' kpis=kpis.INNER date_range=date_range %}
+</div>
+<div class="chart-col-1-6">
+    {% include 'budget/dashboard/dashboard_card.html' with card_type='balance' title='Balance' kpis=kpis.BALANCE date_range=date_range %}
+</div>
+<div class="chart-col-1-6">
+    {% include 'budget/dashboard/dashboard_card.html' with card_type='accounts' title='Accounts' kpis=kpis.BALANCE_REAL date_range=date_range %}
+</div>
+<div class="chart-col-1-6">
+    {% include 'budget/dashboard/dashboard_card.html' with card_type='num_transactions' title='#T9Ns' kpis=kpis.NUM_TRANSACTIONS date_range=date_range %}
+</div>
