@@ -1,8 +1,8 @@
 import requests
-import pandas as pd
+import logging
+
 from django.core.paginator import Paginator
-from django.db.models import Sum
-from django.http import HttpResponseBadRequest, HttpResponse
+from django.http import HttpResponseBadRequest, HttpResponse, HttpResponseNotAllowed
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
 from rest_framework.exceptions import ValidationError
@@ -26,6 +26,7 @@ from core.utils import (get_data_from_form,
 
 from core.summaries import monthly_summary, monthly_summary_detailed
 
+logger = logging.getLogger(__name__)
 
 # ===============================================
 #               BALANCE HISTORY
@@ -140,38 +141,56 @@ def dashboard_card_modal_view(request):
     return render(request, 'budget/dashboard/dashboard_card_modal.html', context)
 
 def chart_summary(request):
-    params = flatten_querydict(request.GET)
+    dsb_row_filter = request.GET.get('dsb_row_filter')
+    is_htmx = request.headers.get('HX-Request') is not None
 
-    monthly_summaries = fetch_api_and_get_response(request, 'budget:monthly_summaries', 200, [('year', '2025')])
+    if is_htmx and dsb_row_filter == "cards_row":
+        cards_row_parent_category = request.GET.getlist('cards_row_parent_category')
+        transaction_types = request.GET.getlist('cards_row_transaction_type')
 
-    kpi_saving.calculate_daily_kpis()
-    # kpis = kpi_reading.get_kpis('day', '04.07.2025')
-    kpis = kpi_reading.get_kpis('month', '7.2025')
-    # kpis = kpi_reading.get_kpis('year', '2025')
-    # kpis = kpi_reading.get_kpis('all')
-    # todo: when first month/year of all time, then change = N/A -> for now handled in template to be 0
-    # print(kpis)
-    print(params)
-    parent_categories = fetch_api_and_get_response(request, 'budget:parent_categories', 200, params)
+        kpis = kpi_reading.get_kpis('month', '7.2025', transaction_types, cards_row_parent_category)
+        context = {
+            'kpis': kpis[0],
+            'date_range': kpis[1],
+        }
 
-    print(f'{request.GET.getlist('cards_row_parent_category') = }')
-
-    context = {
-        'monthly_data': monthly_summaries,
-        'kpis': kpis[0],
-        'date_range': kpis[1],
-        'parent_categories': parent_categories
-    }
-
-    if request.headers.get('HX-Request'):
         return render(request, 'budget/dashboard/dashboard_cards_partial.html', context)
 
-    # kpi_saving.calculate_balance()
-    # if request.headers.get('HX-Request'):
-    #     return render(request, 'budget/dashboard/dashboard_card_modal.html', context)
+    elif request.method == 'GET':
+        params = flatten_querydict(request.GET)
 
-    return render(request, 'budget/chart_summary.html', context)
+        cards_row_parent_category = request.GET.getlist('cards_row_parent_category')
+        transaction_types = request.GET.getlist('cards_row_transaction_type')
 
+        # parent_categories_params = []
+        # if cards_row_parent_category:
+        #     parent_categories_params.append(('parent_category', cards_row_parent_category))
+
+        monthly_summaries = fetch_api_and_get_response(request, 'budget:monthly_summaries', 200, [('year', '2025')])
+        parent_categories = fetch_api_and_get_response(request, 'budget:parent_categories', 200, params)
+
+        # kpi_saving.calculate_daily_kpis()
+        # kpis = kpi_reading.get_kpis('day', '04.07.2025')
+        kpis = kpi_reading.get_kpis('month', '7.2025', transaction_types, cards_row_parent_category)
+        # kpis = kpi_reading.get_kpis('year', '2025')
+        # kpis = kpi_reading.get_kpis('all')
+        # todo: when first month/year of all time, then change = N/A -> for now handled in template to be 0
+
+        context = {
+            'monthly_data': monthly_summaries,
+            'kpis': kpis[0],
+            'date_range': kpis[1],
+            'parent_categories': parent_categories,
+            'transaction_types': ['OUTGOING', 'INNER', 'INCOMING']
+        }
+
+        return render(request, 'budget/chart_summary.html', context)
+
+
+    # Log the unexpected method
+    # logger.warning(f"Unsupported method {request.method} on chart_summary view")
+    # Explicitly handle other cases, e.g. method not allowed
+    return HttpResponseNotAllowed(['GET'])
 
 # ===============================================
 #               TABLE SUMMARIES

@@ -52,6 +52,31 @@ def mul(value, arg):
         return ''
 
 
+@register.simple_tag
+def is_checked(request, param_name, value=None, default=True):
+    """
+    Determines if a checkbox should be checked.
+
+    - request: the current request object
+    - param_name: GET parameter to look for (e.g., "cards_row_transaction_type")
+    - value: the value to check in the GET list (for checkboxes)
+    - default: what to return on first load (True = checked, False = unchecked)
+    """
+    # First load: no "submitted" field → return default
+    if not request.GET.get("submitted"):
+        return "checked" if default else ""
+
+    # If value is None, just check if the param exists in GET
+    if value is None:
+        return "checked" if request.GET.get(param_name) else ""
+
+    # For checkboxes: check if value is in GET list
+    if value in request.GET.getlist(param_name):
+        return "checked"
+
+    return ""
+
+
 @register.simple_tag(takes_context=True)
 def htmx_pagelink(context, label, page_number, target='transaction-table-content'):
     # Get the current GET parameters from the request context

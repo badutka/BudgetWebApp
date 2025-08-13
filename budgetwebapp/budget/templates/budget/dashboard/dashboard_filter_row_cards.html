@@ -10,64 +10,107 @@
   <div style="background: white; height: 33px; width: 1px; box-shadow: 0 0 30px white;"></div>
   <!--    <span class="filter-title">Filters</span>-->
   <div class="filter-row">
+    <input type="hidden" name="dsb_row_filter" value="cards_row" form="dashboard-filter-cards-row-form">
+
+    <!-- Date Inputs -->
     <label>From:</label>
-    <!-- added name + form attributes only -->
     <input type="date" name="date_from" id="date_from" form="dashboard-filter-cards-row-form">
 
     <label>To:</label>
-    <!-- added name + form attributes only -->
     <input type="date" name="date_to" id="date_to" form="dashboard-filter-cards-row-form">
 
-    <form style=""
-          id="dashboard-filter-cards-row-form"
-          class=""
+    <!-- Parent Categories Dropdown -->
+    <div class="dropdown">
+      <button class="btn btn-light dropdown-toggle" type="button"
+              id="cards_row_parent_categoryDropdownButton"
+              data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+        Parent Categories
+      </button>
+      <div class="dropdown-menu p-3" style="min-width: 200px;" aria-labelledby="parentCategoryDropdownButton">
+        <fieldset class="mb-0">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox"
+                   id="cards_row_parent_category-select-all"
+                   form="dashboard-filter-cards-row-form"
+                   {% is_checked request "cards_row_parent_category" default=True %}>
+            <label class="form-check-label fw-bold" for="cards_row_parent_category-select-all">
+              Select All
+            </label>
+          </div>
+          <hr>
+          {% for parent_category in parent_categories %}
+          <div class="form-check">
+            <input class="form-check-input"
+                   type="checkbox"
+                   name="cards_row_parent_category"
+                   value="{{ parent_category.id }}"
+                   id="parent-category-{{ parent_category.id }}"
+                   form="dashboard-filter-cards-row-form"
+                   {% is_checked request "cards_row_parent_category" parent_category.id|stringformat:"s" %}>
+            <label class="form-check-label" for="parent-category-{{ parent_category.id }}">
+              {{ parent_category.name }}
+            </label>
+          </div>
+          {% endfor %}
+        </fieldset>
+      </div>
+    </div>
+
+    <!-- Transaction Types Dropdown -->
+    <div class="dropdown">
+      <button class="btn btn-light dropdown-toggle" type="button"
+              id="cards_row_transaction_typeDropdownButton"
+              data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+        Transaction Types
+      </button>
+      <div class="dropdown-menu p-3" style="min-width: 200px;" aria-labelledby="transactionTypeDropdownButton">
+        <fieldset class="mb-0">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox"
+                   id="cards_row_transaction_type-select-all"
+                   form="dashboard-filter-cards-row-form"
+                   {% is_checked request "cards_row_transaction_type" default=True %}>
+            <label class="form-check-label fw-bold" for="cards_row_transaction_type-select-all">
+              Select All
+            </label>
+          </div>
+          <hr>
+          {% for name in transaction_types %}
+          <div class="form-check">
+            <input class="form-check-input"
+                   type="checkbox"
+                   name="cards_row_transaction_type"
+                   value="{{ name }}"
+                   id="transaction-type-{{ name }}"
+                   form="dashboard-filter-cards-row-form"
+                   {% is_checked request "cards_row_transaction_type" name %}>
+            <label class="form-check-label" for="transaction-type-{{ name }}">
+              {{ name }}
+            </label>
+          </div>
+          {% endfor %}
+        </fieldset>
+      </div>
+    </div>
+
+    <!-- Form right before Apply button -->
+    <form id="dashboard-filter-cards-row-form"
           hx-get="{% url 'budget:chart_summary' %}"
           hx-target="#dashboard-cards-container"
           hx-push-url="true"
-          hx-trigger="submit">  <!-- changed only this line -->
-
-      <div class="dropdown">
-        <button class="btn btn-light dropdown-toggle" type="button" id="cards_row_parent_categoryDropdownButton"
-                data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
-          Expand
-        </button>
-
-        <div class="dropdown-menu p-3"
-             style="width: 100%; max-width: 100%; box-sizing: border-box;"
-             aria-labelledby="parentCategoryDropdownButton">
-          <fieldset class="mb-0">
-            <div class="form-check">
-              <input class="form-check-input"
-                     type="checkbox"
-                     id="cards_row_parent_category-select-all"
-                     checked>
-              <label class="form-check-label fw-bold" for="cards_row_parent_category-select-all">
-                Select All
-              </label>
-            </div>
-            <hr>
-            {% for parent_category in parent_categories %}
-            <div class="form-check">
-              <input class="form-check-input"
-                     type="checkbox"
-                     name="cards_row_parent_category"
-                     value="{{ parent_category.id }}"
-                     id="parent-category-{{ parent_category.id }}"
-                     {% if not request.GET.parent_category or parent_category.id|stringformat:"s" in request.GET|getlist:"parent_category" %}checked{% endif %}>
-              <label class="form-check-label" for="parent-category-{{ parent_category.id }}">
-                {{ parent_category.name }}
-              </label>
-            </div>
-            {% endfor %}
-          </fieldset>
-        </div>
-      </div>
+          hx-trigger="submit"
+          style="display: contents;">
     </form>
 
-    
+    <!-- Hidden field to indicate that the filter form has been submitted.
+    Used to distinguish first page load (no submitted param) from user submissions,
+    so that checkboxes and inputs can retain their selected values correctly,
+    even if all checkboxes are unchecked or inputs are empty. -->
+    <input type="hidden" name="submitted" value="1" form="dashboard-filter-cards-row-form">
 
     <!-- Apply kept in place, now explicitly submits the form via form="..." -->
     <button form="dashboard-filter-cards-row-form" type="submit">Apply</button>
+
 
   </div>
 </div>

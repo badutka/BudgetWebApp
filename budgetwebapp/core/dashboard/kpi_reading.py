@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
-from . import kpi_calc
+from . import kpi_calc, filters
 
 DEFAULT_KPI_KEYS = ['INCOMING', 'OUTGOING', 'INNER', 'NUM_TRANSACTIONS', 'BALANCE', "BALANCE_REAL"]
 
@@ -152,7 +152,8 @@ def get_all_time_kpis(totals_kpis, daily_kpis, kpi_keys):
     return result, date_range
 
 
-def get_kpis(granularity='day', date_str=None):
+
+def get_kpis(granularity='day', date_str=None, transaction_types=None, parent_categories=None):
     date = parse_date(date_str, mode=granularity) if granularity != 'all' else None
     starting_balance = kpi_calc.get_starting_balance()
     # date_from = '2025-07-01'
@@ -161,16 +162,20 @@ def get_kpis(granularity='day', date_str=None):
     date_from = None
     date_to = None
     categories = None
-    parent_categories = None
-    # parent_categories = ['Common', 'Shopping', 'Income', 'Investing', 'Loan']
+
+    parent_categories = filters.get_parent_categories_names_list(parent_categories)
+
+    apply_date_filters = date_from or date_to
+    apply_filters: bool = filters.not_none_filters((categories, parent_categories, transaction_types))
 
     if granularity == 'day':
         suffix = 'dod'
-        if date_from or date_to:
+        if apply_date_filters:
             kpis = pd.read_csv('../artifacts/data/kpis_detailed.csv')
             kpis = kpi_calc.calculate_kpis_between_dates(
                 kpis,
                 group_by_col=granularity,
+                transaction_types=transaction_types,
                 categories=categories,
                 parent_categories=parent_categories,
                 date_from=date_from,
@@ -178,11 +183,12 @@ def get_kpis(granularity='day', date_str=None):
                 starting_balance=starting_balance,
                 suffix=suffix
             )
-        elif categories or parent_categories:
+        elif apply_filters:
             kpis = pd.read_csv('../artifacts/data/daily_kpis_detailed.csv')
             kpis = kpi_calc.calculate_kpis(
                 kpis,
                 group_by_col=granularity,
+                transaction_types=transaction_types,
                 categories=categories,
                 parent_categories=parent_categories,
                 starting_balance=starting_balance,
@@ -199,11 +205,12 @@ def get_kpis(granularity='day', date_str=None):
 
     elif granularity == 'month':
         suffix = 'mom'
-        if date_from or date_to:
+        if apply_date_filters:
             monthly_kpis = pd.read_csv('../artifacts/data/kpis_detailed.csv')
             monthly_kpis = kpi_calc.calculate_kpis_between_dates(
                 monthly_kpis,
                 group_by_col=granularity,
+                transaction_types=transaction_types,
                 categories=categories,
                 parent_categories=parent_categories,
                 date_from=date_from,
@@ -211,11 +218,12 @@ def get_kpis(granularity='day', date_str=None):
                 starting_balance=starting_balance,
                 suffix=suffix
             )
-        elif categories or parent_categories:
+        elif apply_filters:
             monthly_kpis = pd.read_csv('../artifacts/data/monthly_kpis_detailed.csv')
             monthly_kpis = kpi_calc.calculate_kpis(
                 monthly_kpis,
                 group_by_col=granularity,
+                transaction_types=transaction_types,
                 categories=categories,
                 parent_categories=parent_categories,
                 starting_balance=starting_balance,
@@ -232,11 +240,12 @@ def get_kpis(granularity='day', date_str=None):
 
     elif granularity == 'year':
         suffix = 'yoy'
-        if date_from or date_to:
+        if apply_date_filters:
             yearly_kpis = pd.read_csv('../artifacts/data/kpis_detailed.csv')
             yearly_kpis = kpi_calc.calculate_kpis_between_dates(
                 yearly_kpis,
                 group_by_col=granularity,
+                transaction_types=transaction_types,
                 categories=categories,
                 parent_categories=parent_categories,
                 date_from=date_from,
@@ -244,11 +253,12 @@ def get_kpis(granularity='day', date_str=None):
                 starting_balance=starting_balance,
                 suffix=suffix
             )
-        elif categories or parent_categories:
+        elif apply_filters:
             yearly_kpis = pd.read_csv('../artifacts/data/yearly_kpis_detailed.csv')
             yearly_kpis = kpi_calc.calculate_kpis(
                 yearly_kpis,
                 group_by_col=granularity,
+                transaction_types=transaction_types,
                 categories=categories,
                 parent_categories=parent_categories,
                 starting_balance=starting_balance,
@@ -264,22 +274,23 @@ def get_kpis(granularity='day', date_str=None):
         return yearly_kpis
 
     elif granularity == 'all':
-        if date_from or date_to:
-            print('HENLOOOOOOOOOOOOOOOOOOOOOO')
+        if apply_date_filters:
             kpis = pd.read_csv('../artifacts/data/kpis_detailed.csv')
             kpis = kpi_calc.calculate_kpis_between_dates(
                 kpis,
                 categories=categories,
+                transaction_types=transaction_types,
                 parent_categories=parent_categories,
                 date_from=date_from,
                 date_to=date_to,
                 starting_balance=starting_balance
             )
-        elif categories or parent_categories:
+        elif apply_filters:
             kpis = pd.read_csv('../artifacts/data/totals_kpis_detailed.csv')
             kpis = kpi_calc.calculate_kpis(
                 kpis,
                 categories=categories,
+                transaction_types=transaction_types,
                 parent_categories=parent_categories,
                 starting_balance=starting_balance
             )

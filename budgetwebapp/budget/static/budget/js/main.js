@@ -92,7 +92,6 @@ function setupFilterSelectAll(filterName) {
   console.log(selectAllCheckbox);
 
   if (!selectAllCheckbox || checkboxes.length === 0) return;
-    console.log("after if");
   // Handle 'select all' checkbox change
   selectAllCheckbox.addEventListener('change', () => {
     checkboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
@@ -130,6 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupFilterSelectAll('category');
   setupFilterSelectAll('parent_category');
   setupFilterSelectAll('cards_row_parent_category');
+  setupFilterSelectAll('cards_row_transaction_type');
 
   // Initial fade-in animation
   fadeInTableCells();
