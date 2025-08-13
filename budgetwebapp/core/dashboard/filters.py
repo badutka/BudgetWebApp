@@ -1,11 +1,51 @@
 from budget import models
+from typing import Any
 
+def not_none_filters(filters_tuple: tuple[list[Any] | None, ...]) -> bool:
+    """
+    Check if any of the filter lists is not None.
 
-def not_none_filters(filters_tuple):
+    Treats empty lists as valid (True). Only returns False if all lists are None.
+
+    Example:
+
+    | categories | parent_categories | transaction_types | result |
+    |------------|-------------------|-------------------|--------|
+    | []         | []                | []                | True   |
+    | [1]        | []                | []                | True   |
+    | None       | []                | []                | True   |
+    | None       | None              | None              | False  |
+
+    Args:
+        filters_tuple (tuple[list[Any] | None, ...]): A tuple of filter lists which may be None or empty.
+
+    Returns:
+        bool: True if any filter list is not None, False if all are None.
+    """
     return any(lst is not None for lst in filters_tuple)
 
 
-def not_empty_filters(filters_tuple):
+def not_empty_filters(filters_tuple: tuple[list[Any] | None, ...]) -> bool:
+    """
+    Check if any of the filter lists contains at least one element.
+
+    Treats None or empty lists as False.
+
+    Example:
+
+    | categories | parent_categories | transaction_types | result |
+    |------------|-------------------|-------------------|--------|
+    | []         | []                | []                | False  |
+    | [1]        | []                | []                | True   |
+    | None       | []                | []                | False  |
+    | None       | None              | None              | False  |
+
+    Args:
+        filters_tuple (tuple[list[Any] | None, ...]): A tuple of filter lists which may be None or empty.
+
+    Returns:
+        bool: True if any filter list contains at least one element, False otherwise.
+    """
     return any(lst for lst in filters_tuple if lst)
 
 
