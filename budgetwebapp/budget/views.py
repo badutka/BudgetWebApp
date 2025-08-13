@@ -1,5 +1,4 @@
 import requests
-import logging
 
 from django.core.paginator import Paginator
 from django.http import HttpResponseBadRequest, HttpResponse, HttpResponseNotAllowed
@@ -25,8 +24,7 @@ from core.utils import (get_data_from_form,
                         fetch_api_and_get_response)
 
 from core.summaries import monthly_summary, monthly_summary_detailed
-
-logger = logging.getLogger(__name__)
+from core.logger import logger
 
 # ===============================================
 #               BALANCE HISTORY
@@ -188,7 +186,8 @@ def chart_summary(request):
 
 
     # Log the unexpected method
-    # logger.warning(f"Unsupported method {request.method} on chart_summary view")
+    logger.warning(f"Unsupported method {request.method} on chart_summary view")
+
     # Explicitly handle other cases, e.g. method not allowed
     return HttpResponseNotAllowed(['GET'])
 

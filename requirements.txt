@@ -7,6 +7,9 @@ drf-yasg
 requests
 django-filter
 
+django-pandas
+
 pandas
 numpy
-django-pandas
+
+colored-logs
