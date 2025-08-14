@@ -19,12 +19,49 @@
     <label>To:</label>
     <input type="date" name="date_to" id="date_to" form="dashboard-filter-cards-row-form">
 
+    <!-- Transaction Types Dropdown -->
+    <div class="dropdown">
+      <button class="btn btn-light dropdown-toggle" type="button"
+              id="cards_row_transaction_typeDropdownButton"
+              data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+        Transaction Types
+      </button>
+      <div class="dropdown-menu p-3" style="min-width: 200px;" aria-labelledby="transactionTypeDropdownButton">
+        <fieldset class="mb-0">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox"
+                   id="cards_row_transaction_type-select-all"
+                   form="dashboard-filter-cards-row-form"
+                   {% is_checked request "cards_row_transaction_type" default=True %}>
+            <label class="form-check-label fw-bold" for="cards_row_transaction_type-select-all">
+              Select All
+            </label>
+          </div>
+          <hr>
+          {% for name in transaction_types %}
+          <div class="form-check">
+            <input class="form-check-input"
+                   type="checkbox"
+                   name="cards_row_transaction_type"
+                   value="{{ name }}"
+                   id="transaction-type-{{ name }}"
+                   form="dashboard-filter-cards-row-form"
+                   {% is_checked request "cards_row_transaction_type" name %}>
+            <label class="form-check-label" for="transaction-type-{{ name }}">
+              {{ name }}
+            </label>
+          </div>
+          {% endfor %}
+        </fieldset>
+      </div>
+    </div>
+
     <!-- Parent Categories Dropdown -->
     <div class="dropdown">
       <button class="btn btn-light dropdown-toggle" type="button"
               id="cards_row_parent_categoryDropdownButton"
               data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
-        Parent Categories
+        Parent Categories <!-- <span class="badge bg-primary" id="cards_row_parent_category-count" style="display:none;"></span> -->
       </button>
       <div class="dropdown-menu p-3" style="min-width: 200px;" aria-labelledby="parentCategoryDropdownButton">
         <fieldset class="mb-0">
@@ -56,36 +93,36 @@
       </div>
     </div>
 
-    <!-- Transaction Types Dropdown -->
+    <!-- Parent Categories Dropdown -->
     <div class="dropdown">
       <button class="btn btn-light dropdown-toggle" type="button"
-              id="cards_row_transaction_typeDropdownButton"
+              id="cards_row_categoryDropdownButton"
               data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
-        Transaction Types
+        Categories
       </button>
-      <div class="dropdown-menu p-3" style="min-width: 200px;" aria-labelledby="transactionTypeDropdownButton">
+      <div class="dropdown-menu p-3" style="min-width: 200px;" aria-labelledby="categoryDropdownButton">
         <fieldset class="mb-0">
           <div class="form-check">
             <input class="form-check-input" type="checkbox"
-                   id="cards_row_transaction_type-select-all"
+                   id="cards_row_category-select-all"
                    form="dashboard-filter-cards-row-form"
-                   {% is_checked request "cards_row_transaction_type" default=True %}>
-            <label class="form-check-label fw-bold" for="cards_row_transaction_type-select-all">
+                   {% is_checked request "cards_row_category" default=True %}>
+            <label class="form-check-label fw-bold" for="cards_row_category-select-all">
               Select All
             </label>
           </div>
           <hr>
-          {% for name in transaction_types %}
+          {% for category in categories %}
           <div class="form-check">
             <input class="form-check-input"
                    type="checkbox"
-                   name="cards_row_transaction_type"
-                   value="{{ name }}"
-                   id="transaction-type-{{ name }}"
+                   name="cards_row_category"
+                   value="{{ category.id }}"
+                   id="category-{{ category.id }}"
                    form="dashboard-filter-cards-row-form"
-                   {% is_checked request "cards_row_transaction_type" name %}>
-            <label class="form-check-label" for="transaction-type-{{ name }}">
-              {{ name }}
+                   {% is_checked request "cards_row_category" category.id|stringformat:"s" %}>
+            <label class="form-check-label" for="category-{{ category.id }}">
+              {{ category.name }}
             </label>
           </div>
           {% endfor %}
