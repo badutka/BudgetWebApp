@@ -24,7 +24,7 @@ class MoneyAccount(BaseModel):
         verbose_name_plural = "MoneyAccounts"
 
 
-class ParentCategory(models.Model):
+class ParentCategory(BaseModel):
     name = models.CharField(max_length=255, unique=True)
 
     def __str__(self):
