@@ -4,6 +4,7 @@ import os
 import socket
 from datetime import datetime
 from typing import Any
+import pandas as pd
 
 # Optional: Generate timestamped log files instead of a fixed name
 # LOG_FILE = f'{datetime.now().strftime("%m_%d_%Y_%H_%M_%S")}.log'
@@ -26,6 +27,7 @@ LOG_FILE_PATH = os.path.join(LOG_PATH, LOG_FILE)
 # - Hostname + Logger name + PID
 # - Custom [module.func:line] section injected via a filter
 LOG_FORMAT = '[ %(asctime)s ] [ %(hostname)s %(name)s[%(process)d] ] [%(mod_func_line)s] - %(levelname)s - %(message)s'
+
 
 # LOG_FORMAT = (
 #     50 * "-"  # separator line
@@ -113,6 +115,42 @@ class CustomLogger(logging.getLoggerClass()):
         return record
 
 
+class DataFrameFormatter(logging.Formatter):
+    """Custom formatter that pretty-prints pandas DataFrames as markdown tables.
+
+    This formatter checks if the log record message is a pandas DataFrame.
+    If it is, it converts the DataFrame into a markdown-formatted table
+    (with grid borders) and prepends a newline so the table appears on a
+    new line in the log output. Otherwise, the message is passed through
+    unmodified.
+    """
+
+    def format(self, record: logging.LogRecord) -> str:
+        """Format the specified record as text.
+
+        If the log record's message is a pandas DataFrame, it converts it
+        into a markdown table with grid borders and right-aligned values.
+
+        Args:
+            record (logging.LogRecord): The log record to format.
+
+        Returns:
+            str: The formatted log record as a string.
+        """
+        df: pd.DataFrame
+        if isinstance(record.msg, pd.DataFrame):
+            df = record.msg
+            # Convert DataFrame to markdown table and start on a new line
+            record.msg = "\n" + df.to_markdown(
+                index=True,
+                tablefmt="grid",
+                stralign="right",
+                numalign="right"
+            )
+        formatted_record: str = super().format(record)
+        return formatted_record
+
+
 class Singleton(type):
     """Metaclass for creating singleton classes."""
 
@@ -140,7 +178,8 @@ class Logger(metaclass=Singleton):
             logging.Logger: Configured logger instance.
         """
         if not logging.root.handlers:
-            formatter = logging.Formatter(LOG_FORMAT)
+            # formatter = logging.Formatter(LOG_FORMAT)
+            formatter = DataFrameFormatter(LOG_FORMAT)
             logger = logging.getLogger(LOG_FILE)
             logger.setLevel(logging.DEBUG)
 
