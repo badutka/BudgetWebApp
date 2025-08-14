@@ -25,6 +25,7 @@ from core.utils import (get_data_from_form,
 
 from core.summaries import monthly_summary, monthly_summary_detailed
 from core.logger import logger
+from core.dashboard import filters as dsb_filters
 
 # ===============================================
 #               BALANCE HISTORY
@@ -138,15 +139,30 @@ def dashboard_card_modal_view(request):
     }
     return render(request, 'budget/dashboard/dashboard_card_modal.html', context)
 
+
+
 def chart_summary(request):
     dsb_row_filter = request.GET.get('dsb_row_filter')
     is_htmx = request.headers.get('HX-Request') is not None
 
-    if is_htmx and dsb_row_filter == "cards_row":
-        cards_row_parent_category = request.GET.getlist('cards_row_parent_category')
-        transaction_types = request.GET.getlist('cards_row_transaction_type')
+    cards_row_transaction_types = dsb_filters.get_dsb_filter_param_or_none(request.GET, 'cards_row_transaction_type')
+    cards_row_parent_category = dsb_filters.get_dsb_filter_param_or_none(request.GET, 'cards_row_parent_category')
+    cards_row_category = dsb_filters.get_dsb_filter_param_or_none(request.GET, 'cards_row_category')
 
-        kpis = kpi_reading.get_kpis('month', '7.2025', transaction_types, cards_row_parent_category)
+    logger.debug(cards_row_transaction_types)
+    logger.debug(cards_row_parent_category)
+    logger.debug(cards_row_category)
+
+    # Apply category name mapping here so get_kpis doesn't have to know about it
+    cards_row_parent_category = dsb_filters.get_parent_categories_names_list(cards_row_parent_category)
+    cards_row_category = dsb_filters.get_categories_names_list(cards_row_category)
+
+    apply_filters = dsb_filters.not_none_filters((cards_row_category, cards_row_parent_category, cards_row_transaction_types))
+
+    if is_htmx and dsb_row_filter == "cards_row":
+
+
+        kpis = kpi_reading.get_kpis('month', '7.2025', apply_filters, cards_row_transaction_types, cards_row_parent_category, cards_row_category)
         context = {
             'kpis': kpis[0],
             'date_range': kpis[1],
@@ -157,19 +173,13 @@ def chart_summary(request):
     elif request.method == 'GET':
         params = flatten_querydict(request.GET)
 
-        cards_row_parent_category = request.GET.getlist('cards_row_parent_category')
-        transaction_types = request.GET.getlist('cards_row_transaction_type')
-
-        # parent_categories_params = []
-        # if cards_row_parent_category:
-        #     parent_categories_params.append(('parent_category', cards_row_parent_category))
-
         monthly_summaries = fetch_api_and_get_response(request, 'budget:monthly_summaries', 200, [('year', '2025')])
         parent_categories = fetch_api_and_get_response(request, 'budget:parent_categories', 200, params)
+        categories = fetch_api_and_get_response(request, 'budget:categories', 200, params)
 
-        # kpi_saving.calculate_daily_kpis()
+        kpi_saving.calculate_daily_kpis()
         # kpis = kpi_reading.get_kpis('day', '04.07.2025')
-        kpis = kpi_reading.get_kpis('month', '7.2025', transaction_types, cards_row_parent_category)
+        kpis = kpi_reading.get_kpis('month', '7.2025', apply_filters, cards_row_transaction_types, cards_row_parent_category, cards_row_category)
         # kpis = kpi_reading.get_kpis('year', '2025')
         # kpis = kpi_reading.get_kpis('all')
         # todo: when first month/year of all time, then change = N/A -> for now handled in template to be 0
@@ -179,6 +189,7 @@ def chart_summary(request):
             'kpis': kpis[0],
             'date_range': kpis[1],
             'parent_categories': parent_categories,
+            'categories': categories,
             'transaction_types': ['OUTGOING', 'INNER', 'INCOMING']
         }
 

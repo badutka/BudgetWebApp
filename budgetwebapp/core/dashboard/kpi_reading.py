@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
+
+from core.logger import logger
 from . import kpi_calc, filters
 
 DEFAULT_KPI_KEYS = ['INCOMING', 'OUTGOING', 'INNER', 'NUM_TRANSACTIONS', 'BALANCE', "BALANCE_REAL"]
@@ -153,7 +155,7 @@ def get_all_time_kpis(totals_kpis, daily_kpis, kpi_keys):
 
 
 
-def get_kpis(granularity='day', date_str=None, transaction_types=None, parent_categories=None):
+def get_kpis(granularity='day', date_str=None, apply_filters=False, transaction_types=None, parent_categories=None, categories=None):
     date = parse_date(date_str, mode=granularity) if granularity != 'all' else None
     starting_balance = kpi_calc.get_starting_balance()
     # date_from = '2025-07-01'
@@ -161,12 +163,13 @@ def get_kpis(granularity='day', date_str=None, transaction_types=None, parent_ca
     # date_to = '2026-01-01'
     date_from = None
     date_to = None
-    categories = None
-
-    parent_categories = filters.get_parent_categories_names_list(parent_categories)
 
     apply_date_filters = date_from or date_to
-    apply_filters: bool = filters.not_none_filters((categories, parent_categories, transaction_types))
+
+    logger.debug(f'{transaction_types = }')
+    logger.debug(f'{parent_categories = }')
+    logger.debug(f'{categories = }')
+    logger.debug(f'{apply_filters = }')
 
     if granularity == 'day':
         suffix = 'dod'
@@ -234,7 +237,8 @@ def get_kpis(granularity='day', date_str=None, transaction_types=None, parent_ca
 
         monthly_kpis = get_monthly_kpis(monthly_kpis, date, kpi_keys=DEFAULT_KPI_KEYS)
 
-        print(pd.DataFrame.from_dict(monthly_kpis[0]))
+        # logger.info(f'\n{pd.DataFrame.from_dict(monthly_kpis[0])}')
+        logger.info(pd.DataFrame.from_dict(monthly_kpis[0]))
 
         return monthly_kpis
 

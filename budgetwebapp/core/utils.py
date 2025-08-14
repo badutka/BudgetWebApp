@@ -3,8 +3,6 @@ from datetime import datetime
 
 from django.http import HttpResponseBadRequest, HttpResponse, HttpRequest
 from django.urls import reverse
-from typing import Any
-from django.db.models import Q
 
 
 def get_data_from_form(form):

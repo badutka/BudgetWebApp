@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from django.db.models import Sum
+from django.db.models import Sum, F
 
 from django_pandas.io import read_frame
 
@@ -88,9 +88,6 @@ def calculate_balance():
     return df
 
 
-
-
-
 def calculate_daily_kpis():
     """
     IDEA:
@@ -104,16 +101,14 @@ def calculate_daily_kpis():
     :return:
     """
     # Step 1: Query with select_related to avoid extra DB hits
-    qs = models.Transaction.objects.select_related('category').all()
+    # qs = models.Transaction.objects.select_related('category').all()
+    qs = models.Transaction.objects.select_related('category').annotate(category_name=F('category__name'))
 
     # Step 2: Convert to DataFrame
-    df = read_frame(qs, fieldnames=['id', 'date', 'amount', 'category', 'category__transaction_type',
-                                    'category__parent_category'])
+    df = read_frame(qs, fieldnames=['id', 'date', 'amount', 'category_name', 'category__transaction_type','category__parent_category'])
 
     # Rename for clarity
-    df.rename(
-        columns={'category__transaction_type': 'transaction_type', 'category__parent_category': 'parent_category'},
-        inplace=True)
+    df.rename(columns={'category__transaction_type': 'transaction_type', 'category__parent_category': 'parent_category', 'category_name': 'category'}, inplace=True)
 
     # Step 3: Ensure datetime
     df['date'] = pd.to_datetime(df['date'])
@@ -157,9 +152,12 @@ def calculate_daily_kpis():
     # CUMULATIVE ACCOUNTS BALANCE = starting_balance + (INCOMING - OUTGOING)
     starting_balance = kpi_calc.get_starting_balance()
     daily_kpis['BALANCE_REAL'] = round(starting_balance + (daily_kpis['INCOMING'] - daily_kpis['OUTGOING']).cumsum(), 2)
-    monthly_kpis['BALANCE_REAL'] = round(starting_balance + (monthly_kpis['INCOMING'] - monthly_kpis['OUTGOING']).cumsum(), 2)
-    yearly_kpis['BALANCE_REAL'] = round(starting_balance + (yearly_kpis['INCOMING'] - yearly_kpis['OUTGOING']).cumsum(), 2)
-    all_time_kpis['BALANCE_REAL'] = round(starting_balance + (all_time_kpis['INCOMING'] - all_time_kpis['OUTGOING']).cumsum(), 2)
+    monthly_kpis['BALANCE_REAL'] = round(
+        starting_balance + (monthly_kpis['INCOMING'] - monthly_kpis['OUTGOING']).cumsum(), 2)
+    yearly_kpis['BALANCE_REAL'] = round(starting_balance + (yearly_kpis['INCOMING'] - yearly_kpis['OUTGOING']).cumsum(),
+                                        2)
+    all_time_kpis['BALANCE_REAL'] = round(
+        starting_balance + (all_time_kpis['INCOMING'] - all_time_kpis['OUTGOING']).cumsum(), 2)
 
     kpis = {
         'daily': daily_kpis,
@@ -252,5 +250,3 @@ def calculate_daily_kpis():
     monthly_detail.to_csv('../artifacts/data/monthly_kpis_detailed.csv', index=False)
     yearly_detail.to_csv('../artifacts/data/yearly_kpis_detailed.csv', index=False)
     totals_detail.to_csv('../artifacts/data/totals_kpis_detailed.csv', index=False)
-
-
