@@ -48,13 +48,15 @@
   justify-content: flex-start;
   align-items: center;
   gap: 1em;
-  padding: 0 2%; /* horizontal spacing inside the row */
+  padding: 0 1%; /* horizontal spacing inside the row */
   flex-wrap: wrap; /* changed from nowrap to allow wrapping */
   color: #e0e6f5; /* text color */
   font-family: 'Segoe UI', sans-serif;
 }
 
 .filter-row input[type="date"],
+.filter-row input[type="month"],
+.filter-row select,
 .filter-row button {
   padding: 6px 10px;
   border-radius: 6px;
@@ -100,7 +102,8 @@
   background: rgba(255, 255, 255, 0.08); /* lighten background on hover */
   box-shadow: 0 0 5px rgba(100, 150, 255, 0.4); /* subtle outer glow */
   cursor: pointer;
-}
+  color: #acd5f3;
+  }
 
 /* Button specific tweak */
 .filter-row button[type="submit"] {
@@ -224,6 +227,10 @@ input:checked + .slider:before {
   opacity: 0;
   transform: translateY(-5px);
   transition: opacity 0.25s ease, transform 0.25s ease;
+
+  max-height: 500px;
+  overflow-y: auto; /* vertical scroll */
+  overflow-x: hidden; /* prevent horizontal scroll */
 }
 
 .filter-row-wrapper .dropdown-menu.show {
@@ -297,4 +304,28 @@ input:checked + .slider:before {
   background-color: #4a74e0; /* slightly lighter blue */
   border-color: #4a74e0;
   box-shadow: 0 0 6px rgba(100, 150, 255, 0.8);
+}
+
+/* SCROLLBAR */
+.filter-row-wrapper .dropdown-menu::-webkit-scrollbar {
+  width: 8px;
+}
+
+.filter-row-wrapper .dropdown-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.filter-row-wrapper .dropdown-menu::-webkit-scrollbar-thumb {
+  background: rgba(100, 150, 255, 0.4);
+  border-radius: 4px;
+}
+
+.filter-row-wrapper .dropdown-menu::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 150, 255, 0.6);
+}
+
+/* Apply pointer to all dropdown interactive items */
+.filter-row-wrapper .dropdown-menu input,
+.filter-row-wrapper .dropdown-menu label {
+  cursor: pointer;
 }
