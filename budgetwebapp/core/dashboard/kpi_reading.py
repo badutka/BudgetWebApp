@@ -1,37 +1,11 @@
 import pandas as pd
 import numpy as np
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 
 from core.logger import logger
 from . import kpi_calc, filters
 
 DEFAULT_KPI_KEYS = ['INCOMING', 'OUTGOING', 'INNER', 'NUM_TRANSACTIONS', 'BALANCE', "BALANCE_REAL"]
-
-
-def parse_date(date_str=None, mode='day'):
-    if date_str:
-        try:
-            if mode == 'day':
-                return datetime.strptime(date_str, '%d.%m.%Y')
-            elif mode == 'month':
-                return datetime.strptime(date_str, '%m.%Y')
-            elif mode == 'year':
-                return datetime.strptime(date_str, '%Y')
-            else:
-                raise ValueError("Mode must be 'day', 'month', or 'year'.")
-        except ValueError:
-            raise ValueError(f"Invalid date format for mode '{mode}'. Expected format: "
-                             f"'dd.mm.yyyy' for day, 'mm.yyyy' for month, or 'yyyy' for year.")
-    else:
-        now = datetime.now()
-        if mode == 'day':
-            return now
-        elif mode == 'month':
-            return now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        elif mode == 'year':
-            return now.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
-        else:
-            raise ValueError("Mode must be 'day', 'month', or 'year'.")
 
 
 def get_daily_date_range(date):
@@ -154,9 +128,12 @@ def get_all_time_kpis(totals_kpis, daily_kpis, kpi_keys):
     return result, date_range
 
 
+def get_kpis(granularity='mom', date_for=None, apply_filters=False, transaction_types=None, parent_categories=None, categories=None):
+    # logger.debug(f'{date_str = }')
 
-def get_kpis(granularity='day', date_str=None, apply_filters=False, transaction_types=None, parent_categories=None, categories=None):
-    date = parse_date(date_str, mode=granularity) if granularity != 'all' else None
+    # date_str = datetime.today().strftime("%Y-%m-%d") if not date_str else date_str
+
+    logger.debug(f'{date_for = }')
     starting_balance = kpi_calc.get_starting_balance()
     # date_from = '2025-07-01'
     # date_to = '2025-07-31'
@@ -166,10 +143,10 @@ def get_kpis(granularity='day', date_str=None, apply_filters=False, transaction_
 
     apply_date_filters = date_from or date_to
 
-    logger.debug(f'{transaction_types = }')
-    logger.debug(f'{parent_categories = }')
-    logger.debug(f'{categories = }')
-    logger.debug(f'{apply_filters = }')
+    # logger.debug(f'{transaction_types = }')
+    # logger.debug(f'{parent_categories = }')
+    # logger.debug(f'{categories = }')
+    # logger.debug(f'{apply_filters = }')
 
     if granularity == 'day':
         suffix = 'dod'
@@ -200,7 +177,7 @@ def get_kpis(granularity='day', date_str=None, apply_filters=False, transaction_
         else:
             kpis = pd.read_csv('../artifacts/data/daily_kpis.csv')
 
-        daily_kpis = get_daily_kpis(kpis, date, kpi_keys=DEFAULT_KPI_KEYS)
+        daily_kpis = get_daily_kpis(kpis, date_for, kpi_keys=DEFAULT_KPI_KEYS)
 
         print(pd.DataFrame.from_dict(daily_kpis[0]))
 
@@ -235,7 +212,7 @@ def get_kpis(granularity='day', date_str=None, apply_filters=False, transaction_
         else:
             monthly_kpis = pd.read_csv('../artifacts/data/monthly_kpis.csv')
 
-        monthly_kpis = get_monthly_kpis(monthly_kpis, date, kpi_keys=DEFAULT_KPI_KEYS)
+        monthly_kpis = get_monthly_kpis(monthly_kpis, date_for, kpi_keys=DEFAULT_KPI_KEYS)
 
         # logger.info(f'\n{pd.DataFrame.from_dict(monthly_kpis[0])}')
         logger.info(pd.DataFrame.from_dict(monthly_kpis[0]))
@@ -271,13 +248,13 @@ def get_kpis(granularity='day', date_str=None, apply_filters=False, transaction_
         else:
             yearly_kpis = pd.read_csv('../artifacts/data/yearly_kpis.csv')
 
-        yearly_kpis = get_yearly_kpis(yearly_kpis, date, kpi_keys=DEFAULT_KPI_KEYS)
+        yearly_kpis = get_yearly_kpis(yearly_kpis, date_for, kpi_keys=DEFAULT_KPI_KEYS)
 
         print(pd.DataFrame.from_dict(yearly_kpis[0]))
 
         return yearly_kpis
 
-    elif granularity == 'all':
+    elif granularity == 'all_time':
         if apply_date_filters:
             kpis = pd.read_csv('../artifacts/data/kpis_detailed.csv')
             kpis = kpi_calc.calculate_kpis_between_dates(

@@ -102,7 +102,7 @@ def filter_by_date_range(df, date_from=None, date_to=None):
     return df[mask]
 
 
-def calculate_kpis(df_kpis, group_by_col=None, transaction_types=None, categories=None, parent_categories=None, starting_balance=0, suffix='dod'):
+def calculate_kpis(df_kpis, group_by_col=None, transaction_types=None, categories=None, parent_categories=None, starting_balance=0, suffix='mom'):
     cols = ['INCOMING', 'OUTGOING', 'INNER', 'NUM_TRANSACTIONS', 'BALANCE', 'BALANCE_REAL']
 
     # 1) Filter by category / parent_category
@@ -120,7 +120,7 @@ def calculate_kpis(df_kpis, group_by_col=None, transaction_types=None, categorie
 
 
 def calculate_kpis_between_dates(df_kpis, group_by_col=None, transaction_types=None, categories=None, parent_categories=None, date_from=None,
-                                 date_to=None, starting_balance=0, suffix=None):
+                                 date_to=None, starting_balance=0, suffix='mom'):
     cols = ['INCOMING', 'OUTGOING', 'INNER', 'NUM_TRANSACTIONS', 'BALANCE', 'BALANCE_REAL']
 
     # 1) Filter by date
