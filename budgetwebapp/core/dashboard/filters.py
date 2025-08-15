@@ -1,7 +1,11 @@
 from budget import models
 from typing import Any
+from datetime import datetime, date
 
 from django.http import QueryDict
+
+from core.logger import logger
+
 # from django.db.models import Model
 
 def not_none_filters(filters_tuple: tuple[list[Any] | None, ...]) -> bool:
@@ -168,3 +172,111 @@ def get_categories_names_list(categories_pks: list[str] | None) -> list[str] | N
             or an empty list if the input is empty.
     """
     return get_names_list_by_pks(categories_pks, models.Category)
+
+
+def parse_date(date_str: str | date | datetime | None, mode: str = 'month') -> datetime | None:
+    """
+    Normalize a date to a specific granularity or return None for 'all_time'.
+
+    Converts the input to a datetime object if it is not already one, then
+    adjusts the date according to the requested mode.
+
+    Args:
+        date_str (str | date | datetime | None): The input date to normalize. Can be:
+            - None: Defaults to the current datetime.
+            - str: In ISO format 'YYYY-MM-DD', 'YYYY-MM', or 'YYYY'.
+            - date: datetime.date object.
+            - datetime: datetime.datetime object.
+        mode (str): Determines the level of granularity. One of:
+            - 'day': Return the exact date and time.
+            - 'month': Return the first day of the month at 00:00:00.
+            - 'year': Return January 1st of the year at 00:00:00.
+            - 'all_time': Return None (represents unbounded time).
+
+    Returns:
+        datetime | None: The normalized datetime object, or None for 'all_time'.
+
+    Raises:
+        ValueError: If the mode is not one of 'day', 'month', 'year', or 'all_time'.
+
+    Examples:
+        >>> parse_date('2025-07-15', 'month')
+        datetime.datetime(2025, 7, 1, 0, 0)
+
+        >>> parse_date('2025-07', 'month')
+        datetime.datetime(2025, 7, 1, 0, 0)
+
+        >>> parse_date(date(2025, 7, 15), 'year')
+        datetime.datetime(2025, 1, 1, 0, 0)
+
+        >>> parse_date(None, 'all_time')
+        None
+    """
+    # Step 1: Convert input to datetime if necessary
+    if not date_str:
+        date_obj = datetime.today()
+    elif isinstance(date_str, str):
+        parsed_date: datetime | None = None
+        # Try parsing full date, then year-month, then just year
+        for fmt in ("%Y-%m-%d", "%Y-%m", "%Y"):
+            try:
+                parsed_date = datetime.strptime(date_str, fmt)
+                break
+            except ValueError:
+                continue
+        if parsed_date is None:
+            logger.error(f"Invalid date string format: {date_str}")
+            raise ValueError(f"Invalid date string format: {date_str}")
+        date_obj = parsed_date
+    elif isinstance(date_str, date) and not isinstance(date_str, datetime):
+        date_obj = datetime.combine(date_str, datetime.min.time())
+    else:
+        date_obj = date_str
+
+    # Step 2: Adjust datetime based on the mode
+    if mode == 'day':
+        return date_obj
+    elif mode == 'month':
+        return date_obj.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    elif mode == 'year':
+        return date_obj.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+    elif mode == 'all_time':
+        return None
+    else:
+        logger.error("Mode must be 'day', 'month', 'year' or 'all_time'.")
+        raise ValueError("Mode must be 'day', 'month', 'year' or 'all_time'.")
+
+# def denormalize_date
+
+def parse_date_DEPR(date_str=None, mode='month'):
+    if date_str:
+        try:
+            if mode == 'day':
+                return datetime.strptime(date_str, '%d.%m.%Y')
+            elif mode == 'month':
+                return datetime.strptime(date_str, '%m.%Y')
+            elif mode == 'year':
+                return datetime.strptime(date_str, '%Y')
+            elif mode == 'all_time':
+                return None
+            else:
+                logger.error("Mode must be 'day', 'month', or 'year'.")
+                raise ValueError("Mode must be 'day', 'month', or 'year'.")
+        except ValueError:
+            logger.error(f"Invalid date format for mode '{mode}'. Expected format: "
+                         f"'dd.mm.yyyy' for day, 'mm.yyyy' for month, or 'yyyy' for year.")
+            raise ValueError(f"Invalid date format for mode '{mode}'. Expected format: "
+                             f"'dd.mm.yyyy' for day, 'mm.yyyy' for month, or 'yyyy' for year.")
+    else:
+        now = datetime.today()
+        if mode == 'day':
+            return now
+        elif mode == 'month':
+            return now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        elif mode == 'year':
+            return now.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+        elif mode == 'all_time':
+            return None
+        else:
+            logger.error("Mode must be 'day', 'month', or 'year'.")
+            raise ValueError("Mode must be 'day', 'month', or 'year'.")

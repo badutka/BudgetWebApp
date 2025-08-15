@@ -142,6 +142,7 @@ def dashboard_card_modal_view(request):
 
 
 def chart_summary(request):
+    years = list(range(2023, 2031))  # 2030 inclusive
     dsb_row_filter = request.GET.get('dsb_row_filter')
     is_htmx = request.headers.get('HX-Request') is not None
 
@@ -149,20 +150,22 @@ def chart_summary(request):
     cards_row_parent_category = dsb_filters.get_dsb_filter_param_or_none(request.GET, 'cards_row_parent_category')
     cards_row_category = dsb_filters.get_dsb_filter_param_or_none(request.GET, 'cards_row_category')
 
-    logger.debug(cards_row_transaction_types)
-    logger.debug(cards_row_parent_category)
-    logger.debug(cards_row_category)
-
     # Apply category name mapping here so get_kpis doesn't have to know about it
     cards_row_parent_category = dsb_filters.get_parent_categories_names_list(cards_row_parent_category)
     cards_row_category = dsb_filters.get_categories_names_list(cards_row_category)
 
     apply_filters = dsb_filters.not_none_filters((cards_row_category, cards_row_parent_category, cards_row_transaction_types))
 
+    aggregation = request.GET.get('cards_row_aggregation')
+    aggregation = 'month' if not aggregation else aggregation
+
+    date_for = request.GET.get('cards_row_date_for')
+    date_for = dsb_filters.parse_date(date_for, mode=aggregation) if aggregation != 'all_time' else None
+    logger.debug(f'{date_for = }')
+
     if is_htmx and dsb_row_filter == "cards_row":
 
-
-        kpis = kpi_reading.get_kpis('month', '7.2025', apply_filters, cards_row_transaction_types, cards_row_parent_category, cards_row_category)
+        kpis = kpi_reading.get_kpis(aggregation, date_for, apply_filters, cards_row_transaction_types, cards_row_parent_category, cards_row_category)
         context = {
             'kpis': kpis[0],
             'date_range': kpis[1],
@@ -179,7 +182,7 @@ def chart_summary(request):
 
         kpi_saving.calculate_daily_kpis()
         # kpis = kpi_reading.get_kpis('day', '04.07.2025')
-        kpis = kpi_reading.get_kpis('month', '7.2025', apply_filters, cards_row_transaction_types, cards_row_parent_category, cards_row_category)
+        kpis = kpi_reading.get_kpis(aggregation, date_for, apply_filters, cards_row_transaction_types, cards_row_parent_category, cards_row_category)
         # kpis = kpi_reading.get_kpis('year', '2025')
         # kpis = kpi_reading.get_kpis('all')
         # todo: when first month/year of all time, then change = N/A -> for now handled in template to be 0
@@ -190,7 +193,11 @@ def chart_summary(request):
             'date_range': kpis[1],
             'parent_categories': parent_categories,
             'categories': categories,
-            'transaction_types': ['OUTGOING', 'INNER', 'INCOMING']
+            'transaction_types': ['OUTGOING', 'INNER', 'INCOMING'],
+            'periods': ["day", "month", "year", "all_time"],
+            'date_for': date_for,
+            'years': years,
+            'aggregation': aggregation
         }
 
         return render(request, 'budget/chart_summary.html', context)
