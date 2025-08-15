@@ -26,7 +26,7 @@ LOG_FILE_PATH = os.path.join(LOG_PATH, LOG_FILE)
 # - Timestamp
 # - Hostname + Logger name + PID
 # - Custom [module.func:line] section injected via a filter
-LOG_FORMAT = '[ %(asctime)s ] [ %(hostname)s %(name)s[%(process)d] ] [%(mod_func_line)s] - %(levelname)s - %(message)s'
+LOG_FORMAT = '[ %(asctime)s ] [ %(hostname)s %(name)s[%(process)d] ] [ %(mod_func_line)s ] - %(levelname)s - %(message)s'
 
 
 # LOG_FORMAT = (
@@ -212,7 +212,9 @@ class Logger(metaclass=Singleton):
                     # 'module': {'color': 'cyan', 'bold': True},  # module.func will inherit this
                     # 'funcName': {'color': 'cyan', 'bold': True},  # optional to reinforce
                     # 'lineno': {'color': 'cyan'}  # line number in same color
-                    'mod_func_line': {'color': 'cyan', 'bold': True}  # custom field for module.func:line
+                    'mod_func_line': {'color': 'cyan', 'bold': True},  # custom field for module.func:line
+                    'levelname': {'color': 'white', 'bold': True, 'underline': True, 'background': 'black'},
+                    'asctime': {'color': 'green'}#
                 }
             )
 
