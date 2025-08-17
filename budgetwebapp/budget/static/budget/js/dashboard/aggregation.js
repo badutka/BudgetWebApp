@@ -18,10 +18,23 @@ function updateAggregationButtonText(fieldName, fullName = false) {
   if (selected && button) {
     const value = selected.value;
     const displayValue = fullName
-      ? value.charAt(0).toUpperCase() + value.slice(1) // Example: "month" → "Month"
-      : value.charAt(0).toUpperCase();                  // Example: "month" → "M"
+      ? value.charAt(0).toUpperCase() + value.slice(1) // e.g. "month" → "Month"
+      : value.charAt(0).toUpperCase();                 // e.g. "month" → "M"
 
-    button.textContent = `Aggregation (${displayValue})`;
+    const span = button.querySelector('.agg-button-text');
+
+    if (span) {
+      span.classList.add('fading');
+
+      span.addEventListener('transitionend', function handler() {
+        span.textContent = `(${displayValue})`;
+        span.classList.remove('fading');
+        span.removeEventListener('transitionend', handler);
+      });
+    } else {
+      // fallback if span not found
+      button.innerHTML = `Aggregation <span class="agg-button-text">(${displayValue})</span>`;
+    }
   }
 }
 
@@ -106,6 +119,62 @@ export function updateDateForInputType() {
   }
 
   /**
+   * swapWithTransition
+   *
+   * Fades out + smoothly resizes the wrapper, swaps the inner HTML,
+   * then fades/resizes it back in.
+   *
+   * This prevents "stutter" when switching between different input sizes
+   * (e.g., month input vs. full date input vs. year dropdown).
+   */
+function swapWithTransition(html) {
+    // First time (no animation)
+    if (!wrapper.dataset.ready) {
+        wrapper.innerHTML = html;
+        wrapper.dataset.ready = '1';
+        return;
+    }
+
+    // Measure current width
+    const oldWidth = wrapper.offsetWidth;
+
+    // Measure new width off-DOM
+    wrapper.style.visibility = 'hidden';
+    wrapper.innerHTML = html;
+    const newWidth = wrapper.offsetWidth;
+
+    // Clear temporary content and reset visibility
+    wrapper.innerHTML = '';
+    wrapper.style.visibility = '';
+
+    // Lock to old width
+    wrapper.style.width = oldWidth + 'px';
+
+    // Force reflow to apply the width
+    wrapper.offsetHeight; // reading offsetHeight triggers reflow
+
+    // Trigger fade / resize transition
+    wrapper.classList.add('is-swapping');
+    wrapper.style.width = newWidth + 'px';
+
+    const onFadeOutEnd = (e) => {
+        // Only handle opacity transition end
+        if (e.propertyName !== 'opacity') return;
+
+        wrapper.removeEventListener('transitionend', onFadeOutEnd);
+
+        // Swap in new content
+        wrapper.innerHTML = html;
+
+        // Reset styles and classes
+        wrapper.classList.remove('is-swapping');
+        wrapper.style.width = ''; // release to auto
+    };
+
+    wrapper.addEventListener('transitionend', onFadeOutEnd, { once: true });
+}
+
+  /**
    * renderInput
    *
    * Replaces the #cards_row_date_for input based on selected aggregation:
@@ -170,7 +239,9 @@ export function updateDateForInputType() {
         `;
     }
 
-    wrapper.innerHTML = newElementHTML;
+//    wrapper.innerHTML = newElementHTML;
+    swapWithTransition(newElementHTML);
+    animateForLabel();
   }
 
   // Listen for aggregation changes
@@ -196,3 +267,35 @@ document.addEventListener('click', function(e) {
     document.getElementById('cards_row_year_dropdown').textContent = year;
   }
 });
+
+/**
+ * animateForLabel
+ *
+ * Briefly hides and then re-shows the "For:" label to smooth over
+ * visual stutter when the date input (#cards_row_date_wrapper) changes.
+ *
+ * Behavior:
+ * - Adds the `.hiding` class, which triggers a CSS fade-out.
+ * - Waits for the opacity transition to finish.
+ * - Removes `.hiding` to fade the label back in.
+ *
+ * Safety:
+ * - Does nothing if `.for-label-wrapper` is not present in the DOM.
+ *
+ * Usage:
+ * - Called after swapping the date input to keep label + input animations in sync.
+ */
+function animateForLabel() {
+  const wrapper = document.querySelector('.for-label-wrapper');
+  if (!wrapper) return; // No label found → nothing to animate
+
+  // Trigger fade-out
+  wrapper.classList.add('hiding');
+
+  // Once fade-out completes, fade back in
+  wrapper.addEventListener('transitionend', function handler(e) {
+    if (e.propertyName !== 'opacity') return; // Only react to opacity transition
+    wrapper.classList.remove('hiding');       // Fade back in
+    wrapper.removeEventListener('transitionend', handler); // Clean up listener
+  });
+}

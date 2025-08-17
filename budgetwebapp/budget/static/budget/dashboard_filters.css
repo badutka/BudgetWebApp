@@ -329,3 +329,50 @@ input:checked + .slider:before {
 .filter-row-wrapper .dropdown-menu label {
   cursor: pointer;
 }
+
+/* ============================================================
+   Animations for aggregation changes:
+   - Smoothly swap the #cards_row_date_wrapper input field
+   - Fade the aggregation button text when switching values
+   - Temporarily hide/show the "For:" label to avoid stutter
+   ============================================================ */
+
+/* Date input wrapper:
+   Inline-block lets width shrink/grow naturally between input types.
+   Transition ensures smooth fade + resize on swaps. */
+#cards_row_date_wrapper {
+  display: inline-block;
+  transition: opacity 0.15s ease, width 0.15s ease;
+  opacity: 1;
+}
+
+/* While swapping, fade out the wrapper so the old input disappears cleanly. */
+#cards_row_date_wrapper.is-swapping {
+  opacity: 0;
+}
+
+/* Aggregation button text:
+   Inline-block + opacity transition allows fade-out/fade-in text updates. */
+.agg-button-text {
+  display: inline-block;
+  transition: opacity 0.15s ease;
+}
+
+/* Temporary fade-out state when button text is being updated. */
+.agg-button-text.fading {
+  opacity: 0;
+}
+
+/* "For:" label wrapper:
+   Inline-block + transition for smooth hide/show animations. */
+.for-label-wrapper {
+  display: inline-block;
+  transition: opacity 0.15s ease;
+}
+
+/* Applied briefly during aggregation change
+   so the label disappears before the input stutter. */
+.for-label-wrapper.hiding {
+  opacity: 0;
+}
+
