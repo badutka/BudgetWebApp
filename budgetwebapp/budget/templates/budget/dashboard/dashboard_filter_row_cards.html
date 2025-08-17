@@ -68,10 +68,10 @@
       </div>
 
     <label>From:</label>
-    <input type="date" name="cards_row_date_from" id="cards_row_date_from" form="dashboard-filter-cards-row-form">
+    <input type="date" name="cards_row_date_from" id="cards_row_date_from" form="dashboard-filter-cards-row-form" value="{{ date_from|default_if_none:'' }}">
 
     <label>To:</label>
-    <input type="date" name="cards_row_date_to" id="cards_row_date_to" form="dashboard-filter-cards-row-form">
+    <input type="date" name="cards_row_date_to" id="cards_row_date_to" form="dashboard-filter-cards-row-form" value="{{ date_to|default_if_none:'' }}">
 
     <!-- Transaction Types Dropdown -->
     <div class="dropdown">

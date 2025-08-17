@@ -35,12 +35,13 @@ def prepare_kpi_df(kpis, col):
     return kpis
 
 
-def get_all_time_date_range(daily_kpis):
+def get_all_time_date_range(daily_kpis=None) -> tuple[str, str]:
+    if daily_kpis is None:
+        daily_kpis = pd.read_csv('../artifacts/data/daily_kpis.csv')
     daily_kpis = prepare_kpi_df(daily_kpis, 'day')
     start_date = daily_kpis['day'].min().strftime('%d.%m.%Y')
     end_date = daily_kpis['day'].max().strftime('%d.%m.%Y')
-    return f"{start_date} - {end_date}"
-
+    return start_date, end_date
 
 def build_kpi_result(row, kpi_keys, prefix=None):
     result = {}
@@ -121,32 +122,16 @@ def get_all_time_kpis(totals_kpis, daily_kpis, kpi_keys):
     result = build_kpi_result(row, kpi_keys, prefix=None)
 
     if not daily_kpis.empty:
-        date_range = get_all_time_date_range(daily_kpis)
+        start_date, end_date = get_all_time_date_range(daily_kpis)
+        date_range = f'{start_date} - {end_date}'
     else:
         date_range = None
 
     return result, date_range
 
 
-def get_kpis(granularity='mom', date_for=None, apply_filters=False, transaction_types=None, parent_categories=None, categories=None):
-    # logger.debug(f'{date_str = }')
-
-    # date_str = datetime.today().strftime("%Y-%m-%d") if not date_str else date_str
-
-    logger.debug(f'{date_for = }')
+def get_kpis(granularity='mom', date_for=None, date_from=None, date_to=None, apply_date_filters=False, apply_filters=False, transaction_types=None, parent_categories=None, categories=None):
     starting_balance = kpi_calc.get_starting_balance()
-    # date_from = '2025-07-01'
-    # date_to = '2025-07-31'
-    # date_to = '2026-01-01'
-    date_from = None
-    date_to = None
-
-    apply_date_filters = date_from or date_to
-
-    # logger.debug(f'{transaction_types = }')
-    # logger.debug(f'{parent_categories = }')
-    # logger.debug(f'{categories = }')
-    # logger.debug(f'{apply_filters = }')
 
     if granularity == 'day':
         suffix = 'dod'

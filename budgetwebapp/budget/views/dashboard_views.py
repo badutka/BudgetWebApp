@@ -27,9 +27,15 @@ def chart_summary(request):
     date_for = dsb_filters.parse_date(date_for, mode=aggregation) if aggregation != 'all_time' else None
     logger.debug(f'{date_for = }')
 
+    date_from = request.GET.get('cards_row_date_from')
+    date_to = request.GET.get('cards_row_date_to')
+    date_from = None if not date_from else date_from
+    date_to = None if not date_to else date_to
+    apply_date_filters = dsb_filters.not_none_filters((date_from, date_to))
+
     if is_htmx and dsb_row_filter == "cards_row":
 
-        kpis = kpi_reading.get_kpis(aggregation, date_for, apply_filters, cards_row_transaction_types, cards_row_parent_category, cards_row_category)
+        kpis = kpi_reading.get_kpis(aggregation, date_for, date_from, date_to, apply_date_filters, apply_filters, cards_row_transaction_types, cards_row_parent_category, cards_row_category)
         context = {
             'kpis': kpis[0],
             'date_range': kpis[1],
@@ -44,9 +50,9 @@ def chart_summary(request):
         parent_categories = utils.fetch_api_and_get_response(request, 'budget:parent_categories', 200, params)
         categories = utils.fetch_api_and_get_response(request, 'budget:categories', 200, params)
 
-        kpi_saving.calculate_daily_kpis()
+        # kpi_saving.calculate_daily_kpis()
         # kpis = kpi_reading.get_kpis('day', '04.07.2025')
-        kpis = kpi_reading.get_kpis(aggregation, date_for, apply_filters, cards_row_transaction_types, cards_row_parent_category, cards_row_category)
+        kpis = kpi_reading.get_kpis(aggregation, date_for, date_from, date_to, apply_date_filters, apply_filters, cards_row_transaction_types, cards_row_parent_category, cards_row_category)
         # kpis = kpi_reading.get_kpis('year', '2025')
         # kpis = kpi_reading.get_kpis('all')
         # todo: when first month/year of all time, then change = N/A -> for now handled in template to be 0
@@ -60,6 +66,8 @@ def chart_summary(request):
             'transaction_types': ['OUTGOING', 'INNER', 'INCOMING'],
             'periods': ["day", "month", "year", "all_time"],
             'date_for': date_for,
+            'date_from': date_from,
+            'date_to': date_to,
             'years': years,
             'aggregation': aggregation
         }
