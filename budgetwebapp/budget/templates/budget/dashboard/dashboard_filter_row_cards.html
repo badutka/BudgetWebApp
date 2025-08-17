@@ -2,11 +2,38 @@
 <div class="filter-row-wrapper filter-row-collapsible">
   <i class="bi bi-filter" style="color: white;"></i>
 
+  <!--
+    Refresh Button for KPI Recalculation
+
+    Purpose:
+    - When clicked, this button sends a POST request to the 'chart_summary' view.
+    - It signals the backend to recalculate KPIs without polluting the URL with query parameters.
+    - The response (updated KPI cards) replaces the content inside #dashboard-cards-container.
+    - Works with Django + HTMX.
+
+    Key Points:
+    - `hx-post`: Specifies the URL endpoint to send the POST request to.
+    - `hx-include`: Includes the specified form's fields in the POST request.
+      - Here, we include #dashboard-filter-cards-row-form to get the CSRF token and optionally any filters.
+    - `hx-vals`: Adds extra values to the request payload.
+      - `{"cards_row_refresh": true}` is a signal to the backend to recalculate KPIs.
+    - `hx-target`: The element whose content will be replaced by the response.
+      - "#dashboard-cards-container" will receive the updated KPI cards HTML.
+    - `hx-swap`: Defines how the response replaces the target's content.
+      - "innerHTML" replaces the target's existing content entirely.
+    - Inline `style`: Keeps the button visually minimal (just the refresh icon).
+  -->
+
   <button class="refresh-button"
-          style="background: none; border: none; color: white; cursor: pointer; font-size: clamp(1.5rem, 1vw, 2rem); line-height: 1;"
-          onclick="refreshCard(this)">
+          hx-post="{% url 'budget:chart_summary' %}"
+          hx-include="#dashboard-filter-cards-row-form"
+          hx-vals='{"cards_row_refresh": true}'
+          hx-target="#dashboard-cards-container"
+          hx-swap="innerHTML"
+          style="background: none; border: none; color: white; cursor: pointer; font-size: clamp(1.5rem, 1vw, 2rem); line-height: 1;">
     &#x21bb;
   </button>
+
   <div style="background: white; height: 33px; width: 1px; box-shadow: 0 0 30px white;"></div>
   <!--    <span class="filter-title">Filters</span>-->
   <div class="filter-row">
@@ -191,6 +218,7 @@
           hx-push-url="true"
           hx-trigger="submit"
           style="display: contents;">
+      {% csrf_token %}
     </form>
 
     <!-- Hidden field to indicate that the filter form has been submitted.
