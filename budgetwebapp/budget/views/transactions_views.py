@@ -141,7 +141,7 @@ def transaction_edit(request, transaction_id):
 
         if form.is_valid():
             # updated_transaction = form.save(commit=False)
-            api_url = request.build_absolute_uri(reverse('budget:transaction_update_api', args=[transaction_id]))
+            api_url = request.build_absolute_uri(reverse('budget:transaction_api', args=[transaction_id]))
             response = requests.put(api_url, data=utils.get_data_from_form(form))
             return utils.get_response_by_status_code(response, 200, HttpResponse(status=200), HttpResponseBadRequest())
 
@@ -156,7 +156,7 @@ def transaction_edit(request, transaction_id):
 
 
 def transaction_delete(request, transaction_id):
-    api_url = request.build_absolute_uri(reverse('budget:transaction_delete_api', args=[transaction_id]))
+    api_url = request.build_absolute_uri(reverse('budget:transaction_api', args=[transaction_id]))
 
     if request.method == 'GET':
         response = requests.delete(api_url)
