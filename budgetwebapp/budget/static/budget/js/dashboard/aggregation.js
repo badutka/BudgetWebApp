@@ -1,15 +1,26 @@
 /**
- * Updates the aggregation dropdown button text to reflect
- * the currently selected radio button value.
+ * updateAggregationButtonText
+ *
+ * Updates the aggregation dropdown button text (e.g., "(D)", "(M)", "(Month)")
+ * whenever the selected aggregation radio changes, with smooth fade + width animations.
  *
  * @param {string} fieldName - The `name` attribute of the aggregation radio inputs.
- * @param {boolean} [fullName=false] - If true, display the full capitalized value (e.g., "Month").
- *                                     If false, display just the first letter (e.g., "M").
+ * @param {boolean} [fullName=false] - If true, display the full capitalized value
+ *                                     (e.g., "Month"). If false, display only
+ *                                     the first letter (e.g., "M").
  *
  * Behavior:
  * - Finds the checked radio button for the given field.
- * - Updates the matching dropdown button's text to show the selection.
- * - Does nothing if no radio is selected or if the button isn't found.
+ * - Updates the dropdown button text with a fade-out/fade-in transition.
+ * - Animates the button’s width so it resizes smoothly when text length changes
+ *   (e.g., "(M)" → "(Month)").
+ * - Does nothing if no radio is selected or if the button is not found.
+ *
+ * Implementation details:
+ * - Old button width is measured before text update.
+ * - New width is measured after update.
+ * - Button temporarily locks to old width, then transitions to new width.
+ * - After transition ends, inline width is cleared so the button can grow/shrink naturally.
  */
 function updateAggregationButtonText(fieldName, fullName = false) {
   const selected = document.querySelector(`input[name="${fieldName}"]:checked`);
@@ -24,15 +35,41 @@ function updateAggregationButtonText(fieldName, fullName = false) {
     const span = button.querySelector('.agg-button-text');
 
     if (span) {
+      // Capture the button’s current width before text change
+      const oldWidth = button.offsetWidth;
+
+      // Trigger text fade-out
       span.classList.add('fading');
 
+      // Wait for fade-out to finish, then swap text + animate width
       span.addEventListener('transitionend', function handler() {
         span.textContent = `(${displayValue})`;
+
+        // Measure new width after updating text
+        const newWidth = button.offsetWidth;
+
+        // Lock to old width and then animate to new width
+        button.style.width = oldWidth + 'px';
+        button.offsetHeight; // Force reflow so width lock takes effect
+        button.style.width = newWidth + 'px';
+
+        // Prevent ellipses while animating width
+        button.classList.add('no-ellipsis');
+
+        // Once width transition ends, release inline width back to auto
+        button.addEventListener('transitionend', function release(ev) {
+          if (ev.propertyName !== 'width') return;
+          button.style.width = '';
+          button.classList.remove('no-ellipsis'); // remove here
+          button.removeEventListener('transitionend', release);
+        });
+
+        // Clean up: fade-in text again and remove listener
         span.classList.remove('fading');
         span.removeEventListener('transitionend', handler);
       });
     } else {
-      // fallback if span not found
+      // Fallback if span not found → rebuild inner HTML
       button.innerHTML = `Aggregation <span class="agg-button-text">(${displayValue})</span>`;
     }
   }

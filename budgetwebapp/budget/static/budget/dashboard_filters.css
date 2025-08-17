@@ -376,3 +376,16 @@ input:checked + .slider:before {
   opacity: 0;
 }
 
+/* Aggregation dropdown button:
+   Smoothly resizes when the inner text length changes. */
+#cards_row_aggregationDropdownButton {
+  display: inline-block;
+  transition: width 0.2s ease, opacity 0.15s ease;
+  white-space: nowrap; /* prevent wrapping during resize */
+}
+
+/* During transition of Aggregation button text
+   no-ellipsis is added before, and removed after */
+#cards_row_aggregationDropdownButton.no-ellipsis {
+  text-overflow: clip;
+}
