@@ -5,6 +5,7 @@ from django.http import HttpRequest
 from budget.services.dashboard_filters import DashboardFilters
 from budget.services.kpis import get_kpis
 from budget.services.data_fetcher import fetch_categories_and_summaries
+from core.dashboard_data import charts
 
 @require_http_methods(["GET", "POST"])
 def chart_summary(request: HttpRequest):
@@ -42,10 +43,11 @@ def chart_summary(request: HttpRequest):
     # Full page load
     # ------------------------------
     monthly_summaries, parent_categories, categories = fetch_categories_and_summaries(request, filters)
+    monthly_data = charts.calculate_chart_data(monthly_summaries)
     kpis = get_kpis(filters)
 
     context = {
-        "monthly_data": monthly_summaries,
+        "monthly_data": monthly_data,
         "kpis": kpis[0],
         "date_range": kpis[1],
         "parent_categories": parent_categories,
@@ -60,6 +62,7 @@ def chart_summary(request: HttpRequest):
     }
 
     return render(request, "budget/dashboard/chart_summary.html", context)
+
 
 def dashboard_card_modal_view(request):
     card_type = request.GET.get("type")
