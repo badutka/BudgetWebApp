@@ -1,0 +1,10 @@
+{% load static %}
+
+<div class="chart-header truncate">
+  <div class="drilldown-button" hx-get="{% url 'budget:transactions_by_category' 194 %}"
+        hx-target="#dialog-transactions-by-cat"
+        hx-on="click"><span class="drilldown-icon">▼</span></div>
+  <div class="chart-title">{{ title }}</div>
+  <div class="spacer"></div>
+</div>
+<hr class="mb-1" style="color:white;">

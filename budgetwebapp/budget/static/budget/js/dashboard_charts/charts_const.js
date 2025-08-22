@@ -4,6 +4,12 @@ export const chartOptions = {
     'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
   ],
 
+  dateFormats: {
+      dateFormatFull: '%b %e, %Y',
+      dateFormatMonth: '%b %Y',
+      dateFormatyear: '%Y',
+  },
+
   // === Shared style variables ===
   colors: {
     WHITE: '#ffffff',
@@ -11,6 +17,11 @@ export const chartOptions = {
     GRID: '#303f53',          // dark gray grid lines
     CROSSHAIR: '#5181B8',
     TOOLTIP_BG: 'rgba(15, 23, 42, 0.6)', // dark navy with slight transparency
+
+    // === Primary chart colors ===
+//    PRIMARY: '#5181B8',   // blue for income
+    PRIMARY: '#2caffe',   // blue for income
+    SECONDARY: '#E76F51', // warm orange/red for expenses
   },
 
   font: {

@@ -47,31 +47,22 @@
     </div>
 </div>
 
-<div class="chart-row chart-row-3 mb-3 hoverable-items truncate">
-    <div id="balance-chart-container" class="chart-col-1-4 chart-panel" style="overflow: hidden;">
-        <div class="chart-header truncate">
-            <div class="drilldown-button" hx-get="{% url 'budget:transactions_by_category' 194 %}"
-                 hx-target="#dialog-transactions-by-cat"
-                 hx-on="click"><span class="drilldown-icon">▼</span></div>
-            <div class="chart-title">2025 Monthly Financial Overview</div>
-            <div class="spacer"></div>
-        </div>
-        <hr class="mb-1" style="color:white;">
-        <div id="balance-chart"></div>
+<div class="chart-row chart-row-4 mb-3 hoverable-items truncate">
+    <div id="summaries-chart-container" class="chart-col-1-4 chart-panel" style="overflow: hidden;">
+        {% include 'budget/dashboard/common_chart_title.html' with title='Summaries by'%}
+        <div id="summaries-chart"></div>
     </div>
-    <div id="balance-chart-container2" class="chart-col-1-2 chart-panel">
-        <div class="chart-header truncate">
-            <div class="drilldown-button" hx-get="{% url 'budget:transactions_by_category' 194 %}"
-                 hx-target="#dialog-transactions-by-cat"
-                 hx-on="click"><span class="drilldown-icon">▼</span></div>
-            <div class="chart-title">2025 Monthly Financial Overview</div>
-            <div class="spacer"></div>
-        </div>
-        <hr class="mb-1" style="color:white;">
-        <div id="balance-chart2"></div>
+    <div id="volatility-trend-chart-container" class="chart-col-1-4 chart-panel">
+        {% include 'budget/dashboard/common_chart_title.html' with title='Expenses/Income Volatility'%}
+        <div id="volatility-trend-chart"></div>
     </div>
-    <div id="balance-chart-container3" class="chart-col-1-4 chart-panel">
-        <div id="balance-chart3"></div>
+    <div id="cumulative-chart-container" class="chart-col-1-4 chart-panel">
+        {% include 'budget/dashboard/common_chart_title.html' with title='Cumulative Expenses/Income'%}
+        <div id="cumulative-chart"></div>
+    </div>
+    <div id="savings-rate-chart-container" class="chart-col-1-4 chart-panel">
+        {% include 'budget/dashboard/common_chart_title.html' with title='Savings Rate'%}
+        <div id="savings-rate-chart"></div>
     </div>
 </div>
 
@@ -80,7 +71,7 @@
 
 {{ monthly_data|json_script:"balance-chart-data" }}
 
-<script defer type="module" src="{% static 'budget/js/dashboard_charts/chart1.js' %}"></script>
+<script defer type="module" src="{% static 'budget/js/dashboard_charts/dashboard_charts.js' %}"></script>
 <script defer src="{% static 'budget/js/dashboard_charts/dashboard.js' %}"></script>
 
 <!-- Modal for dashboard cards -->
