@@ -1,11 +1,12 @@
 from budget.services.dashboard_filters import DashboardFilters
 from core.dashboard import kpi_reading, kpi_saving
 
+
 def get_kpis(filters: DashboardFilters) -> tuple[dict, tuple | None]:
     """
-    Calculate and return KPI data.
+    Calculate and return KPI data for the selected dashboard row.
 
-    If HTMX POST signals a refresh, daily KPIs are recalculated.
+    If HTMX POST signals a refresh for this row, daily KPIs are recalculated.
 
     Args:
         filters (DashboardFilters): DashboardFilters object with applied filters and date range.
@@ -25,7 +26,7 @@ def get_kpis(filters: DashboardFilters) -> tuple[dict, tuple | None]:
         filters.date_to,
         filters.apply_date_filters,
         filters.apply_filters,
-        filters.cards_row_transaction_types,
-        filters.cards_row_parent_category,
-        filters.cards_row_category
+        filters.filters.get("transaction_types"),
+        filters.filters.get("parent_categories"),
+        filters.filters.get("categories"),
     )
