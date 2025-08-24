@@ -36,16 +36,7 @@
 
 </div>
 
-
-<div class="filter-row-wrapper filter-row-collapsible">
-    <div class="filter-row">
-        <label>From:</label>
-        <input type="date">
-        <label>To:</label>
-        <input type="date">
-        <button>Apply</button>
-    </div>
-</div>
+{% include 'budget/dashboard/dsb_summary_row_filter.html'%}
 
 <div class="chart-row chart-row-4 mb-3 hoverable-items truncate">
     <div id="summaries-chart-container" class="chart-col-1-4 chart-panel" style="overflow: hidden;">
