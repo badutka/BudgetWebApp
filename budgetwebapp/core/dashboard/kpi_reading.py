@@ -164,7 +164,8 @@ def get_kpis(granularity='mom', date_for=None, date_from=None, date_to=None, app
 
         daily_kpis = get_daily_kpis(kpis, date_for, kpi_keys=DEFAULT_KPI_KEYS)
 
-        print(pd.DataFrame.from_dict(daily_kpis[0]))
+        # print(pd.DataFrame.from_dict(daily_kpis[0]))
+        # logger.info(pd.DataFrame.from_dict(daily_kpis[0]))
 
         return daily_kpis
 
@@ -200,7 +201,7 @@ def get_kpis(granularity='mom', date_for=None, date_from=None, date_to=None, app
         monthly_kpis = get_monthly_kpis(monthly_kpis, date_for, kpi_keys=DEFAULT_KPI_KEYS)
 
         # logger.info(f'\n{pd.DataFrame.from_dict(monthly_kpis[0])}')
-        logger.info(pd.DataFrame.from_dict(monthly_kpis[0]))
+        # logger.info(pd.DataFrame.from_dict(monthly_kpis[0]))
 
         return monthly_kpis
 
@@ -235,7 +236,7 @@ def get_kpis(granularity='mom', date_for=None, date_from=None, date_to=None, app
 
         yearly_kpis = get_yearly_kpis(yearly_kpis, date_for, kpi_keys=DEFAULT_KPI_KEYS)
 
-        print(pd.DataFrame.from_dict(yearly_kpis[0]))
+        # print(pd.DataFrame.from_dict(yearly_kpis[0]))
 
         return yearly_kpis
 
@@ -266,7 +267,7 @@ def get_kpis(granularity='mom', date_for=None, date_from=None, date_to=None, app
         daily_kpis = pd.read_csv('../artifacts/data/daily_kpis.csv')
         all_time_kpis = get_all_time_kpis(kpis, daily_kpis, kpi_keys=DEFAULT_KPI_KEYS)
 
-        print(pd.DataFrame.from_dict(all_time_kpis[0]))
+        # print(pd.DataFrame.from_dict(all_time_kpis[0]))
 
         return all_time_kpis
 

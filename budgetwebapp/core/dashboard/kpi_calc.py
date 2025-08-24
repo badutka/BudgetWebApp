@@ -4,6 +4,7 @@ import pandas as pd
 from django.db.models import Sum
 
 from budget import models
+from core.logger import logger
 
 
 def add_change_metrics(df, columns, suffix, as_string=False):

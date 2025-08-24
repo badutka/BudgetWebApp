@@ -199,7 +199,7 @@ class MonthlySummaryAPIView(generics.ListCreateAPIView):
         queryset = super().get_queryset()
         year = self.kwargs.get('year')
         month = self.kwargs.get('month')
-        print(f'{self.request.query_params = }')
+        # print(f'{self.request.query_params = }')
 
         if year is not None and month is not None:
             return queryset.filter(year=year, month=month)
