@@ -8,6 +8,7 @@ from core.logger import logger
 
 
 def group_kpis(df, group_by_col=None):
+    # Define all possible aggregations
     agg_map = {
         'INCOMING': 'sum',
         'OUTGOING': 'sum',
@@ -16,46 +17,21 @@ def group_kpis(df, group_by_col=None):
         'BALANCE': 'sum',
     }
 
+    # Keep only the aggregations for columns that actually exist in df
+    valid_agg_map = {col: agg for col, agg in agg_map.items() if col in df.columns}
+
+    if not valid_agg_map:
+        raise ValueError("None of the expected KPI columns are present in the DataFrame.")
+
     if group_by_col is None:
         # Single-row DataFrame with total sums
-        grouped_df = df.agg(agg_map).to_frame().T
+        grouped_df = df.agg(valid_agg_map).to_frame().T
     else:
-        grouped_df = df.groupby(group_by_col).agg(agg_map).reset_index()
+        grouped_df = df.groupby(group_by_col).agg(valid_agg_map).reset_index()
 
     # grouped = df_kpis.groupby(group_by_col).agg({col: 'sum' for col in cols}).reset_index()
 
-    grouped_df = grouped_df.round(2)
-    return grouped_df
-
-
-class DataFilter:
-    def __init__(self):
-        self._filters = []
-
-    def by_categories(self, categories):
-        if categories is not None:
-            self._filters.append(lambda df: df['category'].isin(categories))
-        return self
-
-    def by_parent_categories(self, parent_categories):
-        if parent_categories is not None:
-            self._filters.append(lambda df: df['parent_category'].isin(parent_categories))
-        return self
-
-    def by_transaction_types(self, transaction_types):
-        if transaction_types is not None:
-            self._filters.append(lambda df: df['transaction_type'].isin(transaction_types))
-        return self
-
-    def apply(self, df: pd.DataFrame) -> pd.DataFrame:
-        if not self._filters:  # nothing to filter
-            return df
-
-        mask = pd.Series(True, index=df.index)
-        for f in self._filters:
-            mask &= f(df)
-
-        return df[mask]
+    return grouped_df.round(2)
 
 
 def get_starting_balance():
@@ -74,24 +50,13 @@ def get_accounts_balance(df, starting_balance=None):
     return accounts_balance
 
 
-# df_filter = (
-#     DataFrameFilter()
-#     .by_categories(["Food", "Travel"])
-#     .by_transaction_types(["Debit"])
-# )
-#
-# filtered_df = df_filter.apply(df)
-
-# def aggregate_accounts_balance():
-
 def zero_fill_missing_ds(
-    df,
-    cols,
-    date_unit="month",  # 'day', 'month', or 'year'
-    fill_to_start_of_year=False,
-    fill_to_end_of_year=False
+        df,
+        cols,
+        date_unit="month",  # 'day', 'month', or 'year'
+        fill_to_start_of_year=False,
+        fill_to_end_of_year=False
 ):
-
     df["ds"] = pd.to_datetime(df["ds"])
     df = df.set_index("ds")
 
