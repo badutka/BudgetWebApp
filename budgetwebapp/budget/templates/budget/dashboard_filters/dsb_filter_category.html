@@ -1,0 +1,38 @@
+{% load static %}
+
+<!-- Categories Dropdown -->
+<div class="dropdown">
+  <button class="btn btn-light dropdown-toggle" type="button"
+          id="{{ row_name }}_categoryDropdownButton"
+          data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+    Categories
+  </button>
+  <div class="dropdown-menu p-3" style="min-width: 200px;" aria-labelledby="{{ row_name }}_categoryDropdownButton">
+    <fieldset class="mb-0">
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox"
+               id="{{ row_name }}_category-select-all"
+               form="{{ form_name }}"
+               {% is_checked request row_name|add:"_category" default=True %}>
+        <label class="form-check-label fw-bold" for="{{ row_name }}_category-select-all">
+          Select All
+        </label>
+      </div>
+      <hr>
+      {% for category in categories %}
+      <div class="form-check">
+        <input class="form-check-input"
+               type="checkbox"
+               name="{{ row_name }}_category"
+               value="{{ category.id }}"
+               id="{{ row_name }}-category-{{ category.id }}"
+               form="{{ form_name }}"
+               {% is_checked request row_name|add:"_category" category.id|stringformat:"s" %}>
+        <label class="form-check-label" for="{{ row_name }}-category-{{ category.id }}">
+          {{ category.name }}
+        </label>
+      </div>
+      {% endfor %}
+    </fieldset>
+  </div>
+</div>

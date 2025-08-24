@@ -1,0 +1,15 @@
+{% load static %}
+
+<label for="{{ row_name }}_date_from">From:</label>
+<input type="date"
+       name="{{ row_name }}_date_from"
+       id="{{ row_name }}_date_from"
+       form="{{ form_name }}"
+       value="{{ date_from|default_if_none:'' }}">
+
+<label for="{{ row_name }}_date_to">To:</label>
+<input type="date"
+       name="{{ row_name }}_date_to"
+       id="{{ row_name }}_date_to"
+       form="{{ form_name }}"
+       value="{{ date_to|default_if_none:'' }}">

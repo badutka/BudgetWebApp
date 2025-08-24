@@ -1,0 +1,56 @@
+{% load static %}
+
+<!-- Aggregation Dropdown -->
+<div class="dropdown">
+  <button class="btn btn-light dropdown-toggle" type="button"
+          id="cards_row_aggregationDropdownButton"
+          data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+    Aggregation <span class="agg-button-text"></span>
+  </button>
+  <div class="dropdown-menu p-3" style="min-width: 200px;" aria-labelledby="cards_row_aggregationDropdownButton">
+    <fieldset class="mb-0">
+      {% for period in periods %}
+      <div class="form-check">
+        <input class="form-check-input"
+               type="radio"
+               name="cards_row_aggregation"
+               value="{{ period }}"
+               id="cards_row_aggregation-{{ period }}"
+               form="dashboard-filter-cards-row-form"
+               {% if request.GET.cards_row_aggregation == period %}
+                  checked
+               {% endif %}>
+        <label class="form-check-label" for="cards_row_aggregation-{{ period }}">
+          {{ period|title }}
+        </label>
+      </div>
+      {% endfor %}
+    </fieldset>
+  </div>
+</div>
+
+<!-- Date Inputs -->
+<div class="for-label-wrapper">
+  <label>For:</label>
+</div>
+<div id="cards_row_date_wrapper">
+<!--
+  Dynamic input type based on aggregation:
+  - If aggregation is 'day', we need full date (YYYY-MM-DD) to avoid truncation.
+  - Otherwise, default to month (YYYY-MM), which works for month and year selections.
+
+  Value formatting:
+  - type="date" → 'YYYY-MM-DD'
+  - type="month" → 'YYYY-MM'
+
+  This prevents the "downscaling" issue:
+  If the input is type="month" but the value includes a day, the browser will default
+  the day to 1 when rendering, causing the observed behavior on page refresh.
+-->
+  <input
+    type="{% if aggregation == 'day' %}date{% else %}month{% endif %}"
+    id="cards_row_date_for"
+    name="cards_row_date_for"
+    form="dashboard-filter-cards-row-form"
+    value="{% if aggregation == 'day' %}{{ date_for|default_if_none:''|date:'Y-m-d' }}{% else %}{{ date_for|default_if_none:''|date:'Y-m' }}{% endif %}">
+</div>
