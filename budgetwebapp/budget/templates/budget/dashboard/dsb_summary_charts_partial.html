@@ -3,7 +3,7 @@
 <!-- Embed the data in a <script> tag as a JSON object -->
 {{ summary_data|json_script:"summary-chart-data" }}
 
-<div class="chart-row chart-row-4 mb-3 hoverable-items truncate">
+<!--<div class="chart-row chart-row-4 mb-3 hoverable-items truncate">-->
     <div id="summaries-chart-container" class="chart-col-1-4 chart-panel" style="overflow: hidden;">
         {% include 'budget/dashboard/common_chart_title.html' with title='Summaries by'%}
         <div id="summaries-chart"></div>
@@ -20,4 +20,4 @@
         {% include 'budget/dashboard/common_chart_title.html' with title='Savings Rate'%}
         <div id="savings-rate-chart"></div>
     </div>
-</div>
+<!--</div>-->
