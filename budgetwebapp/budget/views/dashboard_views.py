@@ -7,6 +7,8 @@ from budget.services.kpis import get_kpis
 from budget.services.data_fetcher import fetch_categories_and_summaries
 from core.dashboard_data import charts
 
+from core.logger import logger
+
 @require_http_methods(["GET", "POST"])
 def chart_summary(request: HttpRequest):
     """
@@ -39,15 +41,22 @@ def chart_summary(request: HttpRequest):
         }
         return render(request, "budget/dashboard/dashboard_cards_partial.html", context)
 
+    if filters.is_htmx and filters.dsb_row_filter == "summary_row":
+        summary_data = charts.calculate_chart_data()
+        context = {
+            "summary_data": summary_data
+        }
+        return render(request, "budget/dashboard/dsb_summary_charts_partial.html", context)
+
     # ------------------------------
     # Full page load
     # ------------------------------
     monthly_summaries, parent_categories, categories = fetch_categories_and_summaries(request, filters)
-    monthly_data = charts.calculate_chart_data(monthly_summaries)
+    summary_data = charts.calculate_chart_data()
     kpis = get_kpis(filters)
 
     context = {
-        "monthly_data": monthly_data,
+        "summary_data": summary_data,
         "kpis": kpis[0],
         "date_range": kpis[1],
         "parent_categories": parent_categories,

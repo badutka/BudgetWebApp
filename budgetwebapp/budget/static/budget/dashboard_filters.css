@@ -111,6 +111,16 @@
   background: linear-gradient(to bottom right, #1c2678, #141b5c); /* stronger gradient for buttons */
 }
 
+/* Apply button click/active effect */
+.filter-row button[type="submit"]:active {
+  transform: scale(0.96); /* slight press-down effect */
+  background: linear-gradient(to bottom right, #141b5c, #0d123a); /* deeper pressed gradient */
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.6),
+              0 0 6px rgba(100, 150, 255, 0.5); /* inner shadow + subtle glow */
+  color: #cde6ff; /* slightly brighter text when pressed */
+  transition: transform 0.05s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
 /* COLLAPSE TRANSITION STATE - INITIAL */
 .filter-row-collapsible {
   /*overflow: hidden;*/ /* hide content while collapsed */

@@ -1,0 +1,23 @@
+{% load static %}
+
+<!-- Embed the data in a <script> tag as a JSON object -->
+{{ summary_data|json_script:"summary-chart-data" }}
+
+<div class="chart-row chart-row-4 mb-3 hoverable-items truncate">
+    <div id="summaries-chart-container" class="chart-col-1-4 chart-panel" style="overflow: hidden;">
+        {% include 'budget/dashboard/common_chart_title.html' with title='Summaries by'%}
+        <div id="summaries-chart"></div>
+    </div>
+    <div id="volatility-trend-chart-container" class="chart-col-1-4 chart-panel">
+        {% include 'budget/dashboard/common_chart_title.html' with title='Expenses/Income Volatility'%}
+        <div id="volatility-trend-chart"></div>
+    </div>
+    <div id="cumulative-chart-container" class="chart-col-1-4 chart-panel">
+        {% include 'budget/dashboard/common_chart_title.html' with title='Cumulative Expenses/Income'%}
+        <div id="cumulative-chart"></div>
+    </div>
+    <div id="savings-rate-chart-container" class="chart-col-1-4 chart-panel">
+        {% include 'budget/dashboard/common_chart_title.html' with title='Savings Rate'%}
+        <div id="savings-rate-chart"></div>
+    </div>
+</div>

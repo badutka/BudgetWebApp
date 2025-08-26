@@ -17,6 +17,11 @@ document.addEventListener('DOMContentLoaded', () => {
   setupFilterSelectAll('cards_row_parent_category', { keepText: true });
   setupFilterSelectAll('cards_row_category', { keepText: true });
 
+  // summary charts
+  setupFilterSelectAll('summary_row_transaction_type', { keepText: true });
+  setupFilterSelectAll('summary_row_parent_category', { keepText: true });
+  setupFilterSelectAll('summary_row_category', { keepText: true });
+
   // Dashboard-only logic
   initAggregationDropdown("cards_row_aggregation", "month", { fullName: false });
   // Add the dynamic date input initialization

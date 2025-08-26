@@ -107,7 +107,7 @@ def fill_missing_acc_balance(df, col="accounts_balance"):
     return df
 
 
-def calculate_chart_data(summaries):
+def calculate_chart_data():
     group_by_col = 'month'
     df = pd.read_csv('../artifacts/data/kpis_detailed.csv')
     df = group_kpis(df, group_by_col=group_by_col)

@@ -10,69 +10,88 @@ import { renderVolatilityTrendChart } from './volatility_trend_chart.js';
 //  const netSavings = chartData.map(item => parseFloat(item.net_savings));
 //  const endingBalance = chartData.map(item => parseFloat(item.ending_balance));
 
+/**
+ * Dispatcher
+ */
+function initRow(container) {
+    console.log(container.id)
+  if (container.id === 'dashboard-summary-container') initRow1(container);
+  if (container.id === 'row-2') initRow2(container);
+}
 
+// Run once on initial load
 document.addEventListener('DOMContentLoaded', () => {
-  const chartData = JSON.parse(
-    document.getElementById('balance-chart-data').textContent
-  );
+  initRow(document.getElementById('dashboard-summary-container'));
+//  initRow(document.getElementById('row-2'));
+});
 
+// Re-run after HTMX swaps
+document.body.addEventListener('htmx:afterSwap', (evt) => {
+  initRow(evt.target);
+});
+
+/**
+ * Row 1: summary charts
+ */
+function initRow1(container) {
+  const balanceDataEl = container.querySelector('#summary-chart-data');
+  if (!balanceDataEl) return;
+
+  const chartData = JSON.parse(balanceDataEl.textContent);
   const frequency = 'month';
 
-  // Extract series data for summaries chart
-  const income = chartData.income;
-  const expenses = chartData.expenses;
-  const netSavings = chartData.net_savings;
-  const accountsBalance = chartData.accounts_balance;
-
+  // -------------------- Summaries Chart --------------------
   const summariesSeries = [
-    { label: 'Income', data: income, color: chartOptions.colors.Primary },
-    { label: 'Expenses', data: expenses, color: chartOptions.colors.Secondary },
-    { label: 'Net Savings', data: netSavings, color: chartOptions.colors.Tertiary },
-    { label: 'Accounts Balance', data: accountsBalance, color: chartOptions.colors.Quaternary }
+    { label: 'Income', data: chartData.income, color: chartOptions.colors.Primary },
+    { label: 'Expenses', data: chartData.expenses, color: chartOptions.colors.Secondary },
+    { label: 'Net Savings', data: chartData.net_savings, color: chartOptions.colors.Tertiary },
+    { label: 'Accounts Balance', data: chartData.accounts_balance, color: chartOptions.colors.Quaternary }
   ];
-
   renderSummariesChart('summaries-chart', chartData.ds, summariesSeries, frequency);
 
   // -------------------- Volatility Trend Chart --------------------
-  const incomeVolatility = {
-    label: 'Income',
-    mean: chartData.income_mean,
-    lowerBand: chartData.income_lower_band,
-    upperBand: chartData.income_upper_band,
-    color: chartOptions.colors.PRIMARY
-  };
-
-  const expensesVolatility = {
-    label: 'Expenses',
-    mean: chartData.expenses_mean,
-    lowerBand: chartData.expenses_lower_band,
-    upperBand: chartData.expenses_upper_band,
-    color: chartOptions.colors.SECONDARY
-  };
-
-  const volatilitySeries = [incomeVolatility, expensesVolatility];
-
+  const volatilitySeries = [
+    {
+      label: 'Income',
+      mean: chartData.income_mean,
+      lowerBand: chartData.income_lower_band,
+      upperBand: chartData.income_upper_band,
+      color: chartOptions.colors.PRIMARY
+    },
+    {
+      label: 'Expenses',
+      mean: chartData.expenses_mean,
+      lowerBand: chartData.expenses_lower_band,
+      upperBand: chartData.expenses_upper_band,
+      color: chartOptions.colors.SECONDARY
+    }
+  ];
   renderVolatilityTrendChart('volatility-trend-chart', chartData.ds, volatilitySeries, frequency);
 
   // -------------------- Cumulative Chart --------------------
-  const cumulativeIncome = chartData.cumulative_income;
-  const cumulativeExpenses = chartData.cumulative_expenses;
-
   const cumulativeSeries = [
-    { label: 'Income', data: cumulativeIncome, color: chartOptions.colors.PRIMARY },
-    { label: 'Expenses', data: cumulativeExpenses, color: chartOptions.colors.SECONDARY }
+    { label: 'Income', data: chartData.cumulative_income, color: chartOptions.colors.PRIMARY },
+    { label: 'Expenses', data: chartData.cumulative_expenses, color: chartOptions.colors.SECONDARY }
   ];
-
   renderCumulativeChart('cumulative-chart', chartData.ds, cumulativeSeries, frequency);
 
   // -------------------- Savings Rate Chart --------------------
-  const savingsRate = chartData.savings_rate;
-
   const savingsRateSeries = [
-  { label: 'Savings Rate (%)', data: savingsRate, color: chartOptions.colors.Primary }
+    { label: 'Savings Rate (%)', data: chartData.savings_rate, color: chartOptions.colors.Primary }
   ];
-
   renderSavingsRateChart('savings-rate-chart', chartData.ds, savingsRateSeries, frequency);
-});
+}
 
+/**
+ * Row 2: (example for later charts/widgets)
+ */
+function initRow2(container) {
+  const dataEl = container.querySelector('#row2-chart-data');
+  if (!dataEl) return;
 
+  const chartData = JSON.parse(dataEl.textContent);
+  const frequency = 'month';
+
+  // Example new chart
+  // renderRow2Chart('row2-chart', chartData.ds, chartData.someSeries, frequency);
+}
