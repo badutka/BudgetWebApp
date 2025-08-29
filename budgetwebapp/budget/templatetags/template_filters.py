@@ -5,6 +5,7 @@ from urllib.parse import urlencode
 import calendar
 from django.urls import reverse
 
+from core.logger import logger
 
 # Custom template filter to get data from a dictionary using key in template
 
@@ -53,7 +54,49 @@ def mul(value, arg):
 
 
 @register.simple_tag
-def is_checked(request, param_name, value=None, default=True):
+def is_checked(request, param_name, value=None, default=True, prefix=None):
+    """
+    Determines if a checkbox should be checked.
+
+    Args:
+        request: the current request object
+        param_name: GET parameter to look for (e.g., "cards_row_transaction_type")
+        value: the value to check in the GET list (for checkboxes)
+        default: what to return on first load (True = checked, False = unchecked)
+        prefix: optional; current row/prefix to check in `submitted` or `dsb_row_filter`
+
+    Returns:
+        "checked" if the checkbox should be checked, "" otherwise.
+
+    Logic:
+    1. First load (no `submitted` and `prefix` not in `dsb_row_filter`):
+       - Return `default`.
+    2. If `value` is None:
+       - Return checked if the parameter exists in GET.
+    3. Otherwise:
+       - Return checked if `value` is in the GET list for `param_name`.
+    """
+    # Determine if this row/prefix has been submitted
+    submitted = False
+    if prefix:
+        submitted = prefix in request.GET.getlist('submitted') or prefix in (request.GET.get('dsb_row_filter') or '')
+
+    # First load: no submission yet
+    if not submitted:
+        return "checked" if default else ""
+
+    # If value is None, just check if param exists
+    if value is None:
+        return "checked" if request.GET.get(param_name) else ""
+
+    # For checkboxes: check if value is in GET list
+    if value in request.GET.getlist(param_name):
+        return "checked"
+
+    return ""
+
+@register.simple_tag
+def is_checked_depr(request, param_name, value=None, default=True):
     """
     Determines if a checkbox should be checked.
 

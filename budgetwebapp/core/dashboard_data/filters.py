@@ -48,13 +48,3 @@ class DataFilter:
             mask &= f(df)
 
         return df[mask]
-
-# df_filter = (
-#     DataFrameFilter()
-#     .by_categories(["Food", "Travel"])
-#     .by_transaction_types(["Debit"])
-# )
-#
-# filtered_df = df_filter.apply(df)
-
-# def aggregate_accounts_balance():

@@ -17,3 +17,7 @@
 <div class="chart-col-1-6">
     {% include 'budget/dashboard/dashboard_card.html' with card_type='num_transactions' title='#T9Ns' kpis=kpis.NUM_TRANSACTIONS date_range=date_range %}
 </div>
+
+{% if 'cards_row' in submitted_rows %}
+  <input type="hidden" name="submitted" value="cards_row" form="dashboard-filter-cards-row-form">
+{% endif %}

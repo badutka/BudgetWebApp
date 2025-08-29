@@ -13,7 +13,7 @@
         <input class="form-check-input" type="checkbox"
                id="{{ row_name }}_transaction_type-select-all"
                form="{{ form_name }}"
-               {% is_checked request row_name|add:"_transaction_type" default=True %}>
+               {% is_checked request row_name|add:"_transaction_type" default=True prefix=row_name %}>
         <label class="form-check-label fw-bold" for="{{ row_name }}_transaction_type-select-all">
           Select All
         </label>
@@ -27,7 +27,7 @@
                value="{{ name }}"
                id="{{ row_name }}-transaction-type-{{ name }}"
                form="{{ form_name }}"
-               {% is_checked request row_name|add:"_transaction_type" name %}>
+               {% is_checked request row_name|add:"_transaction_type" name prefix=row_name %}>
         <label class="form-check-label" for="{{ row_name }}-transaction-type-{{ name }}">
           {{ name }}
         </label>

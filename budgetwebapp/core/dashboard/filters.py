@@ -6,6 +6,7 @@ from django.http import QueryDict
 
 from core.logger import logger
 
+
 # from django.db.models import Model
 
 def not_none_filters(filters_tuple: tuple[list[Any] | None, ...]) -> bool:
@@ -56,23 +57,7 @@ def not_empty_filters(filters_tuple: tuple[list[Any] | None, ...]) -> bool:
     return any(lst for lst in filters_tuple if lst)
 
 
-def get_param_by_key_or_none_depr(request_get: QueryDict, param: str) -> list[str] | None:
-    """
-    Deprecated: Retrieve a list of values for a query parameter from a GET request.
-
-    Args:
-        request_get (QueryDict): The request.GET object.
-        param (str): The name of the query parameter.
-
-    Returns:
-        Optional[List[str]]: The list of values if the parameter exists, otherwise None.
-    """
-    if param in request_get:
-        return request_get.getlist(param)
-    return None
-
-
-def get_dsb_filter_param_or_none(request_get: QueryDict, param_name: str) -> list[str] | None:
+def get_dsb_filter_param_or_none_depr(request_get: QueryDict, param_name: str) -> list[str] | None:
     """
     Retrieve and interpret a query parameter from a GET request for filtering logic.
 
@@ -115,6 +100,55 @@ def get_dsb_filter_param_or_none(request_get: QueryDict, param_name: str) -> lis
         # Param missing but form was submitted → treat as empty list
         return []
     return None  # Param missing and form not submitted
+
+
+def get_dsb_filter_param_or_none(request_get: QueryDict, param_name: str, prefix: str) -> list[str] | None:
+    """
+    Retrieve and interpret a query parameter from a GET request for filtering logic.
+
+    This function applies special rules depending on:
+    1. Whether the parameter exists in the URL.
+    2. Whether it has values.
+    3. Whether the current row/prefix has already been submitted
+       (i.e., `prefix` appears in `submitted` or in `dsb_row_filter`).
+
+    Filtering logic:
+    - If the current row/prefix has been submitted:
+        * Parameter **missing from URL** → return an empty list `[]`
+          (treat as "filter applied with no matches" — e.g., deselected in UI).
+        * Parameter **present with values** → return the list of values.
+        * Parameter **present but with no values** (e.g., `param=`) → return `None`
+          (invalid, so filter is not applied for this parameter).
+    - If the current row/prefix has **not been submitted**:
+        * Parameter **missing from URL** → return `None` (no filter applied).
+        * Parameter **present with values** → return the list of values (filter applied).
+        * Parameter **present but with no values** → return `None` (invalid, no filter applied).
+
+    Args:
+        request_get (QueryDict):
+            The `request.GET` object containing query parameters.
+        param_name (str):
+            The name of the query parameter to retrieve.
+        prefix (str):
+            The identifier of the current row/filter to check against `submitted` or `dsb_row_filter`.
+
+    Returns:
+        list[str] | None:
+            - A list of strings if the parameter exists and has values.
+            - An empty list `[]` if the parameter is missing but the current row/prefix is submitted.
+            - `None` if the parameter is present but empty, or missing without the current row/prefix being submitted.
+    """
+    submitted: bool = prefix in request_get.getlist('submitted') or prefix in (request_get.get('dsb_row_filter') or '')
+    logger.critical(f'{submitted = }')
+
+    if param_name in request_get:
+        # Parameter exists in URL
+        values: list[str] = [v for v in request_get.getlist(param_name) if v]
+        return values or None  # Empty string → None
+    elif submitted:
+        # Param missing but prefix was submitted → treat as empty list
+        return []
+    return None  # Param missing and prefix not submitted
 
 
 def get_names_list_by_pks(pks: list[str] | None, model: type[models.BaseModel]) -> list[str] | None:
@@ -245,6 +279,7 @@ def parse_date(date_str: str | date | datetime | None, mode: str = 'month') -> d
     else:
         logger.error("Mode must be 'day', 'month', 'year' or 'all_time'.")
         raise ValueError("Mode must be 'day', 'month', 'year' or 'all_time'.")
+
 
 # def denormalize_date
 

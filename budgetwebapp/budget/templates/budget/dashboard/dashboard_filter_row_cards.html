@@ -37,11 +37,11 @@
   <div style="background: white; height: 33px; width: 1px; box-shadow: 0 0 30px white;"></div>
   <!--    <span class="filter-title">Filters</span>-->
   <div class="filter-row">
-    <input type="hidden" name="dsb_row_filter" value="cards_row" form="dashboard-filter-cards-row-form">
+<!--    <input type="hidden" name="dsb_row_filter" value="cards_row" form="dashboard-filter-cards-row-form">-->
 
-    {% include 'budget/dashboard_filters/dsb_filter_agg_date_for.html' %}
+    {% include 'budget/dashboard_filters/dsb_filter_agg_date_for.html' with date_for=cards_row_filters.date_for %}
 
-    {% include 'budget/dashboard_filters/dsb_filter_date_from_to.html' with row_name="cards_row" form_name="dashboard-filter-cards-row-form" %}
+    {% include 'budget/dashboard_filters/dsb_filter_date_from_to.html' with row_name="cards_row" form_name="dashboard-filter-cards-row-form" date_from=cards_row_filters.date_from date_to=cards_row_filters.date_to %}
 
     {% include 'budget/dashboard_filters/dsb_filter_transaction_type.html' with row_name="cards_row" form_name="dashboard-filter-cards-row-form" %}
 
@@ -63,10 +63,23 @@
     Used to distinguish first page load (no submitted param) from user submissions,
     so that checkboxes and inputs can retain their selected values correctly,
     even if all checkboxes are unchecked or inputs are empty. -->
-    <input type="hidden" name="submitted" value="1" form="dashboard-filter-cards-row-form">
+<!--    <input type="hidden" name="submitted" value="cards_row" form="dashboard-filter-cards-row-form">-->
+
+<!--    {% if 'cards_row' not in request.GET.submitted or 'submitted' not in request.GET %}-->
+<!--      <input type="hidden" name="submitted" value="cards_row" form="dashboard-filter-cards-row-form">-->
+<!--    {% endif %}-->
 
     <!-- Apply kept in place, now explicitly submits the form via form="..." -->
-    <button form="dashboard-filter-cards-row-form" type="submit">Apply</button>
+    <button
+        hx-get="{% url 'budget:chart_summary' %}"
+        hx-include="#dashboard-filter-cards-row-form, #dashboard-filter-summary-row-form"
+        hx-target="#dashboard-cards-container"
+        hx-push-url="true"
+        hx-swap="innerHTML"
+        hx-vals='{"dsb_row_filter": "cards_row"}'
+        type="button">
+      Apply
+    </button>
 
   </div>
 

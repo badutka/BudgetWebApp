@@ -1,9 +1,11 @@
 import os
 import pandas as pd
 
-from django.db.models import Sum
+from django.db.models import Sum, F
+from django_pandas.io import read_frame
 
 from budget import models
+from core.dashboard_data import filters as data_filters
 from core.logger import logger
 
 
@@ -106,40 +108,19 @@ def fill_missing_acc_balance(df, col="accounts_balance"):
         df[col] = s
     return df
 
-
-def calculate_chart_data():
-    group_by_col = 'month'
-    df = pd.read_csv('../artifacts/data/kpis_detailed.csv')
-    df = group_kpis(df, group_by_col=group_by_col)
-
-    df = df.rename(columns={
-        'INCOMING': 'income',
-        'OUTGOING': 'expenses',
-        'BALANCE': 'net_savings',
-        group_by_col: 'ds'
-    })
-    df = df[['ds', 'income', 'expenses', 'net_savings']]
-    df['accounts_balance'] = get_accounts_balance(df)
-    df = zero_fill_missing_ds(
-        df,
-        ['income', 'expenses', 'net_savings'],
-        date_unit=group_by_col,
-        fill_to_start_of_year=True,
-        fill_to_end_of_year=False
-    )
-    df = fill_missing_acc_balance(df)
-
-    # Savings rate
+def calculate_savings_rate(df):
     df['savings_rate'] = round(df['net_savings'] / df['income'] * 100, 2)
+    return df
 
-    # --- NEW METRICS ---
 
-    # 1. Cumulative expenses & income
-    df['cumulative_income'] = df['income'].cumsum()
-    df['cumulative_expenses'] = df['expenses'].cumsum()
+def accumulate_fields(df, fields):
+    for field in fields:
+        df[f'cumulative_{field}'] = df[field].cumsum()
+    return df
 
-    # 2. Volatility (Rolling 3-month Std Dev + Mean)
-    window = 3
+
+def calculate_volatility(df, window=3):
+    # Volatility (Rolling <#window>-month Std Dev + Mean)
     df['income_mean'] = df['income'].rolling(window).mean()
     df['income_volatility'] = df['income'].rolling(window).std()
     df['expenses_mean'] = df['expenses'].rolling(window).mean()
@@ -151,31 +132,83 @@ def calculate_chart_data():
     df['expenses_upper_band'] = df['expenses_mean'] + df['expenses_volatility']
     df['expenses_lower_band'] = df['expenses_mean'] - df['expenses_volatility']
 
+    return df
+
+
+def read_data():
+    qs = models.Transaction.objects.select_related('category').annotate(category_name=F('category__name'))
+    df = read_frame(qs, fieldnames=['id', 'date', 'amount', 'category_name', 'category__transaction_type','category__parent_category'])
+    df.rename(columns={'category__transaction_type': 'transaction_type', 'category__parent_category': 'parent_category', 'category_name': 'category'}, inplace=True)
+
+    df['date'] = pd.to_datetime(df['date'])
+    df['month'] = df['date'].dt.to_period('M')
+    df['year'] = df['date'].dt.to_period('Y')
+    df.rename(columns={'date': 'day'}, inplace=True)
+    df['amount'] = df['amount'].astype(float)
+
+    pivoted = df.pivot_table(
+        index=['day', 'month', 'year'],
+        columns='transaction_type',
+        values='amount',
+        aggfunc='sum',
+        fill_value=0
+    ).reset_index().rename(columns={'INCOMING': 'income', 'OUTGOING': 'expenses'}).drop(columns='INNER')
+
+    return pivoted
+
+
+def calculate_chart_data(filters_obj: dict[str, str | list[str] | bool | None]):
+    group_by_col = 'month'
+    df = pd.read_csv('../artifacts/data/kpis_detailed.csv')
+
+    df_filter = data_filters.DataFilter()
+
+    if filters_obj['apply_filters']:
+        df_filter = (
+            df_filter
+            .by_transaction_types(filters_obj['transaction_types'])
+            .by_parent_categories(filters_obj['parent_categories'])
+            .by_categories(filters_obj['categories'])
+        )
+
+    if filters_obj['apply_date_filters']:
+        df_filter = df_filter.by_date_range(filters_obj['date_from'], filters_obj['date_to'])
+
+    df = df_filter.apply(df)
+
+    df = group_kpis(df, group_by_col=group_by_col)
+
+    df = df.rename(columns={
+        'INCOMING': 'income',
+        'OUTGOING': 'expenses',
+        'BALANCE': 'net_savings',
+        group_by_col: 'ds'
+    })
+
+    df = df[['ds', 'income', 'expenses', 'net_savings']]
+
+    df['accounts_balance'] = get_accounts_balance(df)
+
+    df = zero_fill_missing_ds(
+        df,
+        ['income', 'expenses', 'net_savings'],
+        date_unit=group_by_col,
+        fill_to_start_of_year=True,
+        fill_to_end_of_year=True
+    )
+    df = fill_missing_acc_balance(df)
+
+    df = calculate_savings_rate(df)
+
+    # 1. Cumulative expenses & income
+    df = accumulate_fields(df, ['income', 'expenses'])
+    df = calculate_volatility(df)
+
     # Clean NaNs/infs
     df = df.replace([float('inf'), float('-inf')], 0)
     df = df.where(pd.notnull(df), 0)
 
-    logger.debug(f'\n{df}')
+
+    # logger.debug(f'\n{df}')
     # logger.debug(df.to_dict(orient="records"))
     return df.to_dict(orient="list")
-
-# def calculate_chart_data(summaries):
-#     group_by_col = 'month'
-#     df = pd.read_csv('../artifacts/data/kpis_detailed.csv')
-#     df = group_kpis(df, group_by_col=group_by_col)
-#
-#     df = df.rename(columns={'INCOMING': 'income', 'OUTGOING': 'expenses', 'BALANCE': 'net_savings', group_by_col: 'ds'})
-#     df = df[['ds', 'income', 'expenses', 'net_savings']]
-#     df['accounts_balance'] = get_accounts_balance(df)
-#     df = zero_fill_missing_ds(df, ['income', 'expenses', 'net_savings'], fill_to_start_of_year=True, fill_to_end_of_year=True)
-#     df = fill_missing_acc_balance(df)
-#
-#     df['savings_rate'] = round(df['net_savings'] / df['income'] * 100, 2)
-#
-#
-#     df = df.replace([float('inf'), float('-inf')], 0)
-#     df = df.where(pd.notnull(df), 0)
-#
-#     logger.debug(df)
-#
-#     return df.to_dict(orient="list")

@@ -13,7 +13,7 @@
         <input class="form-check-input" type="checkbox"
                id="{{ row_name }}_category-select-all"
                form="{{ form_name }}"
-               {% is_checked request row_name|add:"_category" default=True %}>
+               {% is_checked request row_name|add:"_category" default=True prefix=row_name %}>
         <label class="form-check-label fw-bold" for="{{ row_name }}_category-select-all">
           Select All
         </label>
@@ -27,7 +27,7 @@
                value="{{ category.id }}"
                id="{{ row_name }}-category-{{ category.id }}"
                form="{{ form_name }}"
-               {% is_checked request row_name|add:"_category" category.id|stringformat:"s" %}>
+               {% is_checked request row_name|add:"_category" category.id|stringformat:"s" prefix=row_name %}>
         <label class="form-check-label" for="{{ row_name }}-category-{{ category.id }}">
           {{ category.name }}
         </label>

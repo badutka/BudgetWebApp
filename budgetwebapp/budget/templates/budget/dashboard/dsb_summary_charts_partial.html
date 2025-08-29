@@ -21,3 +21,7 @@
         <div id="savings-rate-chart"></div>
     </div>
 <!--</div>-->
+
+{% if 'summary_row' in submitted_rows %}
+  <input type="hidden" name="submitted" value="summary_row" form="dashboard-filter-summary-row-form">
+{% endif %}

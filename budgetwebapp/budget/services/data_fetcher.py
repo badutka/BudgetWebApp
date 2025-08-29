@@ -2,13 +2,13 @@ from django.http import HttpRequest
 from budget.services.dashboard_filters import DashboardFilters
 from core import utils
 
-def fetch_categories_and_summaries(request: HttpRequest, filters: DashboardFilters) -> tuple[list, list, list]:
+def fetch_categories_and_summaries(request: HttpRequest) -> tuple[list, list, list]:
     """
     Fetch monthly summaries, parent categories, and categories from the API.
 
     Args:
         request (HttpRequest): Django HttpRequest object.
-        filters (DashboardFilters): DashboardFilters object with query parameters.
+        query_data (dict): dict object with query parameters.
 
     Returns:
         tuple:
@@ -16,7 +16,8 @@ def fetch_categories_and_summaries(request: HttpRequest, filters: DashboardFilte
             list: Parent category objects.
             list: Category objects.
     """
-    params = utils.flatten_querydict(filters.query_data)
+    # params = utils.flatten_querydict(query_data)
+    params = list(tuple())
     monthly_summaries = utils.fetch_api_and_get_response(request, 'budget:monthly_summaries', 200, [('year', '2025')])
     parent_categories = utils.fetch_api_and_get_response(request, 'budget:parent_categories', 200, params)
     categories = utils.fetch_api_and_get_response(request, 'budget:categories', 200, params)
