@@ -62,7 +62,7 @@ def transactions_list_view(request):
         filter_query = filter_params.urlencode()
 
         context = {
-            'sum_accs': money_accounts_sum,
+            'sum_accs': "{:.2f}".format(money_accounts_sum),
             'totals': totals,
             'balance': balance,
             'transactions_page_obj': transactions_page_obj,
@@ -102,7 +102,7 @@ def transaction_add(request):
         form = BudgetExpenseEntryForm(request.POST)
 
         if form.is_valid():
-            api_url = request.build_absolute_uri(reverse('budget:transaction_add_api'))
+            api_url = request.build_absolute_uri(reverse('budget:transactions_api'))
             response = requests.post(api_url, data=utils.get_data_from_form(form))
             return utils.get_response_by_status_code(response, 201, HttpResponse(status=201), HttpResponseBadRequest())
 
