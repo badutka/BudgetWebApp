@@ -17,6 +17,9 @@ def group_kpis(df, group_by_col=None):
         'INNER': 'sum',
         'NUM_TRANSACTIONS': 'sum',
         'BALANCE': 'sum',
+        'income': 'sum',
+        'expenses': 'sum',
+        'net_savings': 'sum',
     }
 
     # Keep only the aggregations for columns that actually exist in df
@@ -52,6 +55,11 @@ def get_accounts_balance(df, starting_balance=None):
     return accounts_balance
 
 
+def get_net_savings(df):
+    df['net_savings'] = round(df['income'] - df['expenses'], 2)
+    return df
+
+
 def zero_fill_missing_ds(
         df,
         cols,
@@ -60,6 +68,7 @@ def zero_fill_missing_ds(
         fill_to_end_of_year=False
 ):
     df["ds"] = pd.to_datetime(df["ds"])
+
     df = df.set_index("ds")
 
     start = df.index.min()
@@ -108,6 +117,7 @@ def fill_missing_acc_balance(df, col="accounts_balance"):
         df[col] = s
     return df
 
+
 def calculate_savings_rate(df):
     df['savings_rate'] = round(df['net_savings'] / df['income'] * 100, 2)
     return df
@@ -135,10 +145,12 @@ def calculate_volatility(df, window=3):
     return df
 
 
-def read_data():
+def save_data():
     qs = models.Transaction.objects.select_related('category').annotate(category_name=F('category__name'))
-    df = read_frame(qs, fieldnames=['id', 'date', 'amount', 'category_name', 'category__transaction_type','category__parent_category'])
-    df.rename(columns={'category__transaction_type': 'transaction_type', 'category__parent_category': 'parent_category', 'category_name': 'category'}, inplace=True)
+    df = read_frame(qs, fieldnames=['id', 'date', 'amount', 'category_name', 'category__transaction_type',
+                                    'category__parent_category'])
+    df.rename(columns={'category__transaction_type': 'transaction_type', 'category__parent_category': 'parent_category',
+                       'category_name': 'category'}, inplace=True)
 
     df['date'] = pd.to_datetime(df['date'])
     df['month'] = df['date'].dt.to_period('M')
@@ -147,19 +159,28 @@ def read_data():
     df['amount'] = df['amount'].astype(float)
 
     pivoted = df.pivot_table(
-        index=['day', 'month', 'year'],
+        index=['day', 'month', 'year', 'category', 'parent_category'],
         columns='transaction_type',
         values='amount',
         aggfunc='sum',
         fill_value=0
     ).reset_index().rename(columns={'INCOMING': 'income', 'OUTGOING': 'expenses'}).drop(columns='INNER')
 
-    return pivoted
+    pivoted.columns.name = None
+
+    type_map = df.groupby('category')['transaction_type'].first().to_dict()
+    pivoted['transaction_type'] = pivoted['category'].map(type_map)
+
+    pivoted = get_net_savings(pivoted)
+
+    pivoted.to_csv('../artifacts/data/dsb_summary_data.csv', index=False)
 
 
 def calculate_chart_data(filters_obj: dict[str, str | list[str] | bool | None]):
     group_by_col = 'month'
-    df = pd.read_csv('../artifacts/data/kpis_detailed.csv')
+    save_data()
+    df = pd.read_csv('../artifacts/data/dsb_summary_data.csv')
+    # df = pd.read_csv('../artifacts/data/kpis_detailed.csv')
 
     df_filter = data_filters.DataFilter()
 
@@ -178,14 +199,7 @@ def calculate_chart_data(filters_obj: dict[str, str | list[str] | bool | None]):
 
     df = group_kpis(df, group_by_col=group_by_col)
 
-    df = df.rename(columns={
-        'INCOMING': 'income',
-        'OUTGOING': 'expenses',
-        'BALANCE': 'net_savings',
-        group_by_col: 'ds'
-    })
-
-    df = df[['ds', 'income', 'expenses', 'net_savings']]
+    df = df.rename(columns={group_by_col: 'ds'})
 
     df['accounts_balance'] = get_accounts_balance(df)
 
@@ -194,13 +208,10 @@ def calculate_chart_data(filters_obj: dict[str, str | list[str] | bool | None]):
         ['income', 'expenses', 'net_savings'],
         date_unit=group_by_col,
         fill_to_start_of_year=True,
-        fill_to_end_of_year=True
+        fill_to_end_of_year=False
     )
     df = fill_missing_acc_balance(df)
-
     df = calculate_savings_rate(df)
-
-    # 1. Cumulative expenses & income
     df = accumulate_fields(df, ['income', 'expenses'])
     df = calculate_volatility(df)
 
@@ -208,7 +219,7 @@ def calculate_chart_data(filters_obj: dict[str, str | list[str] | bool | None]):
     df = df.replace([float('inf'), float('-inf')], 0)
     df = df.where(pd.notnull(df), 0)
 
+    logger.debug(f'\n{df}')
 
-    # logger.debug(f'\n{df}')
     # logger.debug(df.to_dict(orient="records"))
     return df.to_dict(orient="list")
