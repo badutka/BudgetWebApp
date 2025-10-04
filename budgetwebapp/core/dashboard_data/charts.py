@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+from datetime import datetime
 
 from django.db.models import Sum, F
 from django_pandas.io import read_frame
@@ -65,15 +66,33 @@ def zero_fill_missing_ds(
         cols,
         date_unit="month",  # 'day', 'month', or 'year'
         fill_to_start_of_year=False,
-        fill_to_end_of_year=False
+        fill_to_end_of_year=False,
+        date_from=None,
+        date_to=None,
 ):
-    df["ds"] = pd.to_datetime(df["ds"])
+    # Map date_unit to pandas freq
+    freq_map = {"day": "D", "month": "MS", "year": "YS"}
+    if date_unit not in freq_map:
+        raise ValueError("date_unit must be 'day', 'month', or 'year'")
 
-    df = df.set_index("ds")
+    # Determine start and end
+    if df.empty:
+        current_year = datetime.now().year
+        start = pd.Timestamp(year=current_year, month=1, day=1)
+        end = pd.Timestamp(year=current_year, month=12, day=31)
+    else:
+        # Convert ds according to date_unit
+        if date_unit == "year":
+            df["ds"] = pd.to_datetime(df["ds"].astype(str), format="%Y")
+        elif date_unit == "month":
+            df["ds"] = pd.to_datetime(df["ds"].astype(str), format="%Y-%m")
+        else:  # day
+            df["ds"] = pd.to_datetime(df["ds"])
+        df = df.set_index("ds")
+        start = df.index.min()
+        end = df.index.max()
 
-    start = df.index.min()
-    end = df.index.max()
-
+    # Adjust to start/end of year if requested
     if fill_to_start_of_year:
         start = pd.Timestamp(year=start.year, month=1, day=1)
     if fill_to_end_of_year:
@@ -84,24 +103,27 @@ def zero_fill_missing_ds(
         elif date_unit == "day":
             end = pd.Timestamp(year=end.year, month=12, day=31)
 
-    # Map date_unit to pandas freq
-    freq_map = {
-        "day": "D",
-        "month": "MS",  # month start
-        "year": "YS"  # year start
-    }
+    # Use provided date_from/date_to if available
+    if date_from:
+        start = max(pd.Timestamp(date_from), start)
+        logger.critical(f'{start = }')
+    if date_to:
+        end = min(pd.Timestamp(date_to), end)
 
-    if date_unit not in freq_map:
-        raise ValueError("date_unit must be 'day', 'month', or 'year'")
-
+    # Generate full date range
     full_range = pd.date_range(start, end, freq=freq_map[date_unit])
 
-    df = df.reindex(full_range)
+    # Create or reindex DataFrame
+    if df.empty:
+        df = pd.DataFrame({"ds": full_range})
+        for col in cols:
+            df[col] = 0
+    else:
+        df = df.reindex(full_range)
+        for col in cols:
+            df[col] = df[col].fillna(0)
+        df = df.reset_index().rename(columns={"index": "ds"})
 
-    for col in cols:
-        df[col] = df[col].fillna(0)
-
-    df = df.reset_index().rename(columns={"index": "ds"})
     df["ds"] = df["ds"].dt.strftime("%Y-%m-%d")
 
     return df
@@ -177,10 +199,11 @@ def save_data():
 
 
 def calculate_chart_data(filters_obj: dict[str, str | list[str] | bool | None]):
-    group_by_col = 'month'
+    date_unit = 'month'
     save_data()
     df = pd.read_csv('../artifacts/data/dsb_summary_data.csv')
     # df = pd.read_csv('../artifacts/data/kpis_detailed.csv')
+    logger.debug(f'\n{df}')
 
     df_filter = data_filters.DataFilter()
 
@@ -197,19 +220,22 @@ def calculate_chart_data(filters_obj: dict[str, str | list[str] | bool | None]):
 
     df = df_filter.apply(df)
 
-    df = group_kpis(df, group_by_col=group_by_col)
+    df = group_kpis(df, group_by_col=date_unit)
 
-    df = df.rename(columns={group_by_col: 'ds'})
-
-    df['accounts_balance'] = get_accounts_balance(df)
+    df = df.rename(columns={date_unit: 'ds'})
 
     df = zero_fill_missing_ds(
         df,
         ['income', 'expenses', 'net_savings'],
-        date_unit=group_by_col,
+        date_unit=date_unit,
         fill_to_start_of_year=True,
-        fill_to_end_of_year=False
+        fill_to_end_of_year=False,
+        date_from=filters_obj['date_from'],
+        date_to=filters_obj['date_to']
     )
+    logger.debug(f'\n{df}')
+
+    df['accounts_balance'] = get_accounts_balance(df)
     df = fill_missing_acc_balance(df)
     df = calculate_savings_rate(df)
     df = accumulate_fields(df, ['income', 'expenses'])
