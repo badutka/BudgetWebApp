@@ -26,8 +26,8 @@
 
   <button class="refresh-button"
           hx-post="{% url 'budget:chart_summary' %}"
-          hx-include="#dashboard-filter-cards-row-form"
-          hx-vals='{"cards_row_refresh": true}'
+          hx-include="#dashboard-filter-cards-row-form, #dashboard-filter-summary-row-form"
+          hx-vals='{"cards_row_refresh": true, "dsb_row_filter": "cards_row"}'
           hx-target="#dashboard-cards-container"
           hx-swap="innerHTML"
           style="background: none; border: none; color: white; cursor: pointer; font-size: clamp(1.5rem, 1vw, 2rem); line-height: 1;">

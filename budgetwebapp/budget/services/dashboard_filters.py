@@ -1,8 +1,12 @@
+from typing import Callable
+
 from django.http import HttpRequest
 from django.http import QueryDict
 from core.dashboard import filters as dsb_filters
 
 from core.logger import logger
+
+DashboardRowFilters = dict[str, str | list[str] | bool | None]
 
 
 class DashboardFilters:
@@ -21,23 +25,33 @@ class DashboardFilters:
         self.request: HttpRequest = request
         self.method: str = request.method
         self.is_htmx: bool = bool(request.headers.get("HX-Request"))
-        self.rows: dict[str, dict] = {}  # row_name -> filter state
+        self.rows: dict[str, DashboardRowFilters] = {}  # row_name -> filter state
         self._parse_request()
 
     def _parse_request(self):
         query_data = self.request.POST if self.is_htmx and self.method == "POST" else self.request.GET
 
-        # Prepopulate default rows even if nothing in request
-        default_rows = ["cards_row", "summary_row"]  # extendable
-        for row_name in default_rows:
-            if row_name == "cards_row":
-                self.rows[row_name] = self._parse_cards_row(query_data)
-            elif row_name == "summary_row":
-                self.rows[row_name] = self._parse_summary_row(query_data)
-            # future rows can be added here
+        # Determine which rows to parse
+        if self.is_htmx:
+            # Only parse the relevant row for partial updates
+            row_filter_name = query_data.get("dsb_row_filter")
+            logger.critical(f'{row_filter_name = }')
+            rows_to_parse = [row_filter_name] if row_filter_name else []
+        else:
+            # Parse all default rows for full page load
+            rows_to_parse = ["cards_row", "summary_row"]
+
+        for row_name in rows_to_parse:
+            parser_func: Callable[[QueryDict], DashboardRowFilters] | None = getattr(self, f"_parse_{row_name}", None)
+            if callable(parser_func):
+                self.rows[row_name] = parser_func(query_data)
+            else:
+                logger.warning(f"No parser defined for dashboard row: {row_name}")
+
+        logger.critical(f'{rows_to_parse = }')
 
     # --- Row parsers ---
-    def _parse_cards_row(self, query_data) -> dict:
+    def _parse_cards_row(self, query_data: QueryDict) -> DashboardRowFilters:
         prefix = "cards_row"
         row = {}
         row["dsb_row_filter"] = self._get_dsb_row_filter(query_data, prefix)
@@ -48,12 +62,13 @@ class DashboardFilters:
         row["date_for"] = self._get_date_for(query_data, prefix, row["aggregation"])
         row["date_from"] = self._get_date_from(query_data, prefix)
         row["date_to"] = self._get_date_to(query_data, prefix)
-        row["apply_filters"] = self._get_apply_filters(row["categories"], row["parent_categories"], row["transaction_types"])
+        row["apply_filters"] = self._get_apply_filters(row["categories"], row["parent_categories"],
+                                                       row["transaction_types"])
         row["apply_date_filters"] = self._get_apply_date_filters(row["date_from"], row["date_to"])
         row["refresh_kpis"] = self._get_refresh_kpis(query_data, prefix)
         return row
 
-    def _parse_summary_row(self, query_data) -> dict:
+    def _parse_summary_row(self, query_data: QueryDict) -> DashboardRowFilters:
         prefix = "summary_row"
         row = {}
         row["dsb_row_filter"] = self._get_dsb_row_filter(query_data, prefix)
@@ -62,7 +77,8 @@ class DashboardFilters:
         row["categories"] = self._get_categories(query_data, prefix)
         row["date_from"] = self._get_date_from(query_data, prefix)
         row["date_to"] = self._get_date_to(query_data, prefix)
-        row["apply_filters"] = self._get_apply_filters(row["categories"], row["parent_categories"], row["transaction_types"])
+        row["apply_filters"] = self._get_apply_filters(row["categories"], row["parent_categories"],
+                                                       row["transaction_types"])
         row["apply_date_filters"] = self._get_apply_date_filters(row["date_from"], row["date_to"])
         row["refresh_kpis"] = self._get_refresh_kpis(query_data, prefix)
         # summary_row does not use aggregation/date_for
@@ -106,7 +122,7 @@ class DashboardFilters:
         return query_data.get(f"{prefix}_refresh") == "true"
 
     # --- Public API ---
-    def get_row(self, row_name: str) -> dict | None:
+    def get_row(self, row_name: str) -> DashboardRowFilters:
         """Get the filter dict for a specific row."""
         return self.rows.get(row_name)
 
