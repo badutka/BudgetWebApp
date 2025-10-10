@@ -54,9 +54,8 @@ def update_summary_data():
     pivoted.to_csv('../artifacts/data/dsb_summary_data.csv', index=False)
 
 
-def get_summaries(date_unit='month', date_for=None, date_from=None, date_to=None, apply_date_filters=False,
+def get_summaries(date_unit='month', date_from=None, date_to=None, apply_date_filters=False,
              apply_filters=False, transaction_types=None, parent_categories=None, categories=None):
-    date_unit = 'month'
     df = pd.read_csv('../artifacts/data/dsb_summary_data.csv')
 
     df_filter = data_filters.DataFilter()

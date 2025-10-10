@@ -1,5 +1,5 @@
 import { chartOptions } from './charts_const.js';
-import { generateCategories } from './chartHelpers.js';
+import { generateCategories, getXAxisLabel } from './chartHelpers.js';
 
 /**
  * Render a volatility trend chart with 3-month averages and volatility bands
@@ -10,6 +10,7 @@ import { generateCategories } from './chartHelpers.js';
  */
 export function renderVolatilityTrendChart(containerId, ds, seriesData, frequency = 'month') {
   const categories = generateCategories(frequency, ds);
+  const xAxisLabel = getXAxisLabel(frequency);
 
   Highcharts.chart(containerId, {
     chart: {
@@ -30,7 +31,7 @@ export function renderVolatilityTrendChart(containerId, ds, seriesData, frequenc
       },
       tickWidth: chartOptions.axis.TICK_WIDTH,
       title: {
-        text: 'ds',
+        text: xAxisLabel,
         style: { color: chartOptions.colors.WHITE }
       },
       crosshair: {

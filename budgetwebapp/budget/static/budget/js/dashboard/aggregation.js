@@ -278,20 +278,6 @@ function swapWithTransition(html) {
 }
 
 /**
- * Bootstrap year dropdown handler
- *
- * Updates the hidden input and dropdown label when a year is selected.
- */
-document.addEventListener('click', function(e) {
-  if (e.target.matches('.dropdown-item[data-year]')) {
-    e.preventDefault();
-    let year = e.target.getAttribute('data-year');
-    document.getElementById('cards_row_date_for').value = year;
-    document.getElementById('cards_row_year_dropdown').textContent = year;
-  }
-});
-
-/**
  * animateForLabel
  *
  * Briefly hides and then re-shows the "For:" label to smooth over

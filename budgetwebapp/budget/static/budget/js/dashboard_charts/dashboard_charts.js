@@ -38,7 +38,9 @@ function initRow1(container) {
   if (!balanceDataEl) return;
 
   const chartData = JSON.parse(balanceDataEl.textContent);
-  const frequency = 'month';
+  // Try to find the checked frequency radio for this row
+  const frequencyInput = document.querySelector('input[name="summary_row_aggregation"]:checked');
+  const frequency = frequencyInput ? frequencyInput.value : 'month';
 
   // -------------------- Summaries Chart --------------------
   const summariesSeries = [

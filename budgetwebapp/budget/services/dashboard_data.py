@@ -41,7 +41,6 @@ def get_summary_data(filters_obj: DashboardRowFilters) -> tuple[dict, tuple | No
 
     return summary_charts.get_summaries(
         date_unit=filters_obj.get("aggregation"),
-        date_for=filters_obj.get("date_for"),
         date_from=filters_obj.get("date_from"),
         date_to=filters_obj.get("date_to"),
         apply_date_filters=filters_obj.get("apply_date_filters", False),

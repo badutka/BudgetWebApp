@@ -7,6 +7,7 @@ from django.urls import reverse
 
 from core.logger import logger
 
+
 # Custom template filter to get data from a dictionary using key in template
 
 @register.filter
@@ -53,6 +54,11 @@ def mul(value, arg):
         return ''
 
 
+@register.filter
+def exclude(value_list, exclude_value):
+    return [v for v in value_list if v != exclude_value]
+
+
 @register.simple_tag
 def is_checked(request, param_name, value=None, default=True, prefix=None):
     """
@@ -94,6 +100,7 @@ def is_checked(request, param_name, value=None, default=True, prefix=None):
         return "checked"
 
     return ""
+
 
 @register.simple_tag
 def is_checked_depr(request, param_name, value=None, default=True):

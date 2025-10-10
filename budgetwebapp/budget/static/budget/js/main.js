@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Dashboard-only logic
   initAggregationDropdown("cards_row_aggregation", "month", { fullName: false });
+  initAggregationDropdown("summary_row_aggregation", "month", { fullName: false });
   // Add the dynamic date input initialization
   updateDateForInputType();
 
@@ -35,7 +36,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Modal initialization with config-based behavior
   initModals();
-
 });
 
 /**
@@ -48,4 +48,5 @@ document.body.addEventListener('htmx:afterSwap', () => {
 
   // Re-init aggregation dropdown if it was swapped in
   initAggregationDropdown("cards_row_aggregation", "month", { fullName: false });
+  initAggregationDropdown("summary_row_aggregation", "month", { fullName: false });
 });

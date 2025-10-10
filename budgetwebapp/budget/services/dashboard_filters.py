@@ -75,6 +75,7 @@ class DashboardFilters:
         row["transaction_types"] = self._get_transaction_types(query_data, prefix)
         row["parent_categories"] = self._get_parent_categories(query_data, prefix)
         row["categories"] = self._get_categories(query_data, prefix)
+        row["aggregation"] = self._get_aggregation(query_data, prefix)
         row["date_from"] = self._get_date_from(query_data, prefix)
         row["date_to"] = self._get_date_to(query_data, prefix)
         row["apply_filters"] = self._get_apply_filters(row["categories"], row["parent_categories"],

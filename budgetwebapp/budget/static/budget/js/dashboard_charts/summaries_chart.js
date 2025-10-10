@@ -1,5 +1,5 @@
 import { chartOptions } from './charts_const.js';
-import { generateCategories } from './chartHelpers.js';
+import { generateCategories, getXAxisLabel } from './chartHelpers.js';
 
 /**
  * Render a Highcharts spline chart for summarized data.
@@ -19,6 +19,7 @@ import { generateCategories } from './chartHelpers.js';
 export function renderSummariesChart(containerId, ds, seriesData, frequency = 'month') {
   // Generate x-axis categories
   const categories = generateCategories(frequency, ds);
+  const xAxisLabel = getXAxisLabel(frequency);
 
   Highcharts.chart(containerId, {
     chart: {
@@ -45,7 +46,7 @@ export function renderSummariesChart(containerId, ds, seriesData, frequency = 'm
       // tickmarkPlacement: 'on',  // align ticks with category labels
       tickWidth: chartOptions.axis.TICK_WIDTH,
       title: {
-        text: 'ds',
+        text: xAxisLabel,
         style: { color: chartOptions.colors.WHITE }
       },
       crosshair: {

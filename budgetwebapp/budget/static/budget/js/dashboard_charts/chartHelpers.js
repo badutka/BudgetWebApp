@@ -27,3 +27,31 @@ export function generateCategories(frequency, dsArray) {
   }
   return [];
 }
+
+/**
+ * Returns a human-readable label for the chart's X-axis
+ * based on the selected data aggregation frequency.
+ *
+ * @param {string} frequency - The aggregation frequency.
+ *   Expected values: 'day', 'month', or 'year'.
+ *
+ * @returns {string} - The corresponding X-axis label:
+ *   'Day', 'Month', 'Year', or a fallback ('ds') if unknown.
+ *
+ * @example
+ * getXAxisLabel('day');   // "Day"
+ * getXAxisLabel('month'); // "Month"
+ * getXAxisLabel('year');  // "Year"
+ */
+export function getXAxisLabel(frequency) {
+  switch (frequency) {
+    case 'day':
+      return 'Day';
+    case 'month':
+      return 'Month';
+    case 'year':
+      return 'Year';
+    default:
+      return 'ds'; // fallback label
+  }
+}

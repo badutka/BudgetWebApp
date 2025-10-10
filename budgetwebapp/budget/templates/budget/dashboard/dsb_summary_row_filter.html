@@ -17,6 +17,7 @@
   <div class="filter-row">
 <!--    <input type="hidden" name="dsb_row_filter" value="summary_row" form="dashboard-filter-summary-row-form">-->
 
+    {% include 'budget/dashboard_filters/dsb_filter_aggregation.html' with row_name="summary_row" form_name="dashboard-filter-summary-row-form" %}
 
     {% include 'budget/dashboard_filters/dsb_filter_date_from_to.html' with row_name="summary_row" form_name="dashboard-filter-summary-row-form" date_from=summary_row_filters.date_from date_to=summary_row_filters.date_to %}
 

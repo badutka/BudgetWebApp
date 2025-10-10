@@ -1,5 +1,5 @@
 import { chartOptions } from './charts_const.js';
-import { generateCategories } from './chartHelpers.js';
+import { generateCategories, getXAxisLabel } from './chartHelpers.js';
 
 /**
  * Render a cumulative chart in the given container
@@ -10,6 +10,7 @@ import { generateCategories } from './chartHelpers.js';
  */
 export function renderCumulativeChart(containerId, ds, seriesData, frequency = 'month') {
   const categories = generateCategories(frequency, ds);
+  const xAxisLabel = getXAxisLabel(frequency);
 
   Highcharts.chart(containerId, {
     chart: {
@@ -30,7 +31,7 @@ export function renderCumulativeChart(containerId, ds, seriesData, frequency = '
       },
       tickWidth: chartOptions.axis.TICK_WIDTH,
       title: {
-        text: 'ds',
+        text: xAxisLabel,
         style: { color: chartOptions.colors.WHITE }
       },
       crosshair: {
