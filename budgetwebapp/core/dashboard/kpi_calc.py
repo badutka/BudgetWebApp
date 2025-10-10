@@ -7,7 +7,7 @@ from budget import models
 from core.logger import logger
 
 
-def add_change_metrics(df, columns, suffix, as_string=False):
+def add_change_metrics(df, columns, suffix='', as_string=False):
     for col in columns:
         pct_col = f"{col.lower()}_{suffix}_pct"
         nom_col = f"{col.lower()}_{suffix}_chg"

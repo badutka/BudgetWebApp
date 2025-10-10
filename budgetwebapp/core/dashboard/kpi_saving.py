@@ -88,7 +88,7 @@ def calculate_balance():
     return df
 
 
-def calculate_daily_kpis():
+def update_kpi_data():
     """
     IDEA:
     DoD - daily change, but monthly total
@@ -240,9 +240,12 @@ def calculate_daily_kpis():
     monthly_detail['month'] = monthly_detail['month'].dt.to_timestamp()
     yearly_detail['year'] = yearly_detail['year'].dt.to_timestamp()
 
+    # df_detailed['day'] = pd.to_datetime(df_detailed['day'])
+    # df_detailed['month'] = df_detailed['month'].dt.to_timestamp()
+    # df_detailed['year'] = df_detailed['year'].dt.to_timestamp()
     df_detailed['day'] = pd.to_datetime(df_detailed['day'])
-    df_detailed['month'] = df_detailed['month'].dt.to_timestamp()
-    df_detailed['year'] = df_detailed['year'].dt.to_timestamp()
+    df_detailed['month'] = df_detailed['day'].dt.to_period('M')
+    df_detailed['year'] = df_detailed['day'].dt.to_period('Y')
 
     df_detailed.to_csv('../artifacts/data/kpis_detailed.csv', index=False)
 

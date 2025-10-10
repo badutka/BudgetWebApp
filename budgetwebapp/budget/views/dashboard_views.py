@@ -3,9 +3,9 @@ from django.shortcuts import render
 from django.http import HttpRequest
 
 from budget.services.dashboard_filters import DashboardFilters
-from budget.services.kpis import get_kpis
+from budget.services.dashboard_data import get_kpi_data, get_summary_data
 from budget.services.data_fetcher import fetch_categories_and_summaries
-from core.dashboard_data import charts
+from core.dashboard import summary_charts
 
 from core.logger import logger
 
@@ -22,10 +22,8 @@ def chart_summary(request: HttpRequest):
 
     # --- HTMX partial updates ---
     if dashboard_filters.is_htmx and row_filter_name:  # the second boolean ensures there exists at least one row filter
-        row_filters = dashboard_filters.get_row(row_filter_name)
-
         if row_filter_name == "cards_row":
-            kpis = get_kpis(row_filters)
+            kpis = get_kpi_data(dashboard_filters.get_row(row_filter_name))
             context = {
                 "kpis": kpis[0],
                 "date_range": kpis[1],
@@ -34,7 +32,7 @@ def chart_summary(request: HttpRequest):
             return render(request, "budget/dashboard/dashboard_cards_partial.html", context)
 
         elif row_filter_name == "summary_row":
-            summary_data = charts.calculate_chart_data(row_filters)
+            summary_data = get_summary_data(dashboard_filters.get_row(row_filter_name))
             context = {
                 "summary_data": summary_data,
                 "submitted_rows": submitted_rows
@@ -43,8 +41,8 @@ def chart_summary(request: HttpRequest):
 
     # --- Full page load ---
     monthly_summaries, parent_categories, categories = fetch_categories_and_summaries(request)
-    summary_data = charts.calculate_chart_data(dashboard_filters.get_row("summary_row"))
-    kpis = get_kpis(dashboard_filters.get_row("cards_row"))
+    summary_data = get_summary_data(dashboard_filters.get_row("summary_row"))
+    kpis = get_kpi_data(dashboard_filters.get_row("cards_row"))
 
     context = {
         "summary_data": summary_data,

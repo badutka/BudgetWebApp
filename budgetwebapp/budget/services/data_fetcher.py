@@ -1,5 +1,4 @@
 from django.http import HttpRequest
-from budget.services.dashboard_filters import DashboardFilters
 from core import utils
 
 def fetch_categories_and_summaries(request: HttpRequest) -> tuple[list, list, list]:
@@ -8,7 +7,6 @@ def fetch_categories_and_summaries(request: HttpRequest) -> tuple[list, list, li
 
     Args:
         request (HttpRequest): Django HttpRequest object.
-        query_data (dict): dict object with query parameters.
 
     Returns:
         tuple:
