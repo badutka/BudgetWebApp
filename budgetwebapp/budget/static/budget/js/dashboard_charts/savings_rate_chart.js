@@ -9,6 +9,7 @@ import { generateCategories, getXAxisLabel } from './chartHelpers.js';
  * @param {string} frequency - 'day', 'month', or 'year' (default: 'month')
  */
 export function renderSavingsRateChart(containerId, ds, seriesData, frequency = 'month') {
+
   const categories = generateCategories(frequency, ds);
   const xAxisLabel = getXAxisLabel(frequency);
 

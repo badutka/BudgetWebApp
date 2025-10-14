@@ -3,12 +3,14 @@
 <!-- Embed the data in a <script> tag as a JSON object -->
 {{ categories_data|json_script:"categories-chart-data" }}
 
-<!--<div class="chart-row chart-row-4 mb-3 hoverable-items truncate">-->
-    <div id="categories-chart-container" class="chart-col-1-4 chart-panel" style="overflow: hidden;">
-        {% include 'budget/dashboard/common_chart_title.html' with title='XXX'%}
-        <div id="categories-column-chart"></div>
-    </div>
-<!--</div>-->
+<div id="parent-categories-chart-container" class="chart-col-1-4 chart-panel" style="overflow: hidden;">
+    {% include 'budget/dashboard/common_chart_title.html' with title='XXX'%}
+    <div id="parent-categories-chart"></div>
+</div>
+<div id="categories-chart-container" class="chart-col-2-4 chart-panel" style="overflow: hidden;">
+    {% include 'budget/dashboard/common_chart_title.html' with title='XXX'%}
+    <div id="categories-chart"></div>
+</div>
 
 {% if 'summary_row' in submitted_rows %}
   <input type="hidden" name="submitted" value="categories_row" form="dashboard-filter-categories-row-form">

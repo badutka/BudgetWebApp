@@ -4,7 +4,8 @@ import { renderSummariesChart } from './summaries_chart.js';
 import { renderSavingsRateChart } from './savings_rate_chart.js';
 import { renderCumulativeChart } from './cumulative_inc_exp_chart.js';
 import { renderVolatilityTrendChart } from './volatility_trend_chart.js';
-import { renderCategoriesColumnChart } from './categories_charts.js';
+import { renderParentCategoriesChart } from './parent_categories_chart.js';
+import { renderCategoriesChart } from './categories_chart.js';
 
 //  const income = chartData.map(item => parseFloat(item.income));
 //  const expenses = chartData.map(item => parseFloat(item.expenses));
@@ -93,8 +94,9 @@ function initRow2(container) {
   const dataEl = container.querySelector('#categories-chart-data');
   if (!dataEl) return;
 
-  const chartData = JSON.parse(dataEl.textContent);
-    console.log(chartData);
-  // Example new chart
-   renderCategoriesColumnChart('categories-column-chart', chartData.parent_category, chartData.count);
+  const parentCategoriesChartData = JSON.parse(dataEl.textContent)[0];
+  const categoriesChartData = JSON.parse(dataEl.textContent)[1];
+
+   renderParentCategoriesChart('parent-categories-chart', parentCategoriesChartData.parent_category, parentCategoriesChartData.num_transactions);
+   renderCategoriesChart('categories-chart', categoriesChartData.category, categoriesChartData.num_transactions, categoriesChartData.transactions_amount);
 }
