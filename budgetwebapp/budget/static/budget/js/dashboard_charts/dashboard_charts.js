@@ -4,6 +4,7 @@ import { renderSummariesChart } from './summaries_chart.js';
 import { renderSavingsRateChart } from './savings_rate_chart.js';
 import { renderCumulativeChart } from './cumulative_inc_exp_chart.js';
 import { renderVolatilityTrendChart } from './volatility_trend_chart.js';
+import { renderCategoriesColumnChart } from './categories_charts.js';
 
 //  const income = chartData.map(item => parseFloat(item.income));
 //  const expenses = chartData.map(item => parseFloat(item.expenses));
@@ -16,13 +17,13 @@ import { renderVolatilityTrendChart } from './volatility_trend_chart.js';
 function initRow(container) {
     console.log(container.id)
   if (container.id === 'dashboard-summary-container') initRow1(container);
-  if (container.id === 'row-2') initRow2(container);
+  if (container.id === 'dashboard-categories-container') initRow2(container);
 }
 
 // Run once on initial load
 document.addEventListener('DOMContentLoaded', () => {
   initRow(document.getElementById('dashboard-summary-container'));
-//  initRow(document.getElementById('row-2'));
+  initRow(document.getElementById('dashboard-categories-container'));
 });
 
 // Re-run after HTMX swaps
@@ -38,16 +39,17 @@ function initRow1(container) {
   if (!balanceDataEl) return;
 
   const chartData = JSON.parse(balanceDataEl.textContent);
+
   // Try to find the checked frequency radio for this row
   const frequencyInput = document.querySelector('input[name="summary_row_aggregation"]:checked');
   const frequency = frequencyInput ? frequencyInput.value : 'month';
 
   // -------------------- Summaries Chart --------------------
   const summariesSeries = [
-    { label: 'Income', data: chartData.income, color: chartOptions.colors.Primary },
-    { label: 'Expenses', data: chartData.expenses, color: chartOptions.colors.Secondary },
-    { label: 'Net Savings', data: chartData.net_savings, color: chartOptions.colors.Tertiary },
-    { label: 'Accounts Balance', data: chartData.accounts_balance, color: chartOptions.colors.Quaternary }
+    { label: 'Income', data: chartData.income, color: chartOptions.colors.PRIMARY },
+    { label: 'Expenses', data: chartData.expenses, color: chartOptions.colors.SECONDARY },
+    { label: 'Net Savings', data: chartData.net_savings, color: chartOptions.colors.TERT },
+    { label: 'Accounts Balance', data: chartData.accounts_balance, color: chartOptions.colors.QUAT }
   ];
   renderSummariesChart('summaries-chart', chartData.ds, summariesSeries, frequency);
 
@@ -88,12 +90,11 @@ function initRow1(container) {
  * Row 2: (example for later charts/widgets)
  */
 function initRow2(container) {
-  const dataEl = container.querySelector('#row2-chart-data');
+  const dataEl = container.querySelector('#categories-chart-data');
   if (!dataEl) return;
 
   const chartData = JSON.parse(dataEl.textContent);
-  const frequency = 'month';
-
+    console.log(chartData);
   // Example new chart
-  // renderRow2Chart('row2-chart', chartData.ds, chartData.someSeries, frequency);
+   renderCategoriesColumnChart('categories-column-chart', chartData.parent_category, chartData.count);
 }

@@ -22,6 +22,8 @@ export const chartOptions = {
 //    PRIMARY: '#5181B8',   // blue for income
     PRIMARY: '#2caffe',   // blue for income
     SECONDARY: '#E76F51', // warm orange/red for expenses
+    TERT: '#2ECC71', // vibrant green
+    QUAT: '#A370F7', // soft violet
   },
 
   font: {

@@ -41,6 +41,10 @@
     {% include 'budget/dashboard/dsb_summary_charts_partial.html'%}
 </div>
 
+<div id="dashboard-categories-container" class="chart-row chart-row-4 mb-5 hoverable-items">
+    {% include 'budget/dashboard/dsb_categories_charts_partial.html'%}
+</div>
+
 <script defer type="module" src="{% static 'budget/js/dashboard_charts/dashboard_charts.js' %}"></script>
 <script defer src="{% static 'budget/js/dashboard_charts/dashboard.js' %}"></script>
 

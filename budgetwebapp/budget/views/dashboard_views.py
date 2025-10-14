@@ -5,7 +5,7 @@ from django.http import HttpRequest
 from budget.services.dashboard_filters import DashboardFilters
 from budget.services.dashboard_data import get_kpi_data, get_summary_data
 from budget.services.data_fetcher import fetch_categories_and_summaries
-from core.dashboard import summary_charts
+from core.dashboard import categories_charts
 
 from core.logger import logger
 
@@ -43,11 +43,13 @@ def chart_summary(request: HttpRequest):
     monthly_summaries, parent_categories, categories = fetch_categories_and_summaries(request)
     summary_data = get_summary_data(dashboard_filters.get_row("summary_row"))
     kpis = get_kpi_data(dashboard_filters.get_row("cards_row"))
+    categories_data = categories_charts.get_categories_data()
 
     context = {
         "summary_data": summary_data,
         "kpis": kpis[0],
         "date_range": kpis[1],
+        "categories_data": categories_data,
         "parent_categories": parent_categories,
         "categories": categories,
         "transaction_types": ["OUTGOING", "INNER", "INCOMING"],
