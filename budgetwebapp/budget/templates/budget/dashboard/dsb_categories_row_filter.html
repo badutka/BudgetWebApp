@@ -16,7 +16,7 @@
 
   <div class="filter-row">
 
-    {% include 'budget/dashboard_filters/dsb_filter_date_from_to.html' with row_name="summary_row" form_name="dashboard-filter-categories-row-form" date_from=categories_row_filters.date_from date_to=categories_row_filters.date_to %}
+    {% include 'budget/dashboard_filters/dsb_filter_date_from_to.html' with row_name="categories_row" form_name="dashboard-filter-categories-row-form" date_from=categories_row_filters.date_from date_to=categories_row_filters.date_to %}
 
     {% include 'budget/dashboard_filters/dsb_filter_transaction_type.html' with row_name="categories_row" form_name="dashboard-filter-categories-row-form" %}
 
