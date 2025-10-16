@@ -3,7 +3,7 @@ from django.shortcuts import render
 from django.http import HttpRequest
 
 from budget.services.dashboard_filters import DashboardFilters
-from budget.services.dashboard_data import get_kpi_data, get_summary_data
+from budget.services.dashboard_data import get_kpi_data, get_summary_data, get_categories_data
 from budget.services.data_fetcher import fetch_categories_and_summaries
 from core.dashboard import categories_charts
 
@@ -39,11 +39,19 @@ def chart_summary(request: HttpRequest):
             }
             return render(request, "budget/dashboard/dsb_summary_charts_partial.html", context)
 
+        elif row_filter_name == "categories_row":
+            categories_data = get_categories_data(dashboard_filters.get_row(row_filter_name))
+            context = {
+                "categories_data": categories_data,
+                "submitted_rows": submitted_rows
+            }
+            return render(request, "budget/dashboard/dsb_categories_charts_partial.html", context)
+
     # --- Full page load ---
     monthly_summaries, parent_categories, categories = fetch_categories_and_summaries(request)
     summary_data = get_summary_data(dashboard_filters.get_row("summary_row"))
     kpis = get_kpi_data(dashboard_filters.get_row("cards_row"))
-    categories_data = categories_charts.get_categories_data()
+    categories_data = get_categories_data(dashboard_filters.get_row("categories_row"))
 
     context = {
         "summary_data": summary_data,
@@ -56,6 +64,7 @@ def chart_summary(request: HttpRequest):
         "periods": ["day", "month", "year", "all_time"],
         "cards_row_filters": dashboard_filters.get_row("cards_row"),
         "summary_row_filters": dashboard_filters.get_row("summary_row"),
+        "categories_row_filters": dashboard_filters.get_row("categories_row"),
         "years": list(range(2023, 2031)),
         "submitted_rows": submitted_rows,
     }

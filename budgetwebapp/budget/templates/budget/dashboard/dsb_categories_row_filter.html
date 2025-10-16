@@ -1,0 +1,50 @@
+{% load static %}
+<div class="filter-row-wrapper filter-row-collapsible">
+  <i class="bi bi-filter" style="color: white;"></i>
+
+  <button class="refresh-button"
+          hx-post="{% url 'budget:chart_summary' %}"
+          hx-include="#dashboard-filter-cards-row-form, #dashboard-filter-summary-row-form, #dashboard-filter-categories-row-form"
+          hx-vals='{"categories_row_refresh": true, "dsb_row_filter": "categories_row"}'
+          hx-target="#dashboard-categories-container"
+          hx-swap="innerHTML"
+          style="background: none; border: none; color: white; cursor: pointer; font-size: clamp(1.5rem, 1vw, 2rem); line-height: 1;">
+    &#x21bb;
+  </button>
+
+  <div style="background: white; height: 33px; width: 1px; box-shadow: 0 0 30px white;"></div>
+
+  <div class="filter-row">
+
+    {% include 'budget/dashboard_filters/dsb_filter_date_from_to.html' with row_name="summary_row" form_name="dashboard-filter-categories-row-form" date_from=categories_row_filters.date_from date_to=categories_row_filters.date_to %}
+
+    {% include 'budget/dashboard_filters/dsb_filter_transaction_type.html' with row_name="categories_row" form_name="dashboard-filter-categories-row-form" %}
+
+    {% include 'budget/dashboard_filters/dsb_filter_parent_category.html' with row_name="categories_row" form_name="dashboard-filter-categories-row-form" %}
+
+    {% include 'budget/dashboard_filters/dsb_filter_category.html' with row_name="categories_row" form_name="dashboard-filter-categories-row-form" %}
+
+    <form id="dashboard-filter-categories-row-form"
+          hx-get="{% url 'budget:chart_summary' %}"
+          hx-target="#dashboard-categories-container"
+          hx-push-url="true"
+          hx-trigger="submit"
+          style="display: contents;">
+      {% csrf_token %}
+    </form>
+
+    <button
+        hx-get="{% url 'budget:chart_summary' %}"
+        hx-include="#dashboard-filter-cards-row-form, #dashboard-filter-summary-row-form, #dashboard-filter-categories-row-form"
+        hx-target="#dashboard-categories-container"
+        hx-push-url="true"
+        hx-swap="innerHTML"
+        hx-vals='{"dsb_row_filter": "categories_row"}'
+        type="button">
+      Apply
+    </button>
+
+  </div>
+
+</div>
+

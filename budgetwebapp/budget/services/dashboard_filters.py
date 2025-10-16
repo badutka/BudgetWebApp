@@ -39,7 +39,7 @@ class DashboardFilters:
             rows_to_parse = [row_filter_name] if row_filter_name else []
         else:
             # Parse all default rows for full page load
-            rows_to_parse = ["cards_row", "summary_row"]
+            rows_to_parse = ["cards_row", "summary_row", "categories_row"]
 
         for row_name in rows_to_parse:
             parser_func: Callable[[QueryDict], DashboardRowFilters] | None = getattr(self, f"_parse_{row_name}", None)
@@ -84,6 +84,22 @@ class DashboardFilters:
         row["refresh_kpis"] = self._get_refresh_choice(query_data, prefix)
         # summary_row does not use aggregation/date_for
         return row
+
+    def _parse_categories_row(self, query_data: QueryDict) -> DashboardRowFilters:
+        prefix = "categories_row"
+        row = {}
+        row["dsb_row_filter"] = self._get_dsb_row_filter(query_data, prefix)
+        row["transaction_types"] = self._get_transaction_types(query_data, prefix)
+        row["parent_categories"] = self._get_parent_categories(query_data, prefix)
+        row["categories"] = self._get_categories(query_data, prefix)
+        row["date_from"] = self._get_date_from(query_data, prefix)
+        row["date_to"] = self._get_date_to(query_data, prefix)
+        row["apply_filters"] = self._get_apply_filters(row["categories"], row["parent_categories"],
+                                                       row["transaction_types"])
+        row["apply_date_filters"] = self._get_apply_date_filters(row["date_from"], row["date_to"])
+        row["refresh_kpis"] = self._get_refresh_choice(query_data, prefix)
+        return row
+
 
     # --- Private parameter methods ---
     def _get_dsb_row_filter(self, query_data, prefix: str) -> str:

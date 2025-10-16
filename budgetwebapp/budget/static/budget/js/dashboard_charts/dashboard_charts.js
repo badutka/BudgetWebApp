@@ -6,6 +6,7 @@ import { renderCumulativeChart } from './cumulative_inc_exp_chart.js';
 import { renderVolatilityTrendChart } from './volatility_trend_chart.js';
 import { renderParentCategoriesChart } from './parent_categories_chart.js';
 import { renderCategoriesChart } from './categories_chart.js';
+import { renderCategoriesSunburstChart } from './categories_sunburst_chart.js';
 
 //  const income = chartData.map(item => parseFloat(item.income));
 //  const expenses = chartData.map(item => parseFloat(item.expenses));
@@ -96,7 +97,9 @@ function initRow2(container) {
 
   const parentCategoriesChartData = JSON.parse(dataEl.textContent)[0];
   const categoriesChartData = JSON.parse(dataEl.textContent)[1];
+  const categoriesSunburstChartData = JSON.parse(dataEl.textContent)[2];
 
    renderParentCategoriesChart('parent-categories-chart', parentCategoriesChartData.parent_category, parentCategoriesChartData.num_transactions);
    renderCategoriesChart('categories-chart', categoriesChartData.category, categoriesChartData.num_transactions, categoriesChartData.transactions_amount);
+   renderCategoriesSunburstChart('categories-sunburst-chart', categoriesSunburstChartData);
 }

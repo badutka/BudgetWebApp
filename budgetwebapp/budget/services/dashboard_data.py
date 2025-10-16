@@ -1,5 +1,5 @@
 from budget.services.dashboard_filters import DashboardRowFilters
-from core.dashboard import kpis, summary_charts
+from core.dashboard import kpis, summary_charts, categories_charts
 
 from core.logger import logger
 
@@ -41,6 +41,21 @@ def get_summary_data(filters_obj: DashboardRowFilters) -> tuple[dict, tuple | No
 
     return summary_charts.get_summaries(
         date_unit=filters_obj.get("aggregation"),
+        date_from=filters_obj.get("date_from"),
+        date_to=filters_obj.get("date_to"),
+        apply_date_filters=filters_obj.get("apply_date_filters", False),
+        apply_filters=filters_obj.get("apply_filters", False),
+        transaction_types=filters_obj.get("transaction_types"),
+        parent_categories=filters_obj.get("parent_categories"),
+        categories=filters_obj.get("categories"),
+    )
+
+def get_categories_data(filters_obj: DashboardRowFilters) -> tuple[dict, tuple | None]:
+
+    if filters_obj.get("refresh_kpis"):
+        categories_charts.update_categories_data()
+
+    return categories_charts.get_categories_data(
         date_from=filters_obj.get("date_from"),
         date_to=filters_obj.get("date_to"),
         apply_date_filters=filters_obj.get("apply_date_filters", False),

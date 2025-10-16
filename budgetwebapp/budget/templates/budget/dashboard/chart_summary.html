@@ -41,8 +41,16 @@
     {% include 'budget/dashboard/dsb_summary_charts_partial.html'%}
 </div>
 
+{% include 'budget/dashboard/dsb_categories_row_filter.html'%}
+
 <div id="dashboard-categories-container" class="chart-row chart-row-3 mb-5 hoverable-items">
     {% include 'budget/dashboard/dsb_categories_charts_partial.html'%}
+</div>
+
+
+
+<div id="modal-transactions-by-cat" class="modal fade" tabindex="-1" aria-hidden="true">
+    <div id="dialog-transactions-by-cat" class="modal-dialog modal-lg" hx-target="this"></div>
 </div>
 
 <script defer type="module" src="{% static 'budget/js/dashboard_charts/dashboard_charts.js' %}"></script>
@@ -53,9 +61,6 @@
     <div id="dialog-dashboard-card-modal" class="modal-dialog modal-lg" hx-target="this"></div>
 </div>
 
-<div id="modal-transactions-by-cat" class="modal fade" tabindex="-1" aria-hidden="true">
-    <div id="dialog-transactions-by-cat" class="modal-dialog modal-lg" hx-target="this"></div>
-</div>
 
 <!--<script type="module">-->
 <!--  import { initCharts } from "{% static 'budget/js/dashboard_charts/charts.js' %}";-->

@@ -22,6 +22,11 @@ document.addEventListener('DOMContentLoaded', () => {
   setupFilterSelectAll('summary_row_parent_category', { keepText: true });
   setupFilterSelectAll('summary_row_category', { keepText: true });
 
+  // categories charts
+  setupFilterSelectAll('categories_row_transaction_type', { keepText: true });
+  setupFilterSelectAll('categories_row_parent_category', { keepText: true });
+  setupFilterSelectAll('categories_row_category', { keepText: true });
+
   // Dashboard-only logic
   initAggregationDropdown("cards_row_aggregation", "month", { fullName: false });
   initAggregationDropdown("summary_row_aggregation", "month", { fullName: false });

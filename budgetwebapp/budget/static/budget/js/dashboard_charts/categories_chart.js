@@ -95,7 +95,8 @@ export function renderCategoriesChart(containerId, categories, counts, amounts) 
                 type: 'pareto',
                 baseSeries: 1,
                 yAxis: 1, // secondary
-                zIndex: 10
+                zIndex: 10,
+                cursor: 'pointer',
             },
             {
                 // Column for transactions
@@ -107,7 +108,8 @@ export function renderCategoriesChart(containerId, categories, counts, amounts) 
                 dataLabels: {
                     enabled: true,
                     color: chartOptions.colors.WHITE
-                }
+                },
+                cursor: 'pointer',
             }
         ]
     });
