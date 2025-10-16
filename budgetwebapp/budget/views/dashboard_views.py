@@ -5,7 +5,7 @@ from django.http import HttpRequest
 from budget.services.dashboard_filters import DashboardFilters
 from budget.services.dashboard_data import get_kpi_data, get_summary_data, get_categories_data
 from budget.services.data_fetcher import fetch_categories_and_summaries
-from core.dashboard import categories_charts
+
 
 from core.logger import logger
 
