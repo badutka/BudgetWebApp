@@ -23,13 +23,13 @@ export function renderSummariesChart(containerId, ds, seriesData, frequency = 'm
 
   Highcharts.chart(containerId, {
     chart: {
-      type: 'spline',            // smooth line chart
+      type: 'areaspline',            // smooth line chart
       zoomType: 'xy',            // allows horizontal zooming
       // backgroundColor: '#111827', // match container
       // backgroundColor: '#0c1833', // match container
       // backgroundColor: '#091d4b', // match container
       backgroundColor: 'transparent', // match container
-      style: { fontFamily: chartOptions.font.FAMILY }
+      style: { fontFamily: chartOptions.font.FAMILY },
     },
     title: {
       text: '',                // no title
@@ -100,7 +100,16 @@ export function renderSummariesChart(containerId, ds, seriesData, frequency = 'm
       data: s.data,
       color: s.color,
       lineWidth: 2,
-      marker: { enabled: frequency !== 'day' } // smooth lines without markers
+      marker: { enabled: frequency !== 'day' }, // smooth lines without markers
+      fillColor: {
+//            radialGradient: { cx: 0.3, cy: -0.1, r: 0.9 },
+            linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
+            stops: [
+                [0, Highcharts.color(s.color).setOpacity(0.15).get('rgba')], // top: semi-opaque red
+//                [0.3, Highcharts.color(s.color).setOpacity(0.15).get('rgba')], // fade quickly
+                [1, Highcharts.color(s.color).setOpacity(0).get('rgba')] // bottom: fully transparent
+            ]
+        }
     }))
   });
 };
