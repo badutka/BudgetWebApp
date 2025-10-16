@@ -47,6 +47,40 @@ def get_date_range(date_for, freq):
 
 
 def add_change_metrics(df, columns, suffix='', as_string=False):
+    """
+    Adds nominal (raw) and percentage change columns to a DataFrame for given numeric columns.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Input DataFrame containing numeric columns.
+    columns : list of str
+        Column names for which to calculate changes.
+    suffix : str, optional
+        Optional suffix for new column names (e.g., 'mtd' or 'yoy').
+        The resulting columns will be named as: <col>_<suffix>_chg and <col>_<suffix>_pct.
+    as_string : bool, optional
+        If True, percentage values are formatted as strings (e.g., "12.5%").
+        Default is False (numeric values are retained).
+
+    Notes
+    -----
+    - Nominal (raw) change is calculated as the simple difference between
+      the current and previous row using `df[col].diff()`.
+    - Percentage change is calculated relative to the absolute value of the previous observation:
+          pct = (current - previous) / abs(previous)
+      Using `abs(previous)` ensures that when values cross zero or both
+      are negative (e.g., going from -10000 → -5000), the direction of
+      change still reflects *improvement* (+50%) rather than a misleading
+      negative (-50%) that would arise from dividing by a negative base.
+    - Infinite and NaN values are replaced with "N/A" for readability.
+
+    Returns
+    -------
+    pd.DataFrame
+        The same DataFrame with added `__chg` and `__pct` columns.
+    """
+
     for col in columns:
         pct_col = f"{col.lower()}_{suffix}_pct"
         nom_col = f"{col.lower()}_{suffix}_chg"
@@ -57,7 +91,10 @@ def add_change_metrics(df, columns, suffix='', as_string=False):
         # so Pandas upcasts the column to object dtype.
         df[nom_col] = round(df[col].diff(), 2).fillna("N/A")
 
-        pct = round(df[col].pct_change(fill_method=None), 4).replace([np.inf, -np.inf, np.nan], "N/A")
+        # Percentage change relative to the absolute previous value
+        # Using abs() ensures directionality makes intuitive sense across zero or negative values.
+        pct = (df[col].diff() / df[col].shift(1).abs()).round(4).replace([np.inf, -np.inf, np.nan], "N/A")
+        # pct = round(df[col].pct_change(fill_method=None), 4).replace([np.inf, -np.inf, np.nan], "N/A")
 
         if as_string:
             pct = pct.apply(lambda x: f"{round(x * 100, 2)}%" if isinstance(x, (int, float, np.floating)) else "N/A")
@@ -170,7 +207,7 @@ def get_kpis(date_unit='month', date_for=None, date_from=None, date_to=None, app
 
     add_change_metrics(df_agg, KPI_COLS)
 
-    # logger.info(df_agg)
+    # logger.info(f'\n{df_agg}')
 
     if date_unit:
         df_agg[date_unit] = pd.to_datetime(df_agg[date_unit])
