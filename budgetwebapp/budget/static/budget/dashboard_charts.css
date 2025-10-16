@@ -19,6 +19,14 @@
   overflow: hidden;  /* title won't overflow beyond rounded border */
 }
 
+.chart-lg {
+    height: 560px;
+}
+
+.chart-height-fit {
+    height: 90%;
+}
+
 .chart-row {
   display: flex;
   flex-wrap: nowrap;
