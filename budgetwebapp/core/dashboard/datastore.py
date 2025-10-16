@@ -3,16 +3,23 @@ from pathlib import Path
 
 from core.logger import logger
 
+
 class DataStore:
     """
     Unified interface for managing analytical data, with optional in-memory caching
     and support for Parquet and CSV formats.
     """
 
-    def __init__(self, base_dir="../artifacts/data"):
-        self.base_dir = Path(base_dir)
-        self.base_dir.mkdir(parents=True, exist_ok=True)
-        self._cache = {}  # In-memory cache {name: DataFrame}
+    _instance = None  # Singleton reference
+
+    def __new__(cls, base_dir="../artifacts/data"):
+        if cls._instance is None:
+            instance = super().__new__(cls)
+            instance.base_dir = Path(base_dir)
+            instance.base_dir.mkdir(parents=True, exist_ok=True)
+            instance._cache = {}  # In-memory cache {name: DataFrame}
+            cls._instance = instance
+        return cls._instance
 
     def _path(self, name: str, fmt: str = "parquet") -> Path:
         """Return full file path for a dataset name and format."""

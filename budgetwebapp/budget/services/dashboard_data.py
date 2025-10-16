@@ -1,5 +1,6 @@
 from budget.services.dashboard_filters import DashboardRowFilters
 from core.dashboard import kpis, summary_charts, categories_charts
+from core.dashboard.data_pipeline import run_pipeline
 
 from core.logger import logger
 
@@ -19,7 +20,7 @@ def get_kpi_data(filters_obj: DashboardRowFilters) -> tuple[dict, tuple | None]:
 
     # Recalculate daily KPIs if requested via HTMX
     if filters_obj.get("refresh_kpis"):
-        kpis.update_kpi_data()
+        run_pipeline('kpi')
 
     return kpis.get_kpis(
         date_unit=filters_obj.get("aggregation"),
@@ -37,7 +38,7 @@ def get_kpi_data(filters_obj: DashboardRowFilters) -> tuple[dict, tuple | None]:
 def get_summary_data(filters_obj: DashboardRowFilters) -> tuple[dict, tuple | None]:
 
     if filters_obj.get("refresh_kpis"):
-        summary_charts.update_summary_data()
+        run_pipeline('summary')
 
     return summary_charts.get_summaries(
         date_unit=filters_obj.get("aggregation"),
@@ -53,7 +54,7 @@ def get_summary_data(filters_obj: DashboardRowFilters) -> tuple[dict, tuple | No
 def get_categories_data(filters_obj: DashboardRowFilters) -> tuple[dict, tuple | None]:
 
     if filters_obj.get("refresh_kpis"):
-        categories_charts.update_categories_data()
+        run_pipeline('categories')
 
     return categories_charts.get_categories_data(
         date_from=filters_obj.get("date_from"),

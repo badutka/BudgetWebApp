@@ -40,6 +40,7 @@ def chart_summary(request: HttpRequest):
             return render(request, "budget/dashboard/dsb_summary_charts_partial.html", context)
 
         elif row_filter_name == "categories_row":
+            logger.critical(dashboard_filters.get_row(row_filter_name))
             categories_data = get_categories_data(dashboard_filters.get_row(row_filter_name))
             context = {
                 "categories_data": categories_data,

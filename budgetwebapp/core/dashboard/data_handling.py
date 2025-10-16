@@ -1,10 +1,109 @@
 import pandas as pd
 from datetime import datetime
+import numpy as np
 
 from django.db.models import Sum
 
 from budget import models
+from core.constants import FMT_MAP, FREQ_MAP, KPI_COLS
 from core.logger import logger
+
+
+def calculate_volatility(df, window=3):
+    # Volatility (Rolling <#window>-month Std Dev + Mean)
+    df['income_mean'] = df['income'].rolling(window).mean()
+    df['income_volatility'] = df['income'].rolling(window).std()
+    df['expenses_mean'] = df['expenses'].rolling(window).mean()
+    df['expenses_volatility'] = df['expenses'].rolling(window).std()
+
+    # Variability bands (mean ± std)
+    df['income_upper_band'] = df['income_mean'] + df['income_volatility']
+    df['income_lower_band'] = df['income_mean'] - df['income_volatility']
+    df['expenses_upper_band'] = df['expenses_mean'] + df['expenses_volatility']
+    df['expenses_lower_band'] = df['expenses_mean'] - df['expenses_volatility']
+
+    return df
+
+
+def add_change_metrics(df, columns, suffix='', as_string=False):
+    """
+    Adds nominal (raw) and percentage change columns to a DataFrame for given numeric columns.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Input DataFrame containing numeric columns.
+    columns : list of str
+        Column names for which to calculate changes.
+    suffix : str, optional
+        Optional suffix for new column names (e.g., 'mtd' or 'yoy').
+        The resulting columns will be named as: <col>_<suffix>_chg and <col>_<suffix>_pct.
+    as_string : bool, optional
+        If True, percentage values are formatted as strings (e.g., "12.5%").
+        Default is False (numeric values are retained).
+
+    Notes
+    -----
+    - Nominal (raw) change is calculated as the simple difference between
+      the current and previous row using `df[col].diff()`.
+    - Percentage change is calculated relative to the absolute value of the previous observation:
+          pct = (current - previous) / abs(previous)
+      Using `abs(previous)` ensures that when values cross zero or both
+      are negative (e.g., going from -10000 → -5000), the direction of
+      change still reflects *improvement* (+50%) rather than a misleading
+      negative (-50%) that would arise from dividing by a negative base.
+    - Infinite and NaN values are replaced with "N/A" for readability.
+
+    Returns
+    -------
+    pd.DataFrame
+        The same DataFrame with added `__chg` and `__pct` columns.
+    """
+
+    for col in columns:
+        pct_col = f"{col.lower()}_{suffix}_pct"
+        nom_col = f"{col.lower()}_{suffix}_chg"
+
+        # Nominal (raw) change
+        # The diff() result is a Series of np.float64,
+        # but calling fillna("N/A") mixes string with floats,
+        # so Pandas upcasts the column to object dtype.
+        df[nom_col] = round(df[col].diff(), 2).fillna("N/A")
+
+        # Percentage change relative to the absolute previous value
+        # Using abs() ensures directionality makes intuitive sense across zero or negative values.
+        pct = (df[col].diff() / df[col].shift(1).abs()).round(4).replace([np.inf, -np.inf, np.nan], "N/A")
+        # pct = round(df[col].pct_change(fill_method=None), 4).replace([np.inf, -np.inf, np.nan], "N/A")
+
+        if as_string:
+            pct = pct.apply(lambda x: f"{round(x * 100, 2)}%" if isinstance(x, (int, float, np.floating)) else "N/A")
+
+        df[pct_col] = pct
+
+
+def build_kpi_result(row, kpi_keys, prefix=None):
+    result = {}
+
+    if row is None:
+        for key in kpi_keys:
+            result[key] = {
+                'amount': 0,
+                'change': 0,
+                'pct_change': "N/A"
+            }
+        return result
+
+    for key in kpi_keys:
+        amt_col = key
+        chg_col = f"{key.lower()}_{prefix}_chg"
+        pct_col = f"{key.lower()}_{prefix}_pct"
+        result[key] = {
+            'amount': row.get(amt_col, 0) if pd.notna(row.get(amt_col)) else 0,
+            'change': row.get(chg_col, 0) if chg_col and pd.notna(row.get(chg_col)) else 0,
+            'pct_change': row.get(pct_col, "N/A") if pct_col and pd.notna(row.get(pct_col)) else "N/A"
+        }
+
+    return result
 
 
 def group_kpis(df, group_by_col=None, include_num_transactions=False):
@@ -57,6 +156,28 @@ def get_accounts_balance(df, starting_balance=None):
 def get_net_savings(df):
     net_savings = round(df['income'] - df['expenses'], 2)
     return net_savings
+
+
+def get_comparison_date_range(date_for, freq):
+    """
+    Returns a compact comparison date range string based on frequency.
+    Example:
+      freq='M' or 'month' → '08.2025 - 09.2025'
+      freq='D' or 'day'   → '05.10.2025 - 06.10.2025'
+      freq='Y' or 'year'  → '2024 - 2025'
+    """
+    freq = FREQ_MAP.get(freq.lower(), freq.upper())
+
+    date_for = pd.to_datetime(date_for)
+    period = date_for.to_period(freq)
+    prev_period = period - 1
+
+    fmt = FMT_MAP.get(freq, "%Y-%m-%d")
+
+    prev_str = prev_period.start_time.strftime(fmt)
+    curr_str = period.start_time.strftime(fmt)
+
+    return f"{prev_str} → {curr_str}"
 
 
 def zero_fill_missing_ds(
