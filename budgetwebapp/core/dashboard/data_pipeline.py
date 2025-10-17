@@ -3,9 +3,8 @@ from django.db.models import F
 from django_pandas.io import read_frame
 from core.dashboard import data_handling, filters as data_filters
 from core.dashboard.data_handling import calculate_volatility
-from core.dashboard.datastore import DataStore
+from core.datastore import DataStore
 from budget import models
-from core.logger import logger
 
 
 class DataPipeline:

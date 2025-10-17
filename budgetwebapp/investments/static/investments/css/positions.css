@@ -1,0 +1,56 @@
+
+/* ==== PROFIT/LOSS COLORS ==== */
+.profit {
+    color: #20ff7f;
+    font-weight: 600;
+}
+
+.loss {
+    color: #ff5c5c;
+    font-weight: 600;
+}
+
+/* ==== OPEN/CLOSE COLORS ==== */
+.open {
+    color: #4dcca6; /* less saturated green */
+    font-weight: 600;
+}
+
+.close {
+    color: #ff7f7f; /* less saturated red */
+    font-weight: 600;
+}
+
+/* Trade direction */
+.buy {
+    color: #4aa3ff;
+    font-weight: 600;
+}
+
+.sell {
+    color: #ffa94a;
+    font-weight: 600;
+}
+
+/* ==== INSTRUMENT TYPES ==== */
+.etf {
+    color: #8e44ad; /* purple, stands out but not aggressive */
+    font-weight: 600;
+}
+
+.etc {
+    color: #d35400; /* burnt orange, distinct from sell orange */
+    font-weight: 600;
+}
+
+.cfd {
+    color: #16a085; /* teal, distinct from open green and buy blue */
+    font-weight: 600;
+}
+
+/* ==== EMPTY STATE ==== */
+.no-data {
+    /*text-align: center;*/
+    padding: 1rem;
+    color: #888;
+}

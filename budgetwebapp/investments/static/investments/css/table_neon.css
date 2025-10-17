@@ -1,0 +1,100 @@
+.table-container {
+    max-width: 95%;
+    margin: 2rem auto;
+}
+
+.table-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.table-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #00c3ff;
+    text-shadow: 0 0 15px rgba(0, 195, 255, 0.5);
+    letter-spacing: 1px;
+}
+
+/* ==== TABLE CARD ==== */
+.table-card-neon {
+    background: linear-gradient(145deg, #0e1633, #111a3c);
+    box-shadow: 0 0 20px rgba(0, 200, 255, 0.15);
+    overflow-x: auto;
+    padding: 1rem;
+    border-radius: 15px;
+}
+
+/* Round top corners of the first and last header cells */
+.table-neon thead th:first-child {
+    border-top-left-radius: 12px;
+}
+
+.table-neon thead th:last-child {
+    border-top-right-radius: 12px;
+}
+
+.table-neon {
+    width: 100%;
+    border-collapse: collapse;
+    color: #e0e3ff;
+}
+
+.table-neon thead {
+    background: rgba(0, 255, 255, 0.1);
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+    border-radius: 20px;
+}
+
+.table-neon th {
+    padding: 0.8rem;
+    text-align: left;
+    color: #00d4ff;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.table-neon tbody tr {
+    transition: background 0.2s ease;
+}
+
+/* ==== STRIPED ROWS ==== */
+.table-neon tbody tr:nth-child(even) {
+    background-color: rgba(255, 255, 255, 0.03); /* subtle darker stripe */
+}
+
+
+.table-neon tbody tr:hover {
+    background: rgba(0, 195, 255, 0.08);
+}
+
+.table-neon td {
+    padding: 0.75rem 0.9rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 0.9rem;
+}
+
+/* ==== SCROLLBAR ==== */
+.table-card-neon::-webkit-scrollbar {
+    height: 6px;
+}
+.table-card-neon::-webkit-scrollbar-thumb {
+    background: #00c3ff;
+    border-radius: 10px;
+}
+.table-card-neon::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* ==== RESPONSIVE ==== */
+@media (max-width: 768px) {
+    .table-neon th,
+    .table-neon td {
+        font-size: 0.75rem;
+        padding: 0.5rem;
+    }
+    .table-title {
+        font-size: 1.4rem;
+    }
+}
