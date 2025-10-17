@@ -1,0 +1,74 @@
+{% load static %}
+
+<div class="table-header">
+    <h1 class="table-title">📊 Positions Overview</h1>
+</div>
+
+<div class="table-card-neon">
+    <table class="table-neon">
+        <thead>
+        <tr>
+            <th></th>
+            <th>Symbol</th>
+            <th>Status</th>
+            <th>Account Type</th>
+            <th>Open Time</th>
+            <th>Close Price</th>
+            <th>Open Price</th>
+            <th>Market Price</th>
+            <th>Volume</th>
+            <th>Purchase Value</th>
+            <th>Gross P/L</th>
+            <th>Gross P/L %</th>
+            <th>Swap</th>
+            <th>Direction</th>
+            <th>Position ID</th>
+            <th>Instrument Type</th>
+<!--            <th>Created At</th>-->
+        </tr>
+        </thead>
+        <tbody>
+        {% for pos in positions %}
+        <tr>
+
+            <td><img src="{{ pos.instrument.logo_url }}" width="40" height="40" alt="{{ pos.symbol }} logo"></td>
+            <!--                    onerror="this.src='/static/img/no-logo.svg';"-->
+            <td> {{ pos.symbol }}</td>
+            <td class="{% if pos.status == 'open' %}open{% else %}close{% endif %}">
+                {{ pos.status }}
+            </td>
+            <td>{{ pos.account_type }}</td>
+            <td class="nowrap">{{ pos.open_time|date:"Y-m-d" }}</td>
+            <td>{{ pos.close_price }}</td>
+            <td>{{ pos.open_price|floatformat:2 }}</td>
+            <td>{{ pos.market_price }}</td>
+            <td>{{ pos.volume }}</td>
+            <td>{{ pos.purchase_value|floatformat:2 }}</td>
+            <td class="{% if pos.gross_pl > 0 %}profit{% else %}loss{% endif %}">
+                {{ pos.gross_pl|floatformat:2 }}
+            </td>
+            <td class="{% if pos.gross_pl_perc and pos.gross_pl_perc > 0 %}profit{% elif pos.gross_pl_perc and pos.gross_pl_perc <= 0 %}loss{% else %}no-data{% endif %}">
+                {% if pos.gross_pl_perc %}
+                {{ pos.gross_pl_perc|mul:100|floatformat:2 }}%
+                {% else %}
+                N/A
+                {% endif %}
+            </td>
+            <td>{{ pos.swap }}</td>
+            <td class="{% if pos.direction == 'BUY' %}buy{% else %}sell{% endif %}">
+                {{ pos.direction }}
+            </td>
+            <td>{{ pos.position_id }}</td>
+            <td class="{% if pos.instrument.instrument_type == 'ETF' %}etf{% elif pos.instrument.instrument_type == 'ETC' %}etc{% else %}cfd{% endif %}">
+                {{ pos.instrument.instrument_type }}
+            </td>
+<!--            <td>{{ pos.created_at|date:"Y-m-d" }}</td>-->
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="16" class="no-data">No positions found.</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>

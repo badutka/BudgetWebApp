@@ -1,0 +1,66 @@
+{% load static %}
+
+<!-- Filter Side Panel -->
+<aside class="filter-panel-neon">
+    <h2 class="filter-title">⚙️ Filters</h2>
+
+    <div class="filter-group">
+        <label>Status</label>
+        <div class="filter-options">
+            <button class="filter-btn open">Open</button>
+            <button class="filter-btn close">Close</button>
+        </div>
+    </div>
+
+    <div class="filter-group">
+        <label>Direction</label>
+        <div class="filter-options">
+            <button class="filter-btn buy">Buy</button>
+            <button class="filter-btn sell">Sell</button>
+        </div>
+    </div>
+
+    <div class="filter-group">
+        <label>Instrument Type</label>
+        <div class="filter-options">
+            <button class="filter-btn etf">ETF</button>
+            <button class="filter-btn etc">ETC</button>
+            <button class="filter-btn cfd">CFD</button>
+        </div>
+    </div>
+
+    <div class="filter-group">
+        <label>Account Type</label>
+        <div class="dropdown filter-select-dropdown">
+            <button class="filter-select-neon dropdown-toggle" type="button"
+                    id="accountTypeDropdownButton"
+                    data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                All
+            </button>
+            <div class="dropdown-menu p-3" aria-labelledby="accountTypeDropdownButton">
+                <fieldset class="mb-0">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="account-select-all">
+                        <label class="form-check-label fw-bold" for="account-select-all">
+                            Select All
+                        </label>
+                    </div>
+                    <hr>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="account-demo" value="demo" name="account">
+                        <label class="form-check-label" for="account-demo">Demo</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="account-real" value="real" name="account">
+                        <label class="form-check-label" for="account-real">Real</label>
+                    </div>
+                </fieldset>
+            </div>
+        </div>
+    </div>
+
+    <div class="filter-actions">
+        <button class="apply-btn">Apply</button>
+        <button class="reset-btn">Reset</button>
+    </div>
+</aside>

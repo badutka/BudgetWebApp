@@ -27,6 +27,8 @@ document.addEventListener('DOMContentLoaded', () => {
   setupFilterSelectAll('categories_row_parent_category', { keepText: true });
   setupFilterSelectAll('categories_row_category', { keepText: true });
 
+  setupFilterSelectAll('account', { keepText: true });
+
   // Dashboard-only logic
   initAggregationDropdown("cards_row_aggregation", "month", { fullName: false });
   initAggregationDropdown("summary_row_aggregation", "month", { fullName: false });
