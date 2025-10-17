@@ -17,3 +17,8 @@ def home_view(request):
     return render(request, 'investments/home.html', {
         'positions': positions
     })
+
+def portfolio_view(request):
+
+    return render(request, 'investments/portfolio.html')
+

@@ -25,6 +25,15 @@
           </ul>
         </li>
         <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownPortfolio" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Portfolio
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <li><a class="dropdown-item" href="{% url 'investments:home' %}">Positions</a></li>
+            <li><a class="dropdown-item" href="{% url 'investments:portfolio' %}">Portfolio</a></li>
+          </ul>
+        </li>
+        <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownBalanceHistory" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             Balance
           </a>
