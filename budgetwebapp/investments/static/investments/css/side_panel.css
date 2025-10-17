@@ -232,7 +232,7 @@
     }
 }
 
-/* Dropdown collapse/expand with neon style */
+/* Dropdown collapse/expand with neon style + glow */
 .filter-select-dropdown .dropdown-menu {
     position: absolute;
     top: 100%;
@@ -253,15 +253,23 @@
     z-index: 1000;
 
     /* Smooth transitions */
-    transition: max-height 0.4s ease, opacity 0.3s ease, padding 0.3s ease, transform 0.25s ease;
+    transition: max-height 0.4s ease, opacity 0.3s ease, padding 0.3s ease, transform 0.25s ease, box-shadow 0.3s ease;
 }
 
-/* Expanded state when Bootstrap adds .show to the dropdown-menu itself */
+/* Expanded state */
 .filter-select-dropdown .dropdown-menu.show {
-    max-height: 500px;      /* enough for full content */
-    padding: 10px;          /* restore padding */
+    max-height: 500px;
+    padding: 10px;
     opacity: 1;
     transform: translateY(0);
+    box-shadow: 0 0 15px rgba(0, 195, 255, 0.5), 0 4px 12px rgba(0,0,0,0.5); /* subtle neon glow */
+}
+
+/* Hover effect for dropdown items */
+.filter-select-dropdown .dropdown-menu .form-check:hover {
+    background: rgba(0, 195, 255, 0.08);
+    box-shadow: inset 0 0 8px rgba(0, 195, 255, 0.5); /* inner neon glow on hover */
+    border-radius: 4px;
 }
 
 .filter-select-dropdown .dropdown-menu hr {
