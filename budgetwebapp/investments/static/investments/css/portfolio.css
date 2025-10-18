@@ -186,6 +186,7 @@
     grid-template-columns: 1fr;
     width: 95%;
   }
+
 }
 
 /* =========================================================
@@ -230,16 +231,32 @@
 /* =========================================================
    LAST UPDATED BADGE
 ========================================================= */
+/* Remove absolute positioning */
 .widget-last-updated {
-  position: absolute;
-  bottom: 10px;
-  right: 12px;
+  position: static; /* instead of absolute */
   font-size: 0.65rem;
   color: #a0b0ff;
   background: rgba(0, 195, 255, 0.1);
   padding: 2px 6px;
   border-radius: 10px;
   font-weight: 500;
+  text-align: right; /* align right in the flex container */
+  margin-bottom: -12px; /* pull badge down into padding */
+  margin-right: -12px;
+}
+
+/* Make footer a flex container */
+.widget-footer {
+  display: flex;
+  justify-content: flex-end; /* push badge to the right */
+  margin-top: 0.3rem; /* spacing from content above */
+}
+
+/* Responsive adjustment for small screens */
+@media (max-width: 760px) {
+  .widget-footer {
+    /*justify-content: flex-start;*/ /* align left on narrow screens */
+  }
 }
 
 /* =========================================================
