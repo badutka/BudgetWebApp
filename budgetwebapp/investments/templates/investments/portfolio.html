@@ -1,11 +1,14 @@
 {% extends "base.html" %}
 {% load static %}
+{% load template_filters %}
+
 
 {% block content %}
-<div class="dashboard-grid" style="max-width: 1400px">
 
+<div class="dashboard-grid" style="max-width: 1400px">
+    {% with widget=widgets|get_item:"f8970853-c97d-4eb5-9059-64c012c9c3cc" %}
     <!-- Widget 1 -->
-    <div class="widget-card" style="--row:1; --col:1; --w:1; --h:7;">
+    <div class="widget-card" style="--row:{{ widget.row }}; --col:{{ widget.column }}; --w:{{ widget.width_units }}; --h:{{ widget.height_units }};">
         <div class="widget-header">
             <div class="widget-title-section">
                 <div class="widget-title">Combined Holdings</div>
@@ -69,6 +72,7 @@
             <div class="widget-last-updated">Updated: 12:45</div>
         </div>
     </div>
+    {% endwith %}
 
     <!-- Widget 2 -->
     <div class="widget-card" style="--row:1; --col:2; --w:1; --h:7;">
