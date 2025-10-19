@@ -22,6 +22,20 @@
 /* gap: clamp(1rem, 2vw, 2rem); */
 
 /* =========================================================
+   DASHBOARD ROW WRAPPER
+========================================================= */
+.widget-group {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  gap: inherit; /* same spacing as parent grid */
+  width: var(--row-width, 100%);
+  margin: 0 auto; /* center it */
+  grid-column: var(--col, auto) / span var(--w, auto);
+  grid-row: var(--row, auto) / span var(--h, auto);
+  grid-auto-rows: 20px; /* match outer base row size if you want */
+}
+
+/* =========================================================
    WIDGET CARD CORE
 ========================================================= */
 .widget-card {
@@ -48,7 +62,11 @@
   grid-row: var(--row, auto) / span var(--h, auto);
 }
 
-
+.widget-card {
+  width: var(--custom-width, 100%);
+  justify-self: var(--align, stretch);
+  /*min-width: var(--custom-width, auto);*/
+}
 
 .widget-card:hover {
   box-shadow: 0 0 25px rgba(0, 195, 255, 0.45);
@@ -90,7 +108,14 @@
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   }
 
-  .widget-card { grid-column: auto; grid-row: auto; }
+  .widget-card {
+    grid-column: auto;
+    grid-row: auto;
+
+    /* reset custom width / alignment */
+    width: 100% !important;
+    justify-self: stretch !important;
+  }
 }
 
 @media (max-width: 760px) {
@@ -100,6 +125,13 @@
     width: 95%;
   }
 
-  .widget-card { grid-column: auto; grid-row: auto; }
+  .widget-card {
+    grid-column: auto;
+    grid-row: auto;
+
+    /* reset custom width / alignment */
+    width: 100% !important;
+    justify-self: stretch !important;
+  }
 }
 
