@@ -1,0 +1,105 @@
+/* =========================================================
+   DASHBOARD GRID LAYOUT
+========================================================= */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  /*grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));*/
+  grid-auto-rows: 20px;   /* base row height */
+  /*grid-template-columns: repeat(6, 1fr);*/
+  gap: 2rem;
+  /*max-width: 1400px;*/
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+/**,
+*::before,
+*::after {
+  box-sizing: border-box;
+}*/
+
+/* gap: clamp(1rem, 2vw, 2rem); */
+
+/* =========================================================
+   WIDGET CARD CORE
+========================================================= */
+.widget-card {
+  background: linear-gradient(145deg, #0e1633, #111a3c);
+  border-radius: 20px;
+  box-shadow: 0 0 25px rgba(0, 195, 255, 0.15);
+  color: #e0e3ff;
+  text-shadow: 0 0 8px rgba(0, 195, 255, 0.35);  /* new */
+
+  display: flex;
+  flex-direction: column;
+  /*position: relative;*/ /* currently no children use absolute */
+  /*align-items: center;*/
+  /*justify-content: center;*/
+  justify-content: space-between;
+
+  max-width: 100%;
+  padding: 1.5rem;
+  overflow: hidden;
+  /*transition: all 0.3s ease;*/
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.6s ease;
+
+  grid-column: var(--col, auto) / span var(--w, auto);
+  grid-row: var(--row, auto) / span var(--h, auto);
+}
+
+
+
+.widget-card:hover {
+  box-shadow: 0 0 25px rgba(0, 195, 255, 0.45);
+  transform: translateY(-5px);
+  background: linear-gradient(145deg, #101a3d, #14224a);
+}
+
+/* =========================================================
+   WIDGET TITLES
+========================================================= */
+.widget-title {
+  font-size: 1.2rem;
+  color: #00c3ff;
+  font-weight: 700;
+  text-shadow: 0 0 8px rgba(0, 195, 255, 0.35);
+  margin-bottom: 0.5rem;
+}
+
+/* =========================================================
+   OPTIONAL PLACEHOLDER STYLES
+   (for empty widgets or prototyping layouts)
+========================================================= */
+.widget-card::after {
+  content: "Widget content";
+  font-size: 0.8rem;
+  color: rgba(224, 227, 255, 0.35);
+  text-align: center;
+  display: block;
+  margin-top: 2rem;
+}
+
+/* =========================================================
+   RESPONSIVE BEHAVIOR
+========================================================= */
+@media (max-width: 1024px) {
+  .dashboard-grid {
+    gap: 1.5rem;
+    grid-auto-rows: auto;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  }
+
+  .widget-card { grid-column: auto; grid-row: auto; }
+}
+
+@media (max-width: 760px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr; /* single column layout */
+    grid-auto-rows: auto;       /* height determined by content */
+    width: 95%;
+  }
+
+  .widget-card { grid-column: auto; grid-row: auto; }
+}
+
