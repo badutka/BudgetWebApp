@@ -5,7 +5,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
   /*grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));*/
-  grid-auto-rows: 20px;   /* base row height */
+  grid-auto-rows: 16px;   /* base row height */
   /*grid-template-columns: repeat(6, 1fr);*/
   gap: 2rem;
   /*max-width: 1400px;*/
@@ -82,21 +82,8 @@
   color: #00c3ff;
   font-weight: 700;
   text-shadow: 0 0 8px rgba(0, 195, 255, 0.35);
-  margin-bottom: 0.5rem;
 }
 
-/* =========================================================
-   OPTIONAL PLACEHOLDER STYLES
-   (for empty widgets or prototyping layouts)
-========================================================= */
-.widget-card::after {
-  content: "Widget content";
-  font-size: 0.8rem;
-  color: rgba(224, 227, 255, 0.35);
-  text-align: center;
-  display: block;
-  margin-top: 2rem;
-}
 
 /* =========================================================
    RESPONSIVE BEHAVIOR
