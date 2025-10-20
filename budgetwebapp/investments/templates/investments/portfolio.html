@@ -8,74 +8,79 @@
 <div class="dashboard-grid" style="max-width: 1400px">
     {% with widget=widgets|get_item:"f8970853-c97d-4eb5-9059-64c012c9c3cc" %}
     <!-- Widget 1 -->
-    <div class="widget-card" style="--row:{{ widget.row }}; --col:{{ widget.column }}; --w:{{ widget.width_units }}; --h:{{ widget.height_units }};">
-        <div class="widget-header">
-            <div class="widget-title-section">
-                <div class="widget-title">Combined Holdings</div>
-                <div class="widget-badges">
-                    <span class="info-badge">ETF</span>
-                    <span class="info-badge">ETC</span>
-                    <span class="rule-taxable info-badge">Tax 19%</span>
-                    <span class="currency-badge info-badge">PLN</span>
-                    <span class="currency-badge info-badge">USD</span>
-                    <span class="instrument-count info-badge">5</span>
-                </div>
-                <div class="widget-changes">
-                    <span>D: <span class="change-number profit-number">+0.4% ↑</span></span>
-                    <span>W: <span class="change-number profit-number">+1.2% ↑</span></span>
-                    <span>M: <span class="change-number profit-number">+5.1% ↑</span></span>
-                </div>
-            </div>
-            <div class="widget-right">
-                <div class="widget-amount">
-                    44 281.93 PLN
-                </div>
-                <div class="widget-profit">
-                    Profit: <span class="profit-number">+5 872.43 </span>PLN
-                </div>
-                <div class="widget-metrics">
-                    CAGR: <span class="metric-number">8.5%</span> | TWR: <span class="metric-number">7.9%</span>
-                </div>
-                <div class="widget-profit">
-                    Free funds: <span class="free-funds">5 007.28 PLN</span>
-                </div>
-                <div class="widget-allocation">
-                    Allocation: 28%
-                    <div class="allocation-bar">
-                        <div class="allocation-fill" style="width: 28%;"></div>
+    <div class="widget-card-wrapper">
+        <div class="widget-card"
+             style="--row:{{ widget.row }}; --col:{{ widget.column }}; --w:{{ widget.width_units }}; --h:{{ widget.height_units }};">
+            <div class="sheen"></div>
+            <div class="widget-header">
+                <div class="widget-title-section">
+                    <div class="widget-title">Combined Holdings</div>
+                    <div class="widget-badges">
+                        <span class="info-badge">ETF</span>
+                        <span class="info-badge">ETC</span>
+                        <span class="rule-taxable info-badge">Tax 19%</span>
+                        <span class="currency-badge info-badge">PLN</span>
+                        <span class="currency-badge info-badge">USD</span>
+                        <span class="instrument-count info-badge">5</span>
+                    </div>
+                    <div class="widget-changes">
+                        <span>D: <span class="change-number profit-number">+0.4% ↑</span></span>
+                        <span>W: <span class="change-number profit-number">+1.2% ↑</span></span>
+                        <span>M: <span class="change-number profit-number">+5.1% ↑</span></span>
                     </div>
                 </div>
-                <div class="widget-activity">
-                    New today: 2
+                <div class="widget-right">
+                    <div class="widget-amount">
+                        44 281.93 PLN
+                    </div>
+                    <div class="widget-profit">
+                        Profit: <span class="profit-number">+5 872.43 </span>PLN
+                    </div>
+                    <div class="widget-metrics">
+                        CAGR: <span class="metric-number">8.5%</span> | TWR: <span class="metric-number">7.9%</span>
+                    </div>
+                    <div class="widget-profit">
+                        Free funds: <span class="free-funds">5 007.28 PLN</span>
+                    </div>
+                    <div class="widget-allocation">
+                        Allocation: 28%
+                        <div class="allocation-bar">
+                            <div class="allocation-fill" style="width: 28%;"></div>
+                        </div>
+                    </div>
+                    <div class="widget-activity">
+                        New today: 2
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="widget-logos">
-            <div class="logo-container">
-                <div class="logo"><img src="https://logos.xtb.com/gold.svg" width="40" height="40"></div>
-                <div class="logo-percent profit-number">+16.7%</div>
+            <div class="widget-logos">
+                <div class="logo-container">
+                    <div class="logo"><img src="https://logos.xtb.com/gold.svg" width="40" height="40"></div>
+                    <div class="logo-percent profit-number">+16.7%</div>
+                </div>
+                <div class="logo-container">
+                    <div class="logo">V</div>
+                    <div class="logo-percent profit-number">+4.2%</div>
+                </div>
+                <div class="logo-container">
+                    <div class="logo">S</div>
+                    <div class="logo-percent loss profit-number">-2.1%</div>
+                </div>
+                <div class="logo-container">
+                    <div class="logo">+2</div>
+                    <div class="logo-percent profit-number">+3.5%</div>
+                </div>
             </div>
-            <div class="logo-container">
-                <div class="logo">V</div>
-                <div class="logo-percent profit-number">+4.2%</div>
+            <div class="widget-footer">
+                <div class="widget-last-updated">Updated: 12:45</div>
             </div>
-            <div class="logo-container">
-                <div class="logo">S</div>
-                <div class="logo-percent loss profit-number">-2.1%</div>
-            </div>
-            <div class="logo-container">
-                <div class="logo">+2</div>
-                <div class="logo-percent profit-number">+3.5%</div>
-            </div>
-        </div>
-        <div class="widget-footer">
-            <div class="widget-last-updated">Updated: 12:45</div>
         </div>
     </div>
     {% endwith %}
 
     <!-- Widget 2 -->
     <div class="widget-card" style="--row:1; --col:2; --w:1; --h:7;">
+        <div class="sheen"></div>
         <div class="widget-header">
             <div class="widget-title-section">
                 <div class="widget-title">Main Account</div>
@@ -119,6 +124,7 @@
 
     <!-- Widget 3 -->
     <div class="widget-card" style="--row:8; --col:1; --w:1; --h:7;">
+        <div class="sheen"></div>
         <div class="widget-header">
             <div class="widget-title-section">
                 <div class="widget-title">IKE</div>
@@ -168,6 +174,7 @@
 
     <!-- Widget 4 -->
     <div class="widget-card" style="--row:8; --col:2; --w:1; --h:7;">
+        <div class="sheen"></div>
         <div class="widget-header">
             <div class="widget-title-section">
                 <div class="widget-title">IKZE</div>
@@ -217,6 +224,7 @@
 
     <!-- Widget 5 -->
     <div class="widget-card" style="--row:15; --col:1; --w:1; --h:7;">
+        <div class="sheen"></div>
         <div class="widget-header">
             <div class="widget-title-section">
                 <div class="widget-title">PPK</div>
@@ -260,6 +268,7 @@
 
     <!-- Widget 6 -->
     <div class="widget-card" style="--row:15; --col:2; --w:1; --h:7;">
+        <div class="sheen"></div>
         <div class="widget-header">
             <div class="widget-title-section">
                 <div class="widget-title">Bonds</div>

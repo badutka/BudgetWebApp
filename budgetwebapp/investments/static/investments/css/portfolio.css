@@ -27,6 +27,12 @@
   gap: 0.5rem;
 }
 
+.widget-changes span:not(:last-child)::after {
+  content: "•";
+  margin: 0 0.3rem;
+  color: rgba(0,195,255,0.3);
+}
+
 .change-number.profit-number {
   color: #20ff7f;
 }

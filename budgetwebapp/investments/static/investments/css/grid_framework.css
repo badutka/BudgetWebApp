@@ -69,11 +69,6 @@
   /*min-width: var(--custom-width, auto);*/
 }
 
-.widget-card:hover {
-  box-shadow: 0 0 25px rgba(0, 195, 255, 0.45);
-  transform: translateY(-5px);
-  background: linear-gradient(145deg, #101a3d, #14224a);
-}
 
 /* =========================================================
    WIDGET TITLES
@@ -85,6 +80,10 @@
   text-shadow: 0 0 8px rgba(0, 195, 255, 0.35);
 }
 
+.widget-title {
+  position: relative;
+  padding-bottom: 0.4rem; /* space for the line */
+}
 
 /* =========================================================
    RESPONSIVE BEHAVIOR
