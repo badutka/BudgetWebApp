@@ -1,11 +1,24 @@
 /* ===========================
-   WRAPPER: handles appear animation
+   handles appear animation
 =========================== */
-.widget-card-wrapper {
-  transform: translateY(10px);  /* start slightly lower */
+
+.dashboard-grid {
+  transform: translateY(10px);
   opacity: 0;
-  animation: widgetAppear 0.6s ease-out forwards;
+  animation: widgetAppear 0.8s ease-out forwards;
   will-change: transform, opacity;
+}
+
+/* Appear animation (wrapper) */
+@keyframes widgetAppear {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* =========================================================
@@ -18,13 +31,14 @@
               linear-gradient(145deg, #0e1633, #111a3c);
   position: relative;
   overflow: hidden; /* keeps the glow inside the card edges */
+
   transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
   will-change: transform;
 }
 
 
 .widget-card:hover {
-  transform: translateY(-5px) scale(1.02);
+  transform: translateY(-10px) scale(1.02);
   box-shadow: 0 0 30px rgba(0,195,255,0.5);
   background: linear-gradient(145deg, #101a3d, #14224a);
 }
@@ -90,18 +104,6 @@
     opacity: 0;
   }
  }
-
-/* Appear animation (wrapper) */
-@keyframes widgetAppear {
-  0% {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 
 /* =========================================================
    WIDGET TITLES STYLES AND ANIMATIONS
