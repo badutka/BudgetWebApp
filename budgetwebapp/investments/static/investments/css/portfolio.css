@@ -71,8 +71,14 @@
   color: #ff5c5c;
 }
 
+.widget-free-funds {
+  font-size: 0.75rem;
+  color: #e0e3ff;
+  margin-top: 2px;
+}
+
 .free-funds {
-  color: #9eb3ff;
+  /*color: #9eb3ff;*/
   font-weight: 600;
 }
 
@@ -106,7 +112,7 @@
 ========================================================= */
 .widget-logos {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.75rem;
   margin-top: 0.6rem;
 }
 
@@ -130,6 +136,14 @@
   font-weight: 600;
   text-transform: uppercase;
   transition: all 0.2s ease;
+}
+
+.url-logo{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 8px;
 }
 
 .logo:hover {

@@ -74,7 +74,7 @@ def get_open_position_sheet_name(extract_dir):
 
 
 def parse_data():
-    zip_path = '../artifacts/xtb_files/account_50867007_pl_xlsx_2005-12-31_2025-10-19.zip'
+    zip_path = '../artifacts/xtb_files/account_50867007_pl_xlsx_2005-12-31_2025-10-21.zip'
     extract_dir = '../artifacts/xtb_files'
 
     extract_xtb_files(zip_path, extract_dir)
@@ -113,6 +113,8 @@ def import_xtb_data(df_open_positions, df_closed_positions, df_cash_operations):
 
     # Replace inf/-inf with NaN (which Django will translate to NULL)
     df_positions["Gross P/L Perc"] = df_positions["Gross P/L Perc"].replace([np.inf, -np.inf], np.nan)
+    # Symbol is object/string, so np.nan becomes the string "nan", replacing with None to nullify in the database
+    df_cash_operations['Symbol'] = df_cash_operations['Symbol'].replace({np.nan: None})
 
     # Prepare Position objects for bulk_create
     position_objs = [
@@ -282,48 +284,3 @@ def determine_instrument_type(symbol: str) -> str:
         else:
             return "ETF"
     return "CFD"
-
-
-# ------------------------
-# Generic filter function
-# ------------------------
-def filter_df(df: pd.DataFrame, column: str, pattern=None, value=None, negate=False) -> pd.DataFrame:
-    """Filter DataFrame based on pattern, exact value, or negate flag."""
-    if pattern is not None:
-        mask = df[column].str.contains(pattern)
-    elif value is not None:
-        mask = df[column] == value
-    else:
-        raise ValueError("Either pattern or value must be provided")
-
-    if negate:
-        mask = ~mask
-
-    return df[mask].copy()
-
-
-# ------------------------
-# Specific filters using generic function
-# ------------------------
-def get_cfd_positions(df):
-    return filter_df(df, "Symbol", pattern=r"^\w+$")
-
-
-def get_non_cfd_positions(df):
-    return filter_df(df, "Symbol", pattern=r"\.")
-
-
-def get_account_positions(df, account_type):
-    return filter_df(df, "account_type", value=account_type)
-
-
-def get_interest(df):
-    return filter_df(df, "Type", value="Free-funds Interest")
-
-
-def get_interest_tax(df):
-    return filter_df(df, "Type", value="Free-funds Interest Tax")
-
-
-def get_deposit(df):
-    return filter_df(df, "Type", value="deposit")
