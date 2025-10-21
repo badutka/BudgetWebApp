@@ -27,6 +27,8 @@ def setup_overview_widget():
     currencies = ['PLN']
     taxes = ['Tax 19%']
 
+    period = '1d'
+
     # Step 1: Get all unique symbols from positions
     unique_symbols = (
         Position.objects
@@ -95,7 +97,7 @@ def setup_overview_widget():
     widget_data['metrics']['wcagr'] = wcagr
 
     # get_positions_value_over_time(account_type, instrument_types, unique_symbols)
-    get_positions_value_over_time('ikze', instrument_types, ['VUAA.UK'])
+    get_positions_value_over_time('ikze', instrument_types, ['VUAA.UK'], period)
 
     # Step 4: Fetch the widget instance
     widget = get_object_or_404(Widget, id='28c2eaf5-ddde-4981-b88e-238cd6ef5419')
@@ -108,7 +110,7 @@ def setup_overview_widget():
     logger.debug(f"Updated widget {widget.id} with new data ({len(widget_data)} items).")
 
 
-def get_positions_value_over_time(account_type, instrument_types, tickers):
+def get_positions_value_over_time(account_type, instrument_types, tickers, period):
     TICKER_MAPPING = {
         "VUAA.L": "VUAA.UK",
         "CNDX.L": "CNDX.UK",
@@ -145,37 +147,53 @@ def get_positions_value_over_time(account_type, instrument_types, tickers):
 
     start_date = positions.earliest('open_time').open_time.date()
 
-    df_prices = yf.download(tickers_to_download, interval="1d", start=start_date)['Close']
-    # df_prices.index = df_prices.index.tz_convert("Europe/Warsaw").tz_localize(None)
+    df_prices = yf.download(tickers_to_download, interval=period, start=start_date)['Close']
+
+    if period == '1h':  # hourly data from yfinance is localized to UTC, daily is not localized
+        # Convert to UTC+2
+        df_prices.index = df_prices.index.tz_convert('Europe/Warsaw').tz_localize(None)
+
     df_prices.rename(columns=TICKER_MAPPING, inplace=True)
     df_prices.ffill(inplace=True)
 
     df_positions = pd.DataFrame({
         'symbol': [p.symbol for p in positions],
         "volume": [p.volume for p in positions],
-        "open_time": [p.open_time.date() for p in positions]
+        "open_time": [p.open_time for p in positions]
+        # p.open_time.date() can be use instead of df_sym.index.tz_localize
     })
 
     df_cumvol = pd.DataFrame(index=df_prices.index)
+
     for ticker in tickers:
         df_sym = (
             df_positions[df_positions['symbol'] == ticker]
             .groupby('open_time')['volume']
             .sum()
             .sort_index()
-            .reset_index()
+            # .reset_index()
         )
+        # Either use date p.open_time.date() before groupby, or use localize after:
+        # localize needs date index, so reset_index can't be used in df_sym
+        # and .set_index('open_time')['volume'] should be removed because df_sym is a series.
+
+        if period == '1d':
+            df_sym.index = df_sym.index.tz_localize(None).normalize()
+        elif period == '1h':
+            df_sym.index = df_sym.index.tz_localize(None)
+        else:
+            raise ValueError('Invalid period')
+
         cum_vol = (
-            df_sym.set_index('open_time')['volume']
+            df_sym  # .set_index('open_time')['volume']
             .cumsum()
             .reindex(df_prices.index, method='ffill')
             .fillna(0)
         )
         df_cumvol[ticker] = cum_vol
-
+    logger.debug(f'\n{df_cumvol}')
     # Prepare price dataframe
     df_price_pln = pd.DataFrame(index=df_prices.index)
-
 
     for currency, tickers_in_currency in currency_groups.items():
         if currency == "PLN":
@@ -186,45 +204,50 @@ def get_positions_value_over_time(account_type, instrument_types, tickers):
                 raise ValueError(f"Missing FX rate column for {fx_pair}")
             df_price_pln[tickers_in_currency] = df_prices[tickers_in_currency].mul(df_prices[fx_pair], axis=0)
 
-
-
     instruments_value = df_cumvol[tickers] * df_price_pln[tickers]
     portfolio_value = instruments_value.sum(axis=1)
-    # logger.info(f'\n{portfolio_value}')
+    logger.info(f'\n{portfolio_value}')
 
-    total_portfolio_value = free_funds_over_time(portfolio_value)
-    # logger.info(total_portfolio_value)
+    total_portfolio_value = free_funds_over_time(portfolio_value, period)
+    logger.info(total_portfolio_value)
 
     # daily_change = portfolio_value.pct_change()
 
 
-def free_funds_over_time(portfolio_value):
-    deposits = CashOperation.objects.filter(account_type='ikze')
+def free_funds_over_time(portfolio_value, period):
+    cash_ops = CashOperation.objects.filter(account_type='ikze')
     # logger.info(deposits.aggregate(total=Sum("amount"))["total"])
-    df_deposits = pd.DataFrame({
-        'time': [d.time for d in deposits],
-        'amount': [d.amount for d in deposits]
+    df_cash_ops = pd.DataFrame({
+        'time': [d.time for d in cash_ops],
+        'amount': [d.amount for d in cash_ops]
     })
 
     # DO THIS IF DAILY, NOT HOURLY
-    # df_deposits['time'] = df_deposits['time'].dt.normalize()
+    if period == '1d':
+        df_cash_ops['time'] = df_cash_ops['time'].dt.tz_localize(None).dt.normalize()
+    elif period == '1h':
+        df_cash_ops['time'] = df_cash_ops['time'].dt.tz_localize(None)
+    else:
+        raise ValueError('Invalid period')
 
     df_cumulative_cash = (
-        df_deposits.groupby('time')['amount']
+        df_cash_ops.groupby('time')['amount']
         .sum()
         .cumsum()
     )
 
     # df_cumulative_cash.index = df_cumulative_cash.index.tz_convert("Europe/Warsaw").tz_localize(None)  # this is already Poland time, even though its UTC+0
-    df_cumulative_cash.index = df_cumulative_cash.index.tz_localize(None)  # this is already Poland time, even though its UTC+0
+    # DO THIS IF HOURLY, NOT DAILY
+    # df_cumulative_cash.index = df_cumulative_cash.index.tz_localize(None)  # this is already Poland time, even though its UTC+0
 
     df_cumulative_cash = df_cumulative_cash.reindex(portfolio_value.index, method='ffill').fillna(0)
 
     # add cumulative cash deposits (uninvested cash)
     total_portfolio_value = portfolio_value + df_cumulative_cash
-    # logger.error(df_cumulative_cash)
+    logger.error(df_cumulative_cash)
 
     return total_portfolio_value
+
 
 class PortfolioDetails:
     def __init__(self):
