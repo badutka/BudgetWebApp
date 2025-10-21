@@ -61,7 +61,7 @@ def setup_overview_widget():
         widget_data['instruments'][symbol]['logo_url'] = instrument_logos.get(symbol)
 
     num_positions_opened_today = Position.objects.filter(
-        account_type='main',
+        account_type=account_type,
         instrument_type__in=instrument_types,
         open_time__date=timezone.localtime().date()
     ).count()
@@ -94,7 +94,8 @@ def setup_overview_widget():
     widget_data['metrics']['cagr'] = cagr
     widget_data['metrics']['wcagr'] = wcagr
 
-    get_positions_value_over_time(account_type, instrument_types, unique_symbols)
+    # get_positions_value_over_time(account_type, instrument_types, unique_symbols)
+    get_positions_value_over_time('ikze', instrument_types, ['VUAA.UK'])
 
     # Step 4: Fetch the widget instance
     widget = get_object_or_404(Widget, id='28c2eaf5-ddde-4981-b88e-238cd6ef5419')
@@ -125,20 +126,6 @@ def get_positions_value_over_time(account_type, instrument_types, tickers):
         "IUIT.UK": "USD",
         "SPYL.DE": "EUR",
     }
-    deposits = CashOperation.objects.filter(account_type='main')
-    # logger.info(deposits.aggregate(total=Sum("amount"))["total"])
-    df_deposits = pd.DataFrame({
-        'time': [d.time for d in deposits],
-        'amount': [d.amount for d in deposits]
-    })
-
-    df_cumulative_cash = (
-        df_deposits.groupby('time')['amount']
-        .sum()
-        .cumsum()
-    )
-    df_cumulative_cash.index = df_cumulative_cash.index.tz_convert("Europe/Warsaw").tz_localize(None)
-    logger.info(df_cumulative_cash)
 
     tickers_to_download = [key for (key, value) in TICKER_MAPPING.items() if value in tickers]
 
@@ -158,8 +145,8 @@ def get_positions_value_over_time(account_type, instrument_types, tickers):
 
     start_date = positions.earliest('open_time').open_time.date()
 
-    df_prices = yf.download(tickers_to_download, interval="1h", start=start_date)['Close']
-    df_prices.index = df_prices.index.tz_convert("Europe/Warsaw").tz_localize(None)
+    df_prices = yf.download(tickers_to_download, interval="1d", start=start_date)['Close']
+    # df_prices.index = df_prices.index.tz_convert("Europe/Warsaw").tz_localize(None)
     df_prices.rename(columns=TICKER_MAPPING, inplace=True)
     df_prices.ffill(inplace=True)
 
@@ -188,8 +175,7 @@ def get_positions_value_over_time(account_type, instrument_types, tickers):
 
     # Prepare price dataframe
     df_price_pln = pd.DataFrame(index=df_prices.index)
-    df_cumulative_cash = df_cumulative_cash.reindex(df_prices.index, method='ffill').fillna(0)
-    logger.info(df_cumulative_cash)
+
 
     for currency, tickers_in_currency in currency_groups.items():
         if currency == "PLN":
@@ -200,15 +186,45 @@ def get_positions_value_over_time(account_type, instrument_types, tickers):
                 raise ValueError(f"Missing FX rate column for {fx_pair}")
             df_price_pln[tickers_in_currency] = df_prices[tickers_in_currency].mul(df_prices[fx_pair], axis=0)
 
+
+
     instruments_value = df_cumvol[tickers] * df_price_pln[tickers]
     portfolio_value = instruments_value.sum(axis=1)
+    # logger.info(f'\n{portfolio_value}')
+
+    total_portfolio_value = free_funds_over_time(portfolio_value)
+    # logger.info(total_portfolio_value)
+
+    # daily_change = portfolio_value.pct_change()
+
+
+def free_funds_over_time(portfolio_value):
+    deposits = CashOperation.objects.filter(account_type='ikze')
+    # logger.info(deposits.aggregate(total=Sum("amount"))["total"])
+    df_deposits = pd.DataFrame({
+        'time': [d.time for d in deposits],
+        'amount': [d.amount for d in deposits]
+    })
+
+    # DO THIS IF DAILY, NOT HOURLY
+    # df_deposits['time'] = df_deposits['time'].dt.normalize()
+
+    df_cumulative_cash = (
+        df_deposits.groupby('time')['amount']
+        .sum()
+        .cumsum()
+    )
+
+    # df_cumulative_cash.index = df_cumulative_cash.index.tz_convert("Europe/Warsaw").tz_localize(None)  # this is already Poland time, even though its UTC+0
+    df_cumulative_cash.index = df_cumulative_cash.index.tz_localize(None)  # this is already Poland time, even though its UTC+0
+
+    df_cumulative_cash = df_cumulative_cash.reindex(portfolio_value.index, method='ffill').fillna(0)
 
     # add cumulative cash deposits (uninvested cash)
     total_portfolio_value = portfolio_value + df_cumulative_cash
+    # logger.error(df_cumulative_cash)
 
-    logger.info(portfolio_value)
-    logger.info(total_portfolio_value)
-
+    return total_portfolio_value
 
 class PortfolioDetails:
     def __init__(self):
