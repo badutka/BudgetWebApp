@@ -21,7 +21,32 @@ class Metric:
         pass
 
     @staticmethod
-    def simple_cagr(positions):
+    def simple_cagr(positions, time_strat='min'):
+        """
+        Calculate the simple annualized CAGR for a portfolio of positions.
+
+        Parameters:
+        - positions: QuerySet of positions, each with 'purchase_value', 'gross_pl', 'open_time'.
+        - time_strat: str, either:
+            - 'min' : annualize based on the earliest position's open_time.
+            - 'avg' : annualize using the arithmetic mean of days held across all positions.
+
+        Returns:
+        - cagr: float, the annualized compound growth rate.
+
+        Notes / Conclusions:
+        1. Using 'min' (earliest date) treats the portfolio as if all capital
+           was invested on the first open position. If after 20 days the portfolio's value went from 100% to 99.3%,
+           we can annualize by dividing the year into 20-day intervals and compound: 0.993^(365.25 / 20) ≈ 0.8796.
+           This means the portfolio would lose approximately 12.04% if the same performance continued for a full year.
+        2. Using 'avg' takes the simple average of holding periods (in days)
+           across all positions, so older positions still tend to stretch the
+           annualized return more than very recent ones, i.e. older positions carry more weight
+        3. This approach gives a more “middle-ground” annualization than min or max.
+        4. Total return over the period (answers the "$1 question") is:
+               total_return = (total_current_value / total_purchase_value) - 1
+           Annualization scales this to a full year based on the chosen time strategy.
+        """
         aggregates = positions.aggregate(
             total_purchase_value=Sum('purchase_value'),
             total_gross_pl=Sum('gross_pl'),
@@ -33,8 +58,21 @@ class Metric:
         earliest_purchase_date = aggregates['earliest_purchase_date']
 
         if total_purchase_value > 0 and earliest_purchase_date:
-            years = (date.today() - earliest_purchase_date.date()).days / 365.25
-            cagr = (total_current_value / total_purchase_value) ** (1 / years) - 1
+            if time_strat == 'min':
+                years = (date.today() - earliest_purchase_date.date()).days / 365.25
+            elif time_strat == 'avg':
+                # simple average of holding periods (in years)
+                now = date.today()
+                days_list = [(now - pos.open_time.date()).days for pos in positions]
+                avg_days = sum(days_list) / len(days_list) if days_list else 0
+                years = avg_days / 365.25
+            else:
+                raise ValueError("time_strat must be either 'min' or 'avg'")
+
+            if years > 0:
+                cagr = (total_current_value / total_purchase_value) ** (1 / years) - 1
+            else:
+                cagr = 0
         else:
             cagr = 0
 

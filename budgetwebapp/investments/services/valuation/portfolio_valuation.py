@@ -13,7 +13,7 @@ from core.datastore import DataStore
 from core.logger import logger
 
 
-def get_positions_value_over_time(account_type, instrument_types, tickers, period, start_date='2024-07-22'):
+def get_positions_value_over_time(positions, account_type, instrument_types, tickers, period, start_date='2024-07-22'):
     TICKER_MAPPING = {
         "VUAA.L": "VUAA.UK",
         "CNDX.L": "CNDX.UK",
@@ -34,11 +34,6 @@ def get_positions_value_over_time(account_type, instrument_types, tickers, perio
 
     currency_groups = group_tickers_by_currency(tickers, ETF_CURRENCY)
     tickers_to_download = get_tickers_to_download(tickers, TICKER_MAPPING, ETF_CURRENCY)
-
-    positions = Position.objects.filter(
-        account_type=account_type,
-        instrument_type__in=instrument_types
-    )
 
     df_positions = pd.DataFrame({
         'symbol': [p.symbol for p in positions],
@@ -78,7 +73,7 @@ def get_positions_value_over_time(account_type, instrument_types, tickers, perio
     })
 
     (DataStore(base_dir="../artifacts/portfolio_snapshots")
-     .save("portfolio_over_time", df_portfolio_over_time, fmt='csv', index=True, prefix=''))
+     .save(f"portfolio_over_time_{account_type}", df_portfolio_over_time, fmt='csv', index=True, prefix=''))
 
     logger.info(f"Portfolio valuation complete. Date range: 2024-07-22 - {datetime.now().strftime('%Y-%m-%d')}.")
     return df_portfolio_over_time

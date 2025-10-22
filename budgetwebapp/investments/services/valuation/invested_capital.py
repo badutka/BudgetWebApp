@@ -15,7 +15,6 @@ def get_cumulative_input_value(df_positions, tickers, period, df_prices, currenc
         df_ticker = df_positions[df_positions['symbol'] == ticker].copy()
         df_ticker['usd_value'] = df_ticker['open_price'] * df_ticker['volume']
         df_ticker = df_ticker[['open_time', 'usd_value']].set_index('open_time')
-        df_ticker = df_ticker.merge(df_prices[['USDPLN', 'EURPLN']], left_index=True, right_index=True, how='left')
 
         base_currency = None
         for currency, symbols in currency_groups.items():
@@ -24,6 +23,8 @@ def get_cumulative_input_value(df_positions, tickers, period, df_prices, currenc
                 break
         if base_currency is None:
             raise ValueError(f"Ticker {ticker} not found in currency_groups")
+
+        df_ticker = df_ticker.merge(df_prices[f'{base_currency}PLN'], left_index=True, right_index=True, how='left')
 
         df_ticker['pln_value'] = df_ticker['usd_value'] * df_ticker[f'{base_currency}PLN']
         df_ticker = df_ticker.groupby('open_time', as_index=True)['pln_value'].sum()
