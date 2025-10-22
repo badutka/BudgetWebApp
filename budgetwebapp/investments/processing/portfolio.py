@@ -1,3 +1,4 @@
+import os
 from collections import defaultdict
 import json
 from datetime import datetime
@@ -97,7 +98,7 @@ def setup_overview_widget():
     widget_data['metrics']['wcagr'] = wcagr
 
     # get_positions_value_over_time(account_type, instrument_types, unique_symbols)
-    get_positions_value_over_time('ikze', instrument_types, ['VUAA.UK'], period)
+    get_positions_value_over_time(account_type, instrument_types, unique_symbols, period)
 
     # Step 4: Fetch the widget instance
     widget = get_object_or_404(Widget, id='28c2eaf5-ddde-4981-b88e-238cd6ef5419')
@@ -129,70 +130,78 @@ def get_positions_value_over_time(account_type, instrument_types, tickers, perio
         "SPYL.DE": "EUR",
     }
 
-    tickers_to_download = [key for (key, value) in TICKER_MAPPING.items() if value in tickers]
+    currency_groups = group_tickers_by_currency(tickers, ETF_CURRENCY)
 
-    currency_groups = defaultdict(list)
-    # Create a reverse mapping: { 'USD': [list of USD tickers], 'EUR': [list of EUR tickers], ... }
-    for ticker in tickers:
-        currency = ETF_CURRENCY.get(ticker, "USD")  # default to USD if missing
-        currency_groups[currency].append(ticker)
-
-    fx_needed = {f"{cur}PLN=X" for cur in set(ETF_CURRENCY[t] for t in tickers) if cur != "PLN"}
-    tickers_to_download += list(fx_needed)
+    tickers_to_download = get_tickers_to_download(tickers, TICKER_MAPPING, ETF_CURRENCY)
 
     positions = Position.objects.filter(
         account_type=account_type,
         instrument_type__in=instrument_types
     )
+    df_positions = pd.DataFrame({
+        'symbol': [p.symbol for p in positions],
+        'volume': [p.volume for p in positions],
+        'open_time': [p.open_time for p in positions],
+        'open_price': [p.open_price for p in positions]
+        # p.open_time.date() can be use instead of df_sym.index.tz_localize
+    })
 
-    start_date = positions.earliest('open_time').open_time.date()
+    # start_date = positions.earliest('open_time').open_time.date()
+    start_date = '2025-10-22'
 
-    df_prices = yf.download(tickers_to_download, interval=period, start=start_date)['Close']
-
-    if period == '1h':  # hourly data from yfinance is localized to UTC, daily is not localized
+    df_prices = yf.download(tickers_to_download, interval=period, start=start_date, auto_adjust=True)['Close']
+    if period == '1h' or period == '30m':  # hourly data from yfinance is localized to UTC, daily is not localized
         # Convert to UTC+2
         df_prices.index = df_prices.index.tz_convert('Europe/Warsaw').tz_localize(None)
 
     df_prices.rename(columns=TICKER_MAPPING, inplace=True)
-    df_prices.ffill(inplace=True)
+    df_prices = df_prices.ffill().bfill()
 
-    df_positions = pd.DataFrame({
-        'symbol': [p.symbol for p in positions],
-        "volume": [p.volume for p in positions],
-        "open_time": [p.open_time for p in positions]
-        # p.open_time.date() can be use instead of df_sym.index.tz_localize
+    df_cumvol = get_cumulative_volume(df_positions, tickers, period, df_prices.index)
+    input_value_over_time = get_cumulative_input_value(df_positions, tickers, period, df_prices, currency_groups)
+    logger.critical(input_value_over_time)
+    df_price_pln = convert_prices_to_pln(df_prices, currency_groups)
+    instruments_value = df_cumvol[tickers] * df_price_pln[tickers]
+
+    portfolio_value = instruments_value.sum(axis=1)
+
+    free_funds = free_funds_over_time(account_type, period)
+    free_funds = free_funds.reindex(portfolio_value.index, method='ffill').fillna(0)
+    total_portfolio_value = portfolio_value + free_funds
+
+    logger.info(f'\n{portfolio_value}')
+    logger.info(f'\n{free_funds}')
+    logger.info(f'\n{total_portfolio_value}')
+
+    df_to_save = pd.DataFrame({
+        'input_value_over_time': input_value_over_time,
+        'portfolio_value': portfolio_value,
+        'free_funds': free_funds,
+        'total_portfolio_value': total_portfolio_value
     })
 
-    df_cumvol = pd.DataFrame(index=df_prices.index)
+    df_to_save.to_csv('../artifacts/portfolio_snapshots/portfolio_over_time.csv')
 
+    # daily_change = portfolio_value.pct_change()
+
+
+def get_tickers_to_download(tickers, ticker_mapping, etf_currency_mapping):
+    tickers_to_download = [key for (key, value) in ticker_mapping.items() if value in tickers]
+    fx_needed = {f"{cur}PLN=X" for cur in set(etf_currency_mapping[t] for t in tickers) if cur != "PLN"}
+    tickers_to_download += list(fx_needed)
+    return tickers_to_download
+
+
+def group_tickers_by_currency(tickers, etf_currency_mapping):
+    currency_groups = defaultdict(list)
+    # Create a reverse mapping: { 'USD': [list of USD tickers], 'EUR': [list of EUR tickers], ... }
     for ticker in tickers:
-        df_sym = (
-            df_positions[df_positions['symbol'] == ticker]
-            .groupby('open_time')['volume']
-            .sum()
-            .sort_index()
-            # .reset_index()
-        )
-        # Either use date p.open_time.date() before groupby, or use localize after:
-        # localize needs date index, so reset_index can't be used in df_sym
-        # and .set_index('open_time')['volume'] should be removed because df_sym is a series.
+        currency = etf_currency_mapping.get(ticker, "USD")  # default to USD if missing
+        currency_groups[currency].append(ticker)
+    return currency_groups
 
-        if period == '1d':
-            df_sym.index = df_sym.index.tz_localize(None).normalize()
-        elif period == '1h':
-            df_sym.index = df_sym.index.tz_localize(None)
-        else:
-            raise ValueError('Invalid period')
 
-        cum_vol = (
-            df_sym  # .set_index('open_time')['volume']
-            .cumsum()
-            .reindex(df_prices.index, method='ffill')
-            .fillna(0)
-        )
-        df_cumvol[ticker] = cum_vol
-    logger.debug(f'\n{df_cumvol}')
-    # Prepare price dataframe
+def convert_prices_to_pln(df_prices, currency_groups):
     df_price_pln = pd.DataFrame(index=df_prices.index)
 
     for currency, tickers_in_currency in currency_groups.items():
@@ -204,31 +213,79 @@ def get_positions_value_over_time(account_type, instrument_types, tickers, perio
                 raise ValueError(f"Missing FX rate column for {fx_pair}")
             df_price_pln[tickers_in_currency] = df_prices[tickers_in_currency].mul(df_prices[fx_pair], axis=0)
 
-    instruments_value = df_cumvol[tickers] * df_price_pln[tickers]
-    portfolio_value = instruments_value.sum(axis=1)
-    logger.info(f'\n{portfolio_value}')
+    return df_price_pln
 
-    total_portfolio_value = free_funds_over_time(portfolio_value, period)
-    logger.info(total_portfolio_value)
+def get_cumulative_input_value(df_positions, tickers, period, df_prices, currency_groups):
+    df_input_value = pd.DataFrame(index=df_prices.index)
 
-    # daily_change = portfolio_value.pct_change()
+    for ticker in tickers:
+        df_positions['open_time'] = standardize_datetime_by_period(df_positions['open_time'], period)
+
+        df_ticker = df_positions[df_positions['symbol'] == ticker].copy()
+
+        df_ticker['usd_value'] = df_ticker['open_price'] * df_ticker['volume']
+
+        df_ticker = df_ticker[['open_time', 'usd_value']].set_index('open_time')
+
+        df_ticker = df_ticker.merge(df_prices[['USDPLN', 'EURPLN']], left_index=True, right_index=True, how='left')
+
+        # Determine base currency
+        base_currency = None
+        for currency, symbols in currency_groups.items():
+            if ticker in symbols:
+                base_currency = currency
+                break
+        if base_currency is None:
+            raise ValueError(f"Ticker {ticker} not found in currency_groups")
+
+        df_ticker['pln_value'] = df_ticker['usd_value'] * df_ticker[f'{base_currency}PLN']
+
+        df_ticker = df_ticker.groupby('open_time', as_index=True)['pln_value'].sum()
+
+        df_input_value[ticker] = df_ticker
+
+    df_input_value = df_input_value.fillna(0)
+
+    df_input_value['total_pln'] = df_input_value.sum(axis=1)
+    df_input_value['total_pln_cumulative'] = df_input_value['total_pln'].cumsum()
+    # df_input_value.to_csv('../artifacts/portfolio_snapshots/df_input_value.csv')
+    # df_input_value_cumulative = df_input_value.sum(axis=0)
+    return df_input_value['total_pln_cumulative']
 
 
-def free_funds_over_time(portfolio_value, period):
-    cash_ops = CashOperation.objects.filter(account_type='ikze')
-    # logger.info(deposits.aggregate(total=Sum("amount"))["total"])
+def get_cumulative_volume(df_positions, tickers, period, index):
+    df_cumvol = pd.DataFrame(index=index)
+
+    for ticker in tickers:
+        df_positions['open_time'] = standardize_datetime_by_period(df_positions['open_time'], period)
+
+        df_sym = (
+            df_positions[df_positions['symbol'] == ticker]
+            .groupby('open_time')['volume']
+            .sum()
+            .sort_index()  # .reset_index()
+        )
+
+        cum_vol = (
+            df_sym  # .set_index('open_time')['volume']
+            .cumsum()
+            .reindex(index, method='ffill')
+            .fillna(0)
+        )
+        df_cumvol[ticker] = cum_vol
+
+    return df_cumvol
+
+
+def free_funds_over_time(account_type, period):
+    cash_ops = CashOperation.objects.filter(account_type=account_type)
+
     df_cash_ops = pd.DataFrame({
         'time': [d.time for d in cash_ops],
         'amount': [d.amount for d in cash_ops]
     })
 
-    # DO THIS IF DAILY, NOT HOURLY
-    if period == '1d':
-        df_cash_ops['time'] = df_cash_ops['time'].dt.tz_localize(None).dt.normalize()
-    elif period == '1h':
-        df_cash_ops['time'] = df_cash_ops['time'].dt.tz_localize(None)
-    else:
-        raise ValueError('Invalid period')
+    df_cash_ops['time'] = standardize_datetime_by_period(df_cash_ops['time'], period)
 
     df_cumulative_cash = (
         df_cash_ops.groupby('time')['amount']
@@ -236,17 +293,67 @@ def free_funds_over_time(portfolio_value, period):
         .cumsum()
     )
 
-    # df_cumulative_cash.index = df_cumulative_cash.index.tz_convert("Europe/Warsaw").tz_localize(None)  # this is already Poland time, even though its UTC+0
-    # DO THIS IF HOURLY, NOT DAILY
-    # df_cumulative_cash.index = df_cumulative_cash.index.tz_localize(None)  # this is already Poland time, even though its UTC+0
+    return df_cumulative_cash
 
-    df_cumulative_cash = df_cumulative_cash.reindex(portfolio_value.index, method='ffill').fillna(0)
 
-    # add cumulative cash deposits (uninvested cash)
-    total_portfolio_value = portfolio_value + df_cumulative_cash
-    logger.error(df_cumulative_cash)
+def standardize_datetime_by_period(
+        data: pd.Series | pd.DataFrame | pd.Index,
+        period: str
+) -> pd.Series | pd.DataFrame | pd.Index:
+    """
+    Standardize datetime values or index by period.
 
-    return total_portfolio_value
+    - Removes timezone information.
+    - If period == '1d', normalizes to midnight (00:00:00).
+    - If period == '1h', keeps hour/minute but removes tz.
+
+    For DataFrames, a copy is made before modifying the index to avoid
+    mutating the caller's original object. Series and Index inputs don't
+    need copying, since a new object or immutable index is returned anyway.
+
+    Parameters
+    ----------
+    data : pd.Series | pd.DataFrame | pd.Index
+        Object containing datetimes (either as values or index).
+    period : str
+        Period string ('1d' or '1h').
+
+    Returns
+    -------
+    pd.Series | pd.DataFrame | pd.Index
+        Object with standardized datetimes.
+    """
+
+    # Define transformation function
+    def _standardize(dt_index: pd.DatetimeIndex) -> pd.DatetimeIndex:
+        dt_index = dt_index.tz_localize(None)
+        if period == "1d":
+            return dt_index.normalize()
+        elif period == "1h":
+            return dt_index
+        else:
+            raise ValueError(f"Invalid period: {period}")
+
+    # Handle DatetimeIndex
+    if isinstance(data, pd.DatetimeIndex):
+        return _standardize(data)
+
+    # Handle Series of datetimes
+    elif isinstance(data, pd.Series) and pd.api.types.is_datetime64_any_dtype(data):
+        dt_index = pd.DatetimeIndex(data)
+        standardized_index = _standardize(dt_index)
+        return pd.Series(standardized_index, index=data.index, name=data.name)
+
+    # Handle DataFrame with datetime index
+    elif isinstance(data, pd.DataFrame) and isinstance(data.index, pd.DatetimeIndex):
+        data = data.copy()
+        data.index = _standardize(data.index)
+        return data
+
+    else:
+        raise TypeError(
+            "Input must be a pandas Series, DataFrame with DatetimeIndex, or DatetimeIndex."
+        )
 
 
 class PortfolioDetails:
