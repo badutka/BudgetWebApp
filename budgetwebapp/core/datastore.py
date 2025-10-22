@@ -10,23 +10,23 @@ class DataStore:
     and support for Parquet and CSV formats.
     """
 
-    _instance = None  # Singleton reference
+    _instances = {}  # key: base_dir -> instance
 
     def __new__(cls, base_dir="../artifacts/data"):
-        if cls._instance is None:
+        if base_dir not in cls._instances:
             instance = super().__new__(cls)
             instance.base_dir = Path(base_dir)
             instance.base_dir.mkdir(parents=True, exist_ok=True)
-            instance._cache = {}  # In-memory cache {name: DataFrame}
-            cls._instance = instance
-        return cls._instance
+            instance._cache = {}
+            cls._instances[base_dir] = instance
+        return cls._instances[base_dir]
 
-    def _path(self, name: str, fmt: str = "parquet") -> Path:
+    def _path(self, name: str, fmt: str = "parquet", prefix='dsb_') -> Path:
         """Return full file path for a dataset name and format."""
         ext = "parquet" if fmt == "parquet" else "csv"
-        return self.base_dir / f"dsb_{name}.{ext}"
+        return self.base_dir / f"{prefix}{name}.{ext}"
 
-    def save(self, name: str, df: pd.DataFrame, cache: bool = True, fmt: str = "parquet"):
+    def save(self, name: str, df: pd.DataFrame, cache: bool = True, fmt: str = "parquet", index=False, prefix='dsb_'):
         """
         Save a DataFrame to disk (Parquet by default) and optionally update cache.
 
@@ -35,12 +35,14 @@ class DataStore:
             df: DataFrame to save.
             cache: If True, update in-memory cache.
             fmt: 'parquet' (default) or 'csv' for debug purposes.
+            index: If True, save index into file as well.
+            prefix: 'dsb' (default) attached at the start of file name.
         """
-        path = self._path(name, fmt)
+        path = self._path(name, fmt, prefix)
         if fmt == "parquet":
-            df.to_parquet(path, index=False)
+            df.to_parquet(path, index=index)
         elif fmt == "csv":
-            df.to_csv(path, index=False)
+            df.to_csv(path, index=index)
         else:
             raise ValueError(f"Unsupported format: {fmt}")
 
