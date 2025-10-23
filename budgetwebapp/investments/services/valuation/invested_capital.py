@@ -10,7 +10,7 @@ def get_cumulative_input_value(df_positions, tickers, period, df_prices, currenc
     for ticker in tickers:
         df_positions['open_time'] = standardize_datetime_by_period(df_positions['open_time'], period)
         if period in ['1h', '30m']:
-            df_positions['open_time'] = df_positions['open_time'].dt.floor('h')
+            df_positions['open_time'] = df_positions['open_time'].dt.ceil('h')
 
         df_ticker = df_positions[df_positions['symbol'] == ticker].copy()
         df_ticker['usd_value'] = df_ticker['open_price'] * df_ticker['volume']
