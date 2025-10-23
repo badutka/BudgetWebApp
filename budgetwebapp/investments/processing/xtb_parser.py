@@ -95,12 +95,12 @@ def parse_data():
         output_dir=extract_dir,
     )
 
-    # # Load into DataFrames
+    # Load into DataFrames
     df_open = pd.read_csv(f"{extract_dir}/open_positions.csv")
     df_closed = pd.read_csv(f"{extract_dir}/closed_positions.csv")
     df_cash = pd.read_csv(f"{extract_dir}/cash_operations.csv")
-    #
-    # # todo: create a button for importing refreshed data
+
+    # todo: create a button for importing refreshed data
     import_xtb_data(df_open, df_closed, df_cash)
 
 
@@ -244,7 +244,9 @@ def read_sheet_data(
 
 def aggregate_positions(df: pd.DataFrame, time_threshold_sec: int = 2) -> pd.DataFrame:
     """Aggregate positions by Symbol and time difference."""
-    df = df.sort_values(["Symbol", "Open time"])
+    # reset_index here is essential. Input df is vertically concatenated, which results in duplicated indices
+    # Without resetting the index, aggregation of open_price fetches incorrect volume using .loc()
+    df = df.sort_values(["Symbol", "Open time"]).reset_index(drop=True)
     df["time_diff"] = df.groupby("Symbol")["Open time"].diff().dt.total_seconds().fillna(9999)
     df["group_id"] = (df["time_diff"] > time_threshold_sec).cumsum()
 
