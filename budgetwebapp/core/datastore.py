@@ -50,17 +50,23 @@ class DataStore:
             self._cache[name] = df
         logger.info(f"Saved {name} data as {fmt} at {path} {'(cached)' if cache else ''}")
 
-    def load(self, name: str) -> pd.DataFrame:
+    def load(self, name: str, fmt: str='parquet', prefix='dsb_') -> pd.DataFrame:
         """Load a dataset from cache if available, otherwise from Parquet file."""
         if name in self._cache:
             logger.debug(f"Using cached {name} data (in-memory)")
             return self._cache[name]
 
-        path = self._path(name, fmt="parquet")
+        path = self._path(name, fmt, prefix)
         if not path.exists():
             raise FileNotFoundError(f"Data file for {name} not found at {path}")
 
-        df = pd.read_parquet(path)
+        if fmt == "parquet":
+            df = pd.read_parquet(path)
+        elif fmt == "csv":
+            df = pd.read_csv(path)
+        else:
+            raise ValueError(f"Unsupported format: {fmt}")
+
         self._cache[name] = df
         logger.info(f"Loaded {name} data from {path} (now cached)")
         return df

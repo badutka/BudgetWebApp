@@ -91,7 +91,7 @@
         <div class="sheen"></div>
         <div class="widget-header">
             <div class="widget-title-section">
-                <div class="widget-title">Main Account</div>
+                <div class="widget-title">IKZE</div>
                 <div class="widget-badges">
                     <!-- Number of instruments -->
                     <span class="instrument-count info-badge">
@@ -114,9 +114,14 @@
                     {% endfor %}
                 </div>
                 <div class="widget-changes">
-                    <span>D: <span class="change-number profit-number">+0.3% ↑</span></span>
-                    <span>W: <span class="change-number profit-number">+1.0% ↑</span></span>
-                    <span>M: <span class="change-number profit-number">+4.2% ↑</span></span>
+                {% for label, value in widget.data.metrics_changes.items %}
+                    <span>{{ label }}:
+                        <span class="change-number {% if value < 0 %}loss{% else %}profit{% endif %}">
+                            {% if value >= 0 %}+{% endif %}{{ value|mul:100|floatformat:2 }}%
+                            {% if value >= 0 %}↑{% else %}↓{% endif %}
+                        </span>
+                    </span>
+                {% endfor %}
                 </div>
             </div>
             <div class="widget-right">
@@ -133,6 +138,7 @@
                 <div class="widget-metrics">
                     CAGR: <span class="metric-number">{{ widget.data.metrics.cagr|mul:100|floatformat:2 }}%</span>
                     | WCAGR: <span class="metric-number">{{ widget.data.metrics.wcagr|mul:100|floatformat:2 }}%</span>
+                    | TWR: <span class="metric-number">{{ widget.data.metrics.twr|mul:100|floatformat:2 }}%</span>
                 </div>
                 <div class="widget-free-funds">
                     Free funds: <span class="free-funds"> {{ widget.data.free_funds|floatformat:2 }} PLN</span>
