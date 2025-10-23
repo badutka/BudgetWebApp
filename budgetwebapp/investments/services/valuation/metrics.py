@@ -116,28 +116,28 @@ class Metric:
 
     @staticmethod
     def twr(df, time_period='today'):
-        if not pd.api.types.is_datetime64_any_dtype(df['Datetime']):
-            df['Datetime'] = pd.to_datetime(df['Datetime'])
+        if not pd.api.types.is_datetime64_any_dtype(df['Date']):
+            df['Date'] = pd.to_datetime(df['Date'])
 
-        df = df.sort_values('Datetime')
-        max_time = df['Datetime'].max()
+        df = df.sort_values('Date')
+        max_time = df['Date'].max()
 
         if time_period == 'today':
-            day_start = df['Datetime'].max().normalize()
-            data = df[df['Datetime'] >= day_start].copy()
+            day_start = df['Date'].max().normalize()
+            data = df[df['Date'] >= day_start].copy()
         elif time_period == 'last_24h':
-            data = df[df['Datetime'] > max_time - pd.Timedelta(days=1)].copy()
+            data = df[df['Date'] > max_time - pd.Timedelta(days=1)].copy()
         elif time_period == 'weekly':
-            data = df.set_index('Datetime').resample('W').last().reset_index()
+            data = df.set_index('Date').resample('W').last().reset_index()
         elif time_period == 'last_week':
-            data = df[df['Datetime'] > max_time - pd.Timedelta(weeks=1)].copy()
+            data = df[df['Date'] > max_time - pd.Timedelta(weeks=1)].copy()
         elif time_period == 'monthly':
-            data = df.set_index('Datetime').resample('M').last().reset_index()
+            data = df.set_index('Date').resample('M').last().reset_index()
         elif time_period == 'last_month':
-            data = df[df['Datetime'] > max_time - pd.Timedelta(days=30)].copy()
+            data = df[df['Date'] > max_time - pd.Timedelta(days=30)].copy()
         # todo: check weekly, monthly and introduce yearly
         elif time_period == 'last_year':
-            data = df[df['Datetime'] > max_time - pd.Timedelta(days=365)].copy()
+            data = df[df['Date'] > max_time - pd.Timedelta(days=365)].copy()
         elif time_period == 'total':
             data = df.copy()
         else:

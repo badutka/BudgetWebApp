@@ -1,19 +1,16 @@
 import pandas as pd
-import yfinance as yf
-from collections import defaultdict
-from investments.models import Position, CashOperation
 from datetime import datetime
 
-from .market_data import group_tickers_by_currency, get_tickers_to_download, convert_prices_to_pln
+from .market_data import group_tickers_by_currency, get_tickers_to_download, convert_prices_to_pln, download_market_data
 from .volume import get_cumulative_volume
 from .cashflow import free_funds_over_time
 from .invested_capital import get_cumulative_input_value
-from core.datastore import DataStore
 
+from core.datastore import DataStore
 from core.logger import logger
 
 
-def get_positions_value_over_time(positions, account_type, instrument_types, tickers, period, start_date='2024-07-22'):
+def get_positions_value_over_time(positions, account_type, tickers, period, start_date='2024-07-22'):
     TICKER_MAPPING = {
         "VUAA.L": "VUAA.UK",
         "CNDX.L": "CNDX.UK",
@@ -21,7 +18,7 @@ def get_positions_value_over_time(positions, account_type, instrument_types, tic
         "IUIT.L": "IUIT.UK",
         "SPYL.DE": "SPYL.DE",
         "USDPLN=X": "USDPLN",
-        "EURPLN=X": "EURPLN"
+        "EURPLN=X": "EURPLN",
     }
 
     ETF_CURRENCY = {
@@ -44,16 +41,8 @@ def get_positions_value_over_time(positions, account_type, instrument_types, tic
     })
 
     # start_date = positions.earliest('open_time').open_time.date()
-
-    df_prices = yf.download(tickers_to_download, interval=period, start=start_date, auto_adjust=True)['Close']
-
-    if period in ('1h', '30m'):
-        # Hourly data from yfinance is localized to UTC, daily is not localized
-        # Convert to UTC+2
-        df_prices.index = df_prices.index.tz_convert('Europe/Warsaw').tz_localize(None)
-
-    df_prices.rename(columns=TICKER_MAPPING, inplace=True)
-    df_prices = df_prices.ffill().bfill()
+    file_path = f'../artifacts/portfolio_snapshots/df_prices_{account_type}_{period}.csv'
+    df_prices = download_market_data(tickers_to_download, TICKER_MAPPING, period, start_date, file_path)
 
     df_cumvol = get_cumulative_volume(df_positions, tickers, period, df_prices.index)
     input_value_over_time = get_cumulative_input_value(df_positions, tickers, period, df_prices, currency_groups)

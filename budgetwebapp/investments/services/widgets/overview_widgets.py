@@ -17,7 +17,7 @@ from core.logger import logger
 def setup_overview_widgets():
     portfolio_details = PortfolioDetails()
 
-    account_type = 'ikze'
+    account_type = 'main'
     widget_data = defaultdict(dict)
     widget_data['instruments'] = defaultdict(dict)
 
@@ -90,9 +90,10 @@ def setup_overview_widgets():
     widget_data['metrics']['cagr'] = metrics.Metric.simple_cagr(positions_df, time_strat='min')
     widget_data['metrics']['wcagr'] = metrics.Metric.time_weighted_cagr(positions_df)
 
-    portfolio_valuation.get_positions_value_over_time(positions, account_type, instrument_types, unique_symbols, period)
+    portfolio_valuation.get_positions_value_over_time(positions, account_type, unique_symbols, period)
     df = DataStore(base_dir="../artifacts/portfolio_snapshots").load(f"portfolio_over_time_{account_type}", fmt='csv', prefix='')
     df = df.reset_index()
+
     widget_data['metrics']['twr'] = metrics.Metric.twr(df, time_period='total')
 
     widget_data['metrics_changes'] = {
@@ -106,4 +107,4 @@ def setup_overview_widgets():
     widget.data = widget_data
 
     widget.save()
-    logger.debug(f"Updated widget {widget.id} with new data ({len(widget_data)} items).")
+    logger.info(f"Updated widget {widget.id} with new data ({len(widget_data)} items).")

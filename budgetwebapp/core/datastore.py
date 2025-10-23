@@ -53,7 +53,7 @@ class DataStore:
     def load(self, name: str, fmt: str='parquet', prefix='dsb_') -> pd.DataFrame:
         """Load a dataset from cache if available, otherwise from Parquet file."""
         if name in self._cache:
-            logger.debug(f"Using cached {name} data (in-memory)")
+            logger.info(f"Using cached {name} data (in-memory)")
             return self._cache[name]
 
         path = self._path(name, fmt, prefix)
