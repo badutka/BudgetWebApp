@@ -35,5 +35,4 @@ def get_cumulative_input_value(df_positions, tickers, period, df_prices, currenc
     df_input_value['total_pln'] = df_input_value.sum(axis=1)
     df_input_value['total_pln_cumulative'] = df_input_value['total_pln'].cumsum()
     # df_input_value_cumulative = df_input_value.sum(axis=0)
-    # logger.info(df_input_value)
-    return df_input_value['total_pln_cumulative']
+    return df_input_value['total_pln'], df_input_value['total_pln_cumulative']

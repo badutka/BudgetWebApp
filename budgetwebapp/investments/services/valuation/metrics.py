@@ -3,6 +3,8 @@ from functools import reduce
 from datetime import datetime
 import pandas as pd
 
+from core.logger import logger
+
 
 class Metric:
 
@@ -10,6 +12,62 @@ class Metric:
     def HPR(initial_value, profit, income=0):
         """ Holding period return, includes income (such as dividends)"""
         return profit / initial_value
+
+    @staticmethod
+    def new_cagr(df):
+        if not pd.api.types.is_datetime64_any_dtype(df['Date']):
+            df['Date'] = pd.to_datetime(df['Date'])
+
+        # logger.critical(df[-50:])
+        first_nonzero_idx = df[df['input_value_cumsum'] != 0].index.min()
+        earliest_date = df[df.index == first_nonzero_idx]['Date']
+
+        # Get current datetime
+        now = datetime.now()
+
+        # Calculate fractional years difference
+        diff_years = (now - earliest_date.iloc[0]).total_seconds() / (365.25 * 24 * 3600)
+
+        total_current_value = float(df['portfolio_value'].iloc[-1])
+        total_purchase_value = float(df['input_value_cumsum'].iloc[-1])
+
+        if diff_years <= 0:
+            return 0.0
+
+        # logger.warn(diff_years)
+        # logger.warn(total_current_value)
+        # logger.warn(total_purchase_value)
+
+        cagr = (total_current_value / total_purchase_value) ** (1 / diff_years) - 1
+
+        return cagr
+
+    @staticmethod
+    def new_weighted_cagr(positions):
+        if positions.empty:
+            return 0.0
+
+        now = datetime.now()
+
+        # Holding time in fractional years
+        positions = positions.copy()
+
+        # Weighted average holding time (weighted by purchase_value)
+        weighted_time_sum = (positions['open_price_total_pln'] * positions['holding_years']).sum()
+        purchase_value_sum = positions['open_price_total_pln'].sum()
+        total_value_sum = (positions['open_price_total_pln'] + positions['gross_pl']).sum()
+
+        if purchase_value_sum <= 0:
+            return 0.0
+
+        time_weighted_years = weighted_time_sum / purchase_value_sum
+
+        if total_value_sum and time_weighted_years > 0:
+            cagr = (total_value_sum / purchase_value_sum) ** (1 / time_weighted_years) - 1
+        else:
+            cagr = 0.0
+
+        return cagr
 
     @staticmethod
     def simple_cagr(positions, time_strat='min'):
@@ -58,6 +116,11 @@ class Metric:
 
         if years <= 0:
             return 0.0
+
+        # This total_purchase_value does not subtract 0.5% exchange rate.
+        # logger.warn(years)
+        # logger.warn(total_current_value)
+        # logger.warn(total_purchase_value)
 
         cagr = (total_current_value / total_purchase_value) ** (1 / years) - 1
         return cagr
@@ -144,8 +207,8 @@ class Metric:
             raise ValueError("time_strat must be either 'today', 'last_24h' or 'total'")
 
         # Find subperiods where cashflow changes
-        data['input_shift'] = data['input_value_over_time'].shift()
-        change_indices = data.index[(data['input_value_over_time'] != data['input_shift'])].to_list()
+        data['input_shift'] = data['input_value_cumsum'].shift()
+        change_indices = data.index[(data['input_value_cumsum'] != data['input_shift'])].to_list()
 
         # Always include first and last row
         change_indices = [data.index.min()] + change_indices + [data.index.max()]
@@ -159,7 +222,7 @@ class Metric:
 
             V_start = start['portfolio_value']
             V_end = end['portfolio_value']
-            CF = end['input_value_over_time'] - start['input_value_over_time']
+            CF = end['input_value_cumsum'] - start['input_value_cumsum']
 
             if V_start > 0:
                 subperiods.append(1 + (V_end - V_start - CF) / V_start)

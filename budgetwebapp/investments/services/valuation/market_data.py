@@ -1,7 +1,7 @@
 from collections import defaultdict
 import pandas as pd
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from core.logger import logger
 import yfinance as yf
@@ -39,7 +39,7 @@ def convert_prices_to_pln(df_prices, currency_groups):
     return df_price_pln
 
 
-def download_market_data(tickers, ticker_mapping, period, start_date, snapshot_path):
+def fetch_market_data(tickers, ticker_mapping, period, start_date, snapshot_path):
     # === Load existing data ===
 
     if os.path.exists(snapshot_path):
@@ -51,6 +51,9 @@ def download_market_data(tickers, ticker_mapping, period, start_date, snapshot_p
 
     today = datetime.now().date()
     last_date = df_prices.index[-1].date() if not df_prices.empty else None
+    # todo: test 00:00 AM and 09:00 AM
+    if 0 <= datetime.now().hour < 10:
+        last_date -= timedelta(days=1)
 
     # === Determine start date ===
     if last_date is None:
@@ -60,6 +63,7 @@ def download_market_data(tickers, ticker_mapping, period, start_date, snapshot_p
     else:
         fetch_from = today
 
+    # todo: (1h 2025-10-24 -> 2025-10-23 23:17:19+01:00) (Yahoo error = "Invalid input - start date cannot be after end date. startDate = 1761260400, endDate = 1761257839")')
     df_new = yf.download(tickers, interval=period, start=fetch_from, auto_adjust=True)['Close']
 
     if period in ('1h', '30m'):  # Hourly data from yfinance is localized to UTC, daily is not localized

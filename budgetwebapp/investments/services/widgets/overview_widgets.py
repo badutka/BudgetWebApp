@@ -87,19 +87,24 @@ def setup_overview_widgets():
     # logger.info(positions)
     positions_df = pd.DataFrame.from_records(positions.values('purchase_value', 'gross_pl', 'open_time'))
     positions_df['open_time'] = standardize_datetime_by_period(positions_df['open_time'], period)
-    widget_data['metrics']['cagr'] = metrics.Metric.simple_cagr(positions_df, time_strat='min')
+    # widget_data['metrics']['cagr'] = metrics.Metric.simple_cagr(positions_df, time_strat='min')
+
     widget_data['metrics']['wcagr'] = metrics.Metric.time_weighted_cagr(positions_df)
 
-    portfolio_valuation.get_positions_value_over_time(positions, account_type, unique_symbols, period)
-    df = DataStore(base_dir="../artifacts/portfolio_snapshots").load(f"portfolio_over_time_{account_type}", fmt='csv', prefix='')
-    df = df.reset_index()
+    df_portfolio_over_time = portfolio_valuation.get_positions_value_over_time(positions, account_type, unique_symbols,
+                                                                               period)
+    # df_portfolio_over_time = DataStore(base_dir="../artifacts/portfolio_snapshots").load(f"portfolio_over_time_{account_type}", fmt='csv', prefix='')
+    df_portfolio_over_time = df_portfolio_over_time.reset_index()
 
-    widget_data['metrics']['twr'] = metrics.Metric.twr(df, time_period='total')
+    widget_data['metrics']['cagr'] = metrics.Metric.new_cagr(df_portfolio_over_time)
+
+    widget_data['metrics']['twr'] = metrics.Metric.twr(df_portfolio_over_time, time_period='total')
+
 
     widget_data['metrics_changes'] = {
-        'D': metrics.Metric.twr(df, time_period='today'),
-        'W': metrics.Metric.twr(df, time_period='last_week'),
-        'M': metrics.Metric.twr(df, time_period='last_month'),
+        'D': metrics.Metric.twr(df_portfolio_over_time, time_period='today'),
+        'W': metrics.Metric.twr(df_portfolio_over_time, time_period='last_week'),
+        'M': metrics.Metric.twr(df_portfolio_over_time, time_period='last_month'),
     }
 
     widget = get_object_or_404(Widget, id='28c2eaf5-ddde-4981-b88e-238cd6ef5419')
@@ -108,3 +113,28 @@ def setup_overview_widgets():
 
     widget.save()
     logger.info(f"Updated widget {widget.id} with new data ({len(widget_data)} items).")
+
+
+def test_cagr():
+    # CNDX.UK
+    test_data = {
+        "holding_years": [1.174538, 1.174538, 1.190965],
+        "open_time": [
+            datetime(2024, 8, 20, 15, 00),
+            datetime(2024, 8, 20, 9, 30),
+            datetime(2024, 8, 14, 16, 36)
+        ],
+        "purchase_value": [500.07, 500.34, 500.36],
+        "open_price_total_pln": [500.07, 500.34, 500.36],
+        "gross_pl": [91.68, 87.8, 114.09]
+    }
+    test_data = pd.DataFrame(test_data)
+    logger.debug(test_data)
+    test_wcagr = metrics.Metric.time_weighted_cagr(test_data)
+    logger.debug(f'{test_wcagr = }')
+    test_new_wcagr = metrics.Metric.new_weighted_cagr(test_data)
+    logger.debug(f'{test_new_wcagr = }')
+    # test_wcagr = np.float64(0.16346659984699974)
+
+    # df = df_positions_cagr[
+    #     (df_positions_cagr.index.isin(['2024-08-14 17:00:00', '2024-08-20 16:00:00', '2024-08-20 17:00:00']))]
