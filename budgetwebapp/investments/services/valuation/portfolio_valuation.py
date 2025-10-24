@@ -91,16 +91,11 @@ def get_positions_value_over_time(positions, account_type, tickers, period, star
     df_input_value['total_pln_cumulative'] = df_input_value['total_pln'].cumsum()
 
     df_prices_pln = convert_prices_to_pln(df_prices[tickers], df_prices[currencies], currency_groups) * 0.995
-    instruments_value = df_cumvol[tickers] * df_prices_pln[tickers]
-    portfolio_value = instruments_value.sum(axis=1)
+    instruments_value_pln = df_cumvol[tickers] * df_prices_pln[tickers]
+    portfolio_value = instruments_value_pln.sum(axis=1)
 
     free_funds = free_funds_over_time(account_type, period)
     free_funds = free_funds.reindex(portfolio_value.index, method='ffill').fillna(0)
-
-    # df_positions_cagr = df_positions_cagr.sort_index()
-    # logger.info(df_positions_cagr)
-    # test_new_weighted_cagr = Metric.new_weighted_cagr(df_positions_cagr)
-    # logger.debug(f'{test_new_weighted_cagr = }')
 
     df_portfolio_over_time = pd.DataFrame({
         'input_value': df_input_value['total_pln'].copy(),
@@ -110,11 +105,18 @@ def get_positions_value_over_time(positions, account_type, tickers, period, star
         'total_portfolio_value': portfolio_value + free_funds
     })
 
+    tickers_input_value = df_input_value[tickers].cumsum().iloc[-1]
+    tickers_total_value = instruments_value_pln.iloc[-1]
+
+    # logger.error(df_positions_cagr['gross_pl'].sum())
+    # logger.error(tickers_total_value.sum() - tickers_input_value.sum())
+
     (DataStore(base_dir="../artifacts/portfolio_snapshots")
      .save(f"portfolio_over_time_{account_type}", df_portfolio_over_time, fmt='csv', index=True, prefix=''))
 
     logger.info(f"Portfolio valuation complete. Date range: 2024-07-22 - {datetime.now().strftime('%Y-%m-%d')}.")
-    return df_portfolio_over_time
+
+    return df_portfolio_over_time, df_positions_cagr, instruments_value_pln, tickers_input_value, tickers_total_value
 
 
 def free_funds_over_time(account_type, period):

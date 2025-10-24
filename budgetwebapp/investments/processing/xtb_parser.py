@@ -74,7 +74,7 @@ def get_open_position_sheet_name(extract_dir):
 
 
 def parse_data():
-    zip_path = '../artifacts/xtb_files/account_50867007_pl_xlsx_2005-12-31_2025-10-21.zip'
+    zip_path = '../artifacts/xtb_files/account_50867007_pl_xlsx_2005-12-31_2025-10-23.zip'
     extract_dir = '../artifacts/xtb_files'
 
     extract_xtb_files(zip_path, extract_dir)

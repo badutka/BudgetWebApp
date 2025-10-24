@@ -91,7 +91,7 @@
         <div class="sheen"></div>
         <div class="widget-header">
             <div class="widget-title-section">
-                <div class="widget-title">IKZE</div>
+                <div class="widget-title">Main Account</div>
                 <div class="widget-badges">
                     <!-- Number of instruments -->
                     <span class="instrument-count info-badge">
@@ -105,7 +105,7 @@
 
                     <!-- Taxes badges -->
                     {% for tax in widget.data.labels.taxes %}
-                    <span class="rule-taxable info-badge">Tax {{ tax }}</span>
+                    <span class="rule-taxable info-badge">{{ tax }}</span>
                     {% endfor %}
 
                     <!-- Currencies badges -->

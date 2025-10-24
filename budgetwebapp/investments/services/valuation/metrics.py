@@ -9,9 +9,9 @@ from core.logger import logger
 class Metric:
 
     @staticmethod
-    def HPR(initial_value, profit, income=0):
+    def HPR(start_value, end_value, income=0):
         """ Holding period return, includes income (such as dividends)"""
-        return profit / initial_value
+        return end_value / start_value - 1
 
     @staticmethod
     def new_cagr(df):

@@ -19,6 +19,7 @@ class CashOperationAdmin(admin.ModelAdmin):
         field.name for field in CashOperation._meta.get_fields()
         if field.name not in ("created_at",)
     ]
+    list_filter = ("account_type", "type")
 
 
 @admin.register(Instrument)
