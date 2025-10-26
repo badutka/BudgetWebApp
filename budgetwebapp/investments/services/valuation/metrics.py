@@ -43,6 +43,24 @@ class Metric:
         return cagr
 
     @staticmethod
+    def new_cagr_v2(invested, total):
+        earliest_date = invested[invested != 0].index.min()
+        now = datetime.now()
+
+        # Calculate fractional years difference
+        diff_years = (now - earliest_date).total_seconds() / (365.25 * 24 * 3600)
+
+        total_current_value = float(total.iloc[-1])
+        total_purchase_value = float(invested.iloc[-1])
+
+        if diff_years <= 0:
+            return 0.0
+
+        cagr = (total_current_value / total_purchase_value) ** (1 / diff_years) - 1
+
+        return cagr
+
+    @staticmethod
     def new_weighted_cagr(positions):
         if positions.empty:
             return 0.0
@@ -179,6 +197,8 @@ class Metric:
 
     @staticmethod
     def twr(df, time_period='today'):
+        if df.index.name == 'Date':
+            df = df.reset_index()
         if not pd.api.types.is_datetime64_any_dtype(df['Date']):
             df['Date'] = pd.to_datetime(df['Date'])
 

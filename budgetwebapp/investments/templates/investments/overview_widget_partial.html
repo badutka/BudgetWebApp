@@ -1,0 +1,122 @@
+{% load static %}
+{% load template_filters %}
+
+<div class="widget-card"
+     style="--row:{{ widget.row }}; --col:{{ widget.column }}; --w:{{ widget.width_units }}; --h:{{ widget.height_units }};">
+    <div class="sheen"></div>
+    <div class="widget-header">
+        <div class="widget-title-section">
+            <div class="widget-title">{{ widget.title }}</div>
+            <div class="widget-badges">
+                <!-- Number of instruments -->
+                <span class="instrument-count info-badge">
+                {{ widget.config.labels.num_unique_instruments }}
+                </span>
+
+                <!-- Instrument types badges -->
+                {% for type in widget.config.labels.instrument_types %}
+                <span class="info-badge">{{ type }}</span>
+                {% endfor %}
+
+                <!-- Taxes badges -->
+                {% for tax in widget.config.labels.taxes %}
+                <span class="rule-taxable info-badge">{{ tax }}</span>
+                {% endfor %}
+
+                <!-- Currencies badges -->
+                {% for currency in widget.config.labels.currencies %}
+                <span class="currency-badge info-badge">{{ currency }}</span>
+                {% endfor %}
+            </div>
+            <div class="widget-changes">
+                {% for label, value in widget.data.metrics_changes.items %}
+                <span>{{ label }}:
+                        <span class="change-number {% if value < 0 %}loss{% else %}profit{% endif %}">
+                            {% if value >= 0 %}+{% endif %}{{ value|mul:100|floatformat:2 }}%
+                            {% if value >= 0 %}↑{% else %}↓{% endif %}
+                        </span>
+                    </span>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="widget-right">
+            <div class="widget-amount">
+                {{ widget.data.total_value|floatformat:2 }} PLN
+            </div>
+            <div class="widget-profit">
+                Profit:
+                <span class="profit-number {% if widget.data.profit < 0 %}loss{% else %}profit{% endif %}">
+                        {% if widget.data.profit >= 0 %}+{% endif %}
+                        {{ widget.data.profit|floatformat:2 }}
+                    </span> PLN
+            </div>
+            <div class="widget-metrics">
+                CAGR: <span class="metric-number">{{ widget.data.metrics.cagr|mul:100|floatformat:2 }}%</span>
+                | WCAGR: <span class="metric-number">{{ widget.data.metrics.wcagr|mul:100|floatformat:2 }}%</span>
+                | TWR: <span class="metric-number">{{ widget.data.metrics.twr|mul:100|floatformat:2 }}%</span>
+            </div>
+            <div class="widget-free-funds">
+                Free funds: <span class="free-funds"> {{ widget.data.free_funds|floatformat:2 }} PLN</span>
+            </div>
+            {% if widget.config.limit %}
+            <div class="widget-progress">
+                {{ widget.data.progress_current|floatformat:2 }} /
+                {{ widget.config.limit|floatformat:2 }}
+                PLN ({{ widget.data.progress_current_pct|mul:100|floatformat:2 }}%)
+
+                <div class="progress-bar">
+                    <div class="progress-fill"
+                         style="width: {{ widget.data.progress_current_pct|mul:100|floatformat:2 }}%;"></div>
+                </div>
+            </div>
+            {% endif %}
+            <div class="widget-allocation">
+                Allocation: {{ widget.data.allocation|mul:100|floatformat:2 }}%
+                <div class="allocation-bar">
+                    <div class="allocation-fill"
+                         style="width: {{ widget.data.allocation|mul:100|floatformat:0 }}%;"></div>
+                </div>
+            </div>
+            <div class="widget-activity">
+                New today: {{ widget.data.new_today }}
+            </div>
+        </div>
+    </div>
+    <div class="widget-logos">
+        {% for symbol, info in widget.data.instruments_info.items %}
+        <div class="logo-container">
+            {% if info.logo_url %}
+            <div class="url-logo">
+                <img src="{{ info.logo_url }}" width="40" height="40" alt="{{ symbol }}">
+            </div>
+            {% else %}
+            <div class="url-logo">{{ symbol|slice:":2" }}</div>
+            {# fallback to symbol initials #}
+            {% endif %}
+
+            {% if info.hpr >= 0 %}
+            <div class="logo-percent profit-number">
+                +{{ info.hpr|mul:100|floatformat:2 }}%
+            </div>
+            {% else %}
+            <div class="logo-percent loss profit-number">
+                {{ info.hpr|mul:100|floatformat:2 }}%
+            </div>
+            {% endif %}
+        </div>
+        {% empty %}
+        <div class="text-gray-400 text-sm italic">No holdings available</div>
+        {% endfor %}
+        {% if widget.config.account_type == 'ikze' %}
+        <div class="logo-container">
+            <div class="logo">EDO</div>
+            <div class="logo-percent loss profit-number">-1.4%</div>
+        </div>
+        {% endif %}
+    </div>
+    <div class="widget-footer">
+        <div class="widget-last-updated">
+            Updated: {{ widget.updated_at }}
+        </div>
+    </div>
+</div>

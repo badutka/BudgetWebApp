@@ -80,7 +80,7 @@ def fetch_market_data(tickers, ticker_mapping, period, start_date, snapshot_path
     today = datetime.now().date()
     last_date = df_prices.index[-1].date() if not df_prices.empty else None
     # todo: test 00:00 AM and 09:00 AM
-    if 0 <= datetime.now().hour < 10:
+    if (0 <= datetime.now().hour < 10) and (not df_prices.empty):
         last_date -= timedelta(days=1)
 
     # === Determine start date ===

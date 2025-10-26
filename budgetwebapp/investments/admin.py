@@ -1,7 +1,8 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from .models import Position, CashOperation, Instrument, Dashboard, Widget
+from .models import Position, CashOperation, Instrument, Dashboard, Widget, OverviewWidget
+
 
 @admin.register(Position)
 class PositionAdmin(admin.ModelAdmin):
@@ -45,6 +46,15 @@ class DashboardAdmin(admin.ModelAdmin):
 class WidgetAdmin(admin.ModelAdmin):
     list_display = [
         field.name for field in Widget._meta.get_fields()
+        if field.name not in ("created_at",)
+    ]
+
+    ordering = ['row', 'column']  # ascending order
+
+@admin.register(OverviewWidget)
+class OverviewWidgetAdmin(admin.ModelAdmin):
+    list_display = [
+        field.name for field in OverviewWidget._meta.get_fields()
         if field.name not in ("created_at",)
     ]
 
