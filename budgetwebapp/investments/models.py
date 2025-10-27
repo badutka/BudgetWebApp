@@ -244,10 +244,10 @@ class OverviewWidget(BaseWidget):
         progress_current_pct = progress_current / limit
         return progress_current, progress_current_pct
 
-    def save(self, *args, **kwargs):
-        # compute/update before saving
-        self.update_widget_data()
-        super().save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     # compute/update before saving
+    #     self.update_widget_data()
+    #     super().save(*args, **kwargs)
 
 
 class Position(BaseModel):

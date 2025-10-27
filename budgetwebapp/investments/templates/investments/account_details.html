@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% load static %}
+{% load template_filters %}
+
+{% block content %}
+
+<div class="dashboard-grid" style="max-width: 1400px">
+
+    {% include 'investments/overview_widget_partial.html' with widget=widget %}
+
+</div>
+
+{% endblock content %}

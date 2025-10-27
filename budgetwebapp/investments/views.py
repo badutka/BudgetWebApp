@@ -28,6 +28,14 @@ def portfolio_view(request):
     # market_data.ENTRY_POINT()
     for widget in widgets.values():
         # if widget.config.get('account_type') == 'main':
+        widget.update_widget_data()
         widget.save()
 
     return render(request, 'investments/portfolio.html', context)
+
+
+def account_details(request, widget_id):
+    widget = get_object_or_404(OverviewWidget, id=widget_id)
+    context = {'widget': widget}
+
+    return render(request, 'investments/account_details.html', context)
