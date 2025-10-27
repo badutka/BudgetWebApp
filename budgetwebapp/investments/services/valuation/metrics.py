@@ -61,6 +61,20 @@ class Metric:
         return cagr
 
     @staticmethod
+    def new_cagr_v3(invested, total, earliest_date):
+        now = datetime.now()
+
+        # Calculate fractional years difference
+        diff_years = (now - earliest_date).total_seconds() / (365.25 * 24 * 3600)
+
+        if diff_years <= 0:
+            return 0.0
+
+        cagr = (total / invested) ** (1 / diff_years) - 1
+
+        return cagr
+
+    @staticmethod
     def new_weighted_cagr(positions):
         if positions.empty:
             return 0.0
@@ -82,6 +96,26 @@ class Metric:
 
         if total_value_sum and time_weighted_years > 0:
             cagr = (total_value_sum / purchase_value_sum) ** (1 / time_weighted_years) - 1
+        else:
+            cagr = 0.0
+
+        return cagr
+
+    @staticmethod
+    def new_weighted_cagr_v2(open_price_total_series, current_price_total_series, holding_years_series):
+
+        # Weighted average holding time (weighted by purchase_value)
+        weighted_time_sum = (open_price_total_series * holding_years_series).sum()
+        invested_value = open_price_total_series.sum()
+        total_value = current_price_total_series.sum()
+
+        if invested_value <= 0:
+            return 0.0
+
+        time_weighted_years = weighted_time_sum / invested_value
+
+        if total_value and time_weighted_years > 0:
+            cagr = (total_value / invested_value) ** (1 / time_weighted_years) - 1
         else:
             cagr = 0.0
 
@@ -243,6 +277,65 @@ class Metric:
             V_start = start['portfolio_value']
             V_end = end['portfolio_value']
             CF = end['input_value_cumsum'] - start['input_value_cumsum']
+
+            if V_start > 0:
+                subperiods.append(1 + (V_end - V_start - CF) / V_start)
+
+        # Chain subperiods
+        twr = 1
+        for r in subperiods:
+            twr *= r
+
+        return twr - 1
+
+    @staticmethod
+    def twr_v2(df, time_period='today'):
+        if df.index.name == 'date':
+            df = df.reset_index()
+        if not pd.api.types.is_datetime64_any_dtype(df['date']):
+            df['date'] = pd.to_datetime(df['date'])
+
+        df = df.sort_values('date')
+        max_time = df['date'].max()
+
+        if time_period == 'today':
+            day_start = df['date'].max().normalize()
+            data = df[df['date'] >= day_start].copy()
+        elif time_period == 'last_24h':
+            data = df[df['date'] > max_time - pd.Timedelta(days=1)].copy()
+        elif time_period == 'weekly':
+            data = df.set_index('Date').resample('W').last().reset_index()
+        elif time_period == 'last_week':
+            data = df[df['date'] > max_time - pd.Timedelta(weeks=1)].copy()
+        elif time_period == 'monthly':
+            data = df.set_index('Date').resample('M').last().reset_index()
+        elif time_period == 'last_month':
+            data = df[df['date'] > max_time - pd.Timedelta(days=30)].copy()
+        # todo: check weekly, monthly and introduce yearly
+        elif time_period == 'last_year':
+            data = df[df['date'] > max_time - pd.Timedelta(days=365)].copy()
+        elif time_period == 'total':
+            data = df.copy()
+        else:
+            raise ValueError("time_strat must be either 'today', 'last_24h' or 'total'")
+
+        # Find subperiods where cashflow changes
+        data['input_shift'] = data['invested_value'].shift()
+        change_indices = data.index[(data['invested_value'] != data['input_shift'])].to_list()
+
+        # Always include first and last row
+        change_indices = [data.index.min()] + change_indices + [data.index.max()]
+        change_indices = sorted(set(change_indices))
+
+        subperiods = []
+        for i in range(len(change_indices) - 1):
+            # pick rows for subperiod i
+            start = data.loc[change_indices[i]]
+            end = data.loc[change_indices[i + 1]]
+
+            V_start = start['portfolio_value']
+            V_end = end['portfolio_value']
+            CF = end['invested_value'] - start['invested_value']
 
             if V_start > 0:
                 subperiods.append(1 + (V_end - V_start - CF) / V_start)

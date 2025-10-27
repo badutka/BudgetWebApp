@@ -89,8 +89,8 @@ def fetch_market_data(
         logger.info("No new data to download.")
 
     # === Save updated data ===
-    # DataStore(file_path).save(file_name, df_prices, fmt='parquet', index=True, prefix='')
-    DataStore(file_path).save(file_name, df_prices, fmt='csv', index=True, prefix='')
+    DataStore(file_path).save(file_name, df_prices, fmt='parquet', index=True, prefix='')
+    # DataStore(file_path).save(file_name, df_prices, fmt='csv', index=True, prefix='')
     # df_prices.to_csv(file)
 
     return df_prices

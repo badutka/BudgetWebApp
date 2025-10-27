@@ -97,108 +97,136 @@ class OverviewWidget(BaseWidget):
 
         instruments_info = {i.symbol: {'logo_url': i.logo_url} for i in self.instruments}
         currency_map = {i.symbol: i.currency for i in self.instruments}
-        currencies = list(set(self.instruments.values_list('currency', flat=True)))
+
+        # currencies = list(set(self.instruments.values_list('currency', flat=True)))
 
         df_prices = self._get_prices_df()
-        df_prices_pln = self._convert_prices_to_pln(df_prices, currency_map) * adj
-        df_prices_pln = df_prices_pln[tickers]
-        self.latest_prices = self._get_latest_values(df_prices_pln)
 
         positions_df['open_time'] = standardize_datetime_by_period(positions_df['open_time'], '1h')
         positions_df['open_time'] = positions_df['open_time'].dt.ceil('h')
         positions_df = positions_df.set_index('open_time').sort_index()
-        # todo: merge df_prices_pln instead; required hanlding open_price too
-        positions_df = positions_df.merge(df_prices, left_index=True, right_index=True, how='left')
+        positions_df = positions_df.reset_index().rename(columns={"open_time": "date"})
+        positions_df["open_price_total"] = positions_df["open_price"] * positions_df["volume"]
 
-        invested_amount_df = pd.DataFrame(index=df_prices.index)
-        volume_cumulative_df = pd.DataFrame(index=df_prices.index)
-        df_positions_cagr = pd.DataFrame()
-        c = 0
-        # Performs grouping once (O(n)) instead of O(nt) scans.
-        # positions_by_ticker = dict(tuple(positions_df.groupby("symbol")))
-        # for ticker, df_positions_ticker in positions_by_ticker.items():
-        # For many tickers, this could be slower than a vectorized approach using pivot_table or groupby + transform.
-        # todo: explore possibility of groupby to replace the loop entirely
-        for ticker, df_positions_ticker in positions_df.groupby("symbol"):
-            currency = currency_map[ticker]
-            df_positions_ticker = df_positions_ticker[['volume', 'open_price', 'symbol', f'{currency}PLN']].copy()
+        positions_df["volume_cumsum"] = (
+            positions_df
+            .sort_index()  # ensure chronological order
+            .groupby("symbol")["volume"]
+            .cumsum()
+        )
 
-            df_positions_ticker['open_price_total'] = df_positions_ticker['open_price'] * df_positions_ticker['volume']
-            df_positions_ticker['open_price_total_pln'] = df_positions_ticker['open_price_total'] * df_positions_ticker[f'{currency}PLN']
-            # df_positions_ticker['gross_pl'] = self.latest_prices[ticker] * df_positions_ticker['volume'] * self.latest_prices[f'{currency}PLN'] * adj - df_positions_ticker['open_price_total_pln']
-            df_positions_ticker['gross_pl'] = self.latest_prices[ticker] * df_positions_ticker['volume'] - df_positions_ticker['open_price_total_pln']
-            df_positions_ticker['volume_cumulative'] = df_positions_ticker['volume'].cumsum()
-            c = c + df_positions_ticker['gross_pl'].sum()
-            invested_amount_df[ticker] = df_positions_ticker.groupby(df_positions_ticker.index)['open_price_total_pln'].sum()
-            volume_cumulative_df[ticker] = df_positions_ticker.groupby(df_positions_ticker.index)['volume_cumulative'].last()
+        result = (
+            positions_df.groupby(['date', 'symbol'])
+            .agg(
+                # currency=('currency', 'first'),
+                open_price_total=('open_price_total', 'sum'),
+                volume=('volume', 'sum'),
+                volume_cumulative=('volume_cumsum', 'last'),
+            )
+        ).reset_index()
 
-            df_positions_ticker['holding_years'] = (datetime.now() - df_positions_ticker.index).total_seconds() / (365.25 * 24 * 3600)
-            df_positions_cagr = pd.concat([df_positions_cagr, df_positions_ticker[['open_price_total_pln', 'gross_pl', 'holding_years']]])
+        current_prices = self._get_latest_values(df_prices)
 
-        invested_amount_df = self._transform_invested_amount_df(invested_amount_df)
-        volume_cumulative_df = volume_cumulative_df.ffill().fillna(0)
-        instruments_cumulative_value_pln = volume_cumulative_df.mul(df_prices_pln, axis=0)  # can use [tickers] slice to ensure proper order
+        result["currency"] = result["symbol"].map(currency_map)
+        result["fx_symbol"] = result["currency"] + "PLN"
+        result['current_fx_rate'] = result["fx_symbol"].map(current_prices).fillna(1.0)
 
-        portfolio_value = instruments_cumulative_value_pln.sum(axis=1)
-        tickers_total_value = self._get_latest_values(instruments_cumulative_value_pln)
-        invested_total_amount = self._get_latest_values(invested_amount_df[tickers].cumsum())
-        cash_cumulative_df = self._get_cash_cumulative_df(self.account_type, '1h').reindex(portfolio_value.index, method='ffill').fillna(0)
+        fx_cols = [c for c in df_prices.columns if c.endswith('PLN')]
+        df_fx_rates = df_prices[fx_cols].copy()
 
-        # positions_df['volume_cumulative'] = positions_df.groupby('symbol')['volume'].cumsum()
-        # print(positions_df)
+        # Build a dynamic currency -> FX mapping from column names
+        currency_to_fx = {fx[:-3]: fx for fx in fx_cols}  # 'USD' -> 'USDPLN', 'EUR' -> 'EURPLN'
+        currency_to_fx["PLN"] = None  # means "no conversion needed"
 
-        hpr = metrics.Metric.HPR(pd.DataFrame(invested_total_amount, index=[0]) * (1 / 0.995), pd.DataFrame(tickers_total_value, index=[0]))
+        # Use the mapping to create a series of open_fx_rate
+        result['open_fx_rate'] = result.apply(
+            lambda row: df_fx_rates.at[row['date'], currency_to_fx.get(row['currency'])]
+            if currency_to_fx.get(row['currency']) else 1.0,
+            axis=1 # row wise
+        )
 
-        widget_data['total_value'] = self._get_latest_values(portfolio_value + cash_cumulative_df)
-        # pd.Series(tickers_total_value.values()).fillna(0).sum()
-        widget_data['profit'] = sum(tickers_total_value.values()) - sum(invested_total_amount.values())
-        widget_data['free_funds'] = self._get_latest_values(cash_cumulative_df)
+        # gross_pl percentages require conversion to PLN, to include USDPLN volatility, but it might be useful
+        # to look at the performance of instrument in its base currency alone, todo
+        # result["current_price"] = result["symbol"].map(current_prices)
+        result["current_price_total"] = result["symbol"].map(current_prices) * result["volume"]
 
-        for ticker in tickers:
-            instruments_info[ticker]['hpr'] = float(hpr[ticker].iloc[0])
+        result["current_price_total_pln"] = result["current_price_total"] * result['current_fx_rate'] * adj  # total_value
+        result["open_price_total_pln"] = result["open_price_total"] * result["open_fx_rate"] * (1 / adj)  # invested_value
+        result['gross_pl_pln'] =  result["current_price_total_pln"] - result["open_price_total_pln"]  # profit
 
-        widget_data['instruments_info'] = instruments_info
-        widget_data['metrics'] = {'cagr': metrics.Metric.new_cagr_v2(invested_amount_df['total_pln_cumulative'], portfolio_value)}
-        widget_data['metrics']['wcagr'] = metrics.Metric.new_weighted_cagr(df_positions_cagr)
-        twr_data = pd.concat([pd.DataFrame({'input_value_cumsum': invested_amount_df['total_pln_cumulative'], 'portfolio_value': portfolio_value})], axis=1)
-        widget_data['metrics']['twr'] = metrics.Metric.twr(twr_data, time_period='total')
 
-        widget_data['metrics_changes'] = {
-            'D': metrics.Metric.twr(twr_data, time_period='today'),
-            'W': metrics.Metric.twr(twr_data, time_period='last_week'),
-            'M': metrics.Metric.twr(twr_data, time_period='last_month'),
+        result['holding_years'] = (datetime.now() - result['date']).dt.total_seconds() / (365.25 * 24 * 3600)
+
+        # Use df_prices index as the reference for full time grid
+        full_index = df_prices.index.rename('date')  # hourly timestamps
+
+        # Reindex required data
+        # pivot_table with aggfunc ensures aggregation is explicit and reduces risk if duplicates exist
+        df_volumes_tickers = result.pivot_table(index='date', columns='symbol', values='volume_cumulative', aggfunc='last')
+        df_volumes_tickers = df_volumes_tickers.reindex(full_index).ffill().fillna(0)
+        df_prices_tickers = df_prices[df_volumes_tickers.columns]
+        df_prices_tickers = df_prices_tickers.reindex(full_index).ffill()
+        df_fx_rates = df_fx_rates.reindex(full_index).ffill()
+
+        df_fx_rates_tickers = pd.DataFrame({s: df_fx_rates[currency_to_fx.get(curr)] if currency_to_fx.get(curr) else 1.0
+                              for s, curr in currency_map.items()}, index=full_index)
+
+        portfolio_value = pd.DataFrame()
+        portfolio_value['invested_value'] = (result.groupby("date")["open_price_total_pln"].sum().reindex(full_index).fillna(0).cumsum())
+        portfolio_value['portfolio_value'] = (df_volumes_tickers * df_prices_tickers * df_fx_rates_tickers).sum(axis=1) * adj
+        portfolio_value['free_funds'] = self._get_cash_cumulative_df(self.account_type, '1h').reindex(portfolio_value.index, method='ffill').fillna(0)
+        portfolio_value['total_portfolio_value'] = portfolio_value['portfolio_value'] + portfolio_value['free_funds']
+        portfolio_value['total_portfolio_value'] = portfolio_value['total_portfolio_value']# * 0.995
+
+        profit = result['gross_pl_pln'].sum()
+        invested_value = result['open_price_total_pln'].sum()
+        total_value = result['current_price_total_pln'].sum()
+
+        # CAGR and CAGR
+        cagr = metrics.Metric.new_cagr_v3(invested_value, total_value, result['date'].iloc[0])
+        wcagr = metrics.Metric.new_weighted_cagr_v2(result["open_price_total_pln"], result["current_price_total_pln"],
+                                                    result['holding_years'])
+
+        # Global TWR
+        twr_data = portfolio_value[['invested_value', 'portfolio_value']]
+        twr = metrics.Metric.twr_v2(twr_data, time_period='total')
+
+        # Periodic TWR
+        periodic_metrics = {
+            'D': metrics.Metric.twr_v2(twr_data, time_period='today'),
+            'W': metrics.Metric.twr_v2(twr_data, time_period='last_week'),
+            'M': metrics.Metric.twr_v2(twr_data, time_period='last_month'),
         }
+
+        # Global HPR per ticker
+        hpr_data = pd.DataFrame({
+            'start': result.groupby(['symbol'])["open_price_total_pln"].sum(),  # * (1 / 0.995),
+            'end': result.groupby(['symbol'])["current_price_total_pln"].sum()
+        })
+        hpr = hpr_data['end'] / hpr_data['start'] - 1
+
+        instruments_info = {ticker: {**info, 'hpr': float(hpr[ticker])} for ticker, info in instruments_info.items()}
+
+        widget_data['total_value'] = result['current_price_total_pln'].sum()
+        widget_data['profit'] = profit
+        widget_data['free_funds'] = self._get_latest_values(portfolio_value['free_funds'])
+        widget_data['instruments_info'] = instruments_info
+        widget_data['metrics'] = {'cagr': cagr, 'wcagr': wcagr, 'twr': twr}
+        widget_data['metrics_changes'] = periodic_metrics
+
         if self.limit > 0:
-            print('hello')
             progress_current, progress_current_pct = self._get_progress_amount(self.account_type, self.limit)
             widget_data['progress_current'] = progress_current
             widget_data['progress_current_pct'] = progress_current_pct
 
         self.data = widget_data
 
+
     def _get_prices_df(self):
         file_path = Path("../artifacts/market_data")
         file_name = "market_prices_1h"
         df_prices = DataStore(file_path).load(file_name, fmt='parquet', prefix='')
         return df_prices
-
-    def _convert_prices_to_pln(self, df_prices: pd.DataFrame, currency_map: dict):
-        df_prices_pln = df_prices.copy()
-
-        currencies = {cur for cur in currency_map.values() if cur != 'PLN'}
-
-        for cur in currencies:
-            fx_col = f"{cur}PLN"
-            if fx_col not in df_prices.columns:
-                raise KeyError(f"FX rate column '{fx_col}' not found in df_prices")
-            tickers = [t for t, c in currency_map.items() if c == cur and t in df_prices.columns]
-            if tickers:
-                df_prices_pln[tickers] = df_prices[tickers].mul(df_prices[fx_col], axis=0)
-
-        fx_columns = [f"{cur}PLN" for cur in currencies if f"{cur}PLN" in df_prices.columns]
-        df_prices_pln = df_prices_pln.drop(columns=fx_columns)
-
-        return df_prices_pln
 
     def _get_latest_values(self, df_prices):
         if isinstance(df_prices, pd.DataFrame):
@@ -213,12 +241,6 @@ class OverviewWidget(BaseWidget):
             'volume': [p.volume for p in positions]
         })
         return df_positions
-
-    def _transform_invested_amount_df(self, invested_amount_df):
-        invested_amount_df = invested_amount_df.fillna(0)
-        invested_amount_df['total_pln'] = invested_amount_df.sum(axis=1)
-        invested_amount_df['total_pln_cumulative'] = invested_amount_df['total_pln'].cumsum()
-        return invested_amount_df
 
     def _get_cash_cumulative_df(self, account_type, period):
         cash_ops = CashOperation.objects.filter(account_type=account_type)
