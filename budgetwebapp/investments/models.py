@@ -1,4 +1,6 @@
 from pathlib import Path
+
+import numpy as np
 import pandas as pd
 from datetime import datetime
 
@@ -108,22 +110,14 @@ class OverviewWidget(BaseWidget):
         positions_df = positions_df.reset_index().rename(columns={"open_time": "date"})
         positions_df["open_price_total"] = positions_df["open_price"] * positions_df["volume"]
 
-        positions_df["volume_cumsum"] = (
-            positions_df
-            .sort_index()  # ensure chronological order
-            .groupby("symbol")["volume"]
-            .cumsum()
-        )
+        # Setup cumulation of volume in the next groupby
+        positions_df["volume_cumsum"] = positions_df.sort_index().groupby("symbol")["volume"].cumsum()
 
-        result = (
-            positions_df.groupby(['date', 'symbol'])
-            .agg(
-                # currency=('currency', 'first'),
-                open_price_total=('open_price_total', 'sum'),
-                volume=('volume', 'sum'),
-                volume_cumulative=('volume_cumsum', 'last'),
-            )
-        ).reset_index()
+        result = (positions_df.groupby(['date', 'symbol']).agg(
+            open_price_total=('open_price_total', 'sum'),
+            volume=('volume', 'sum'),
+            volume_cumulative=('volume_cumsum', 'last')
+        )).reset_index()
 
         current_prices = self._get_latest_values(df_prices)
 
@@ -131,30 +125,23 @@ class OverviewWidget(BaseWidget):
         result["fx_symbol"] = result["currency"] + "PLN"
         result['current_fx_rate'] = result["fx_symbol"].map(current_prices).fillna(1.0)
 
-        fx_cols = [c for c in df_prices.columns if c.endswith('PLN')]
+        fx_cols = df_prices.filter(like='PLN').columns.tolist()
         df_fx_rates = df_prices[fx_cols].copy()
 
         # Build a dynamic currency -> FX mapping from column names
         currency_to_fx = {fx[:-3]: fx for fx in fx_cols}  # 'USD' -> 'USDPLN', 'EUR' -> 'EURPLN'
         currency_to_fx["PLN"] = None  # means "no conversion needed"
 
-        # Use the mapping to create a series of open_fx_rate
-        result['open_fx_rate'] = result.apply(
-            lambda row: df_fx_rates.at[row['date'], currency_to_fx.get(row['currency'])]
-            if currency_to_fx.get(row['currency']) else 1.0,
-            axis=1 # row wise
-        )
+        df_fx_melted = df_fx_rates.reset_index().rename(columns={'Date': 'date'}).melt(id_vars='date', var_name='fx_symbol', value_name='open_fx_rate')
+        result = result.merge(df_fx_melted, how='left', on=['date', 'fx_symbol'])
 
         # gross_pl percentages require conversion to PLN, to include USDPLN volatility, but it might be useful
         # to look at the performance of instrument in its base currency alone, todo
         # result["current_price"] = result["symbol"].map(current_prices)
         result["current_price_total"] = result["symbol"].map(current_prices) * result["volume"]
-
         result["current_price_total_pln"] = result["current_price_total"] * result['current_fx_rate'] * adj  # total_value
         result["open_price_total_pln"] = result["open_price_total"] * result["open_fx_rate"] * (1 / adj)  # invested_value
         result['gross_pl_pln'] =  result["current_price_total_pln"] - result["open_price_total_pln"]  # profit
-
-
         result['holding_years'] = (datetime.now() - result['date']).dt.total_seconds() / (365.25 * 24 * 3600)
 
         # Use df_prices index as the reference for full time grid
@@ -172,7 +159,7 @@ class OverviewWidget(BaseWidget):
                               for s, curr in currency_map.items()}, index=full_index)
 
         portfolio_value = pd.DataFrame()
-        portfolio_value['invested_value'] = (result.groupby("date")["open_price_total_pln"].sum().reindex(full_index).fillna(0).cumsum())
+        portfolio_value['invested_value'] = (result.groupby("date")["open_price_total_pln"].sum().reindex(full_index).fillna(0).cumsum())# * (1 / adj)
         portfolio_value['portfolio_value'] = (df_volumes_tickers * df_prices_tickers * df_fx_rates_tickers).sum(axis=1) * adj
         portfolio_value['free_funds'] = self._get_cash_cumulative_df(self.account_type, '1h').reindex(portfolio_value.index, method='ffill').fillna(0)
         portfolio_value['total_portfolio_value'] = portfolio_value['portfolio_value'] + portfolio_value['free_funds']
@@ -205,7 +192,8 @@ class OverviewWidget(BaseWidget):
         })
         hpr = hpr_data['end'] / hpr_data['start'] - 1
 
-        instruments_info = {ticker: {**info, 'hpr': float(hpr[ticker])} for ticker, info in instruments_info.items()}
+        for ticker, info in instruments_info.items():
+            info['hpr'] = float(hpr[ticker])
 
         widget_data['total_value'] = result['current_price_total_pln'].sum()
         widget_data['profit'] = profit
@@ -223,7 +211,7 @@ class OverviewWidget(BaseWidget):
 
 
     def _get_prices_df(self):
-        file_path = Path("../artifacts/market_data")
+        file_path = Path(__file__).parent.parent.parent / "artifacts/market_data"
         file_name = "market_prices_1h"
         df_prices = DataStore(file_path).load(file_name, fmt='parquet', prefix='')
         return df_prices
@@ -234,12 +222,7 @@ class OverviewWidget(BaseWidget):
         return df_prices.iloc[-1]
 
     def _get_positions_df(self, positions):
-        df_positions = pd.DataFrame({
-            'open_time': [p.open_time for p in positions],
-            'symbol': [p.symbol for p in positions],
-            'open_price': [p.open_price for p in positions],
-            'volume': [p.volume for p in positions]
-        })
+        df_positions = pd.DataFrame(list(positions.values('open_time', 'symbol', 'open_price', 'volume')))
         return df_positions
 
     def _get_cash_cumulative_df(self, account_type, period):

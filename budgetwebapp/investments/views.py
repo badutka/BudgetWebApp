@@ -25,7 +25,7 @@ def portfolio_view(request):
 
     context = {"widgets": widgets}
 
-    market_data.ENTRY_POINT()
+    # market_data.ENTRY_POINT()
     for widget in widgets.values():
         # if widget.config.get('account_type') == 'main':
         widget.save()
