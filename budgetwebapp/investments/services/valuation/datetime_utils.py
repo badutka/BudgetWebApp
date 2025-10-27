@@ -2,6 +2,7 @@ import pandas as pd
 
 from core.logger import logger
 
+
 def standardize_datetime_by_period(
         data: pd.Series | pd.DataFrame | pd.Index,
         period: str

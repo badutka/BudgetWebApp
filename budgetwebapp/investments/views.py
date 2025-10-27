@@ -1,8 +1,7 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 
-from .models import Position, Instrument
-from investments.processing import xtb_parser
-
+from .models import Position, Instrument, Dashboard, OverviewWidget
+from .services.valuation import market_data
 
 def home_view(request):
     # xtb_parser.parse_data()
@@ -18,7 +17,17 @@ def home_view(request):
         'positions': positions
     })
 
+
 def portfolio_view(request):
+    dashboard_id = "e2293edc-1ecd-4fdb-9d75-ea1a58304acb"  # your dashboard UUID
+    dashboard = get_object_or_404(Dashboard, id=dashboard_id)
+    widgets = {str(w.id): w for w in dashboard.base_widgets.all()}
 
-    return render(request, 'investments/portfolio.html')
+    context = {"widgets": widgets}
 
+    market_data.ENTRY_POINT()
+    for widget in widgets.values():
+        # if widget.config.get('account_type') == 'main':
+        widget.save()
+
+    return render(request, 'investments/portfolio.html', context)
