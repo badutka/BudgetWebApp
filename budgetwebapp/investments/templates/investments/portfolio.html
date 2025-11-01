@@ -6,8 +6,8 @@
 {% block content %}
 
 <div class="dashboard-grid" style="max-width: 1400px">
-    {% for widget_id, widget in widgets.items %}
-        {% include 'investments/overview_widget_partial.html' with widget=widget %}
+    {% for dw in dashboard_widgets %}
+        {% include 'investments/overview_widget_partial.html' with widget=dw.widget dashboard_widget=dw %}
     {% empty %}
         <p>No widgets available.</p>
     {% endfor %}

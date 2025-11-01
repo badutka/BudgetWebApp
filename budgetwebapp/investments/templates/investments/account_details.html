@@ -4,10 +4,9 @@
 
 {% block content %}
 
-<div class="dashboard-grid" style="max-width: 1400px">
-
-    {% include 'investments/overview_widget_partial.html' with widget=widget %}
-
+<div class="dashboard-grid" style="max-width: 1800px">
+    {% include 'investments/overview_widget_partial.html' with widget=widget dashboard_widget=dashboard_widget %}
+    {% include 'investments/generic_chart_widget_partial.html' with widget=chart2 dashboard_widget=dw2 %}
 </div>
 
 {% endblock content %}

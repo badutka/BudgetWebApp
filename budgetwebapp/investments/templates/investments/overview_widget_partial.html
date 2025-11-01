@@ -3,8 +3,10 @@
 
 
 <div class="widget-card"
-     style="--row:{{ widget.row }}; --col:{{ widget.column }}; --w:{{ widget.width_units }}; --h:{{ widget.height_units }};">
-    <a href="{% url 'investments:account_details' widget.id %}" class="widget-link">
+     style="--row:{{ dashboard_widget.row }}; --col:{{ dashboard_widget.column }}; --w:{{ dashboard_widget.width_units }}; --h:{{ dashboard_widget.height_units }};">
+    {% if enable_account_details_visit %}
+        <a href="{% url 'investments:account_details' widget.id %}" class="widget-link">
+    {% endif %}
     <div class="sheen"></div>
     <div class="widget-header">
         <div class="widget-title-section">
@@ -121,5 +123,7 @@
             Updated: {{ widget.updated_at }}
         </div>
     </div>
+    {% if enable_account_details_visit %}
     </a>
+    {% endif %}
 </div>

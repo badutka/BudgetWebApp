@@ -8,11 +8,13 @@ from django.db import models
 import uuid
 from django.core.validators import MinLengthValidator
 from django.db.models import Sum
+from django.contrib.contenttypes.fields import GenericForeignKey
 
 from core.datastore import DataStore
 from investments.services.valuation.datetime_utils import standardize_datetime_by_period
 from investments.services.valuation import metrics
 from core.logger import logger
+
 
 
 class BaseModel(models.Model):
@@ -31,6 +33,9 @@ class Dashboard(BaseModel):
 
     def __str__(self):
         return self.name
+
+    def get_widgets(self):
+        return self.dashboard_widgets.select_related('widget_content_type')
 
 
 class Widget(BaseModel):
@@ -56,15 +61,15 @@ class Widget(BaseModel):
 
 class BaseWidget(BaseModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    dashboard = models.ForeignKey('Dashboard', on_delete=models.CASCADE, related_name='base_widgets')
+    # dashboard = models.ForeignKey('Dashboard', on_delete=models.CASCADE, related_name='base_widgets')
     title = models.CharField(max_length=100)
     widget_type = models.CharField(max_length=50, blank=True, null=True)  # optional reference
 
     # Grid position
-    row = models.PositiveIntegerField(default=1)
-    column = models.PositiveIntegerField(default=1)
-    width_units = models.PositiveIntegerField(default=1)
-    height_units = models.PositiveIntegerField(default=1)
+    # row = models.PositiveIntegerField(default=1)
+    # column = models.PositiveIntegerField(default=1)
+    # width_units = models.PositiveIntegerField(default=1)
+    # height_units = models.PositiveIntegerField(default=1)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -77,6 +82,56 @@ class BaseWidget(BaseModel):
 
     def __str__(self):
         return self.title
+
+    def update_widget_data(self):
+        """Override in each concrete widget class."""
+        raise NotImplementedError
+
+
+class DashboardWidget(BaseModel):
+    """
+    A link between a Dashboard and a reusable widget definition.
+    Stores layout attributes and optional config overrides.
+
+    Dashboard
+    └── DashboardWidget
+        ├── row, column, width_units, height_units
+        ├── overrides
+        └── widget → (OverviewWidget, PerformanceWidget, etc.)
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    dashboard = models.ForeignKey(
+        'Dashboard',
+        on_delete=models.CASCADE,
+        related_name='dashboard_widgets'
+    )
+
+    # Generic FK lets you attach any widget type (OverviewWidget, etc.)
+    widget_content_type = models.ForeignKey('contenttypes.ContentType', on_delete=models.CASCADE)
+    widget_object_id = models.UUIDField()
+    widget = GenericForeignKey('widget_content_type', 'widget_object_id')
+
+    # Layout attributes
+    row = models.PositiveIntegerField(default=1)
+    column = models.PositiveIntegerField(default=1)
+    width_units = models.PositiveIntegerField(default=1)
+    height_units = models.PositiveIntegerField(default=1)
+
+    # Dashboard-specific overrides
+    overrides = models.JSONField(default=dict, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('dashboard', 'widget_content_type', 'widget_object_id')
+
+    def __str__(self):
+        return f"{self.widget} on {self.dashboard.name}"
+
+
+class ChartWidget(BaseWidget):
+    widget_type = 'chart'
 
 
 class OverviewWidget(BaseWidget):
@@ -167,7 +222,8 @@ class OverviewWidget(BaseWidget):
 
         profit = result['gross_pl_pln'].sum()
         invested_value = result['open_price_total_pln'].sum()
-        total_value = result['current_price_total_pln'].sum()
+        free_funds = self._get_latest_values(portfolio_value['free_funds'])
+        total_value = result['current_price_total_pln'].sum() + free_funds
 
         # CAGR and CAGR
         cagr = metrics.Metric.new_cagr_v3(invested_value, total_value, result['date'].iloc[0])
@@ -195,9 +251,9 @@ class OverviewWidget(BaseWidget):
         for ticker, info in instruments_info.items():
             info['hpr'] = float(hpr[ticker])
 
-        widget_data['total_value'] = result['current_price_total_pln'].sum()
+        widget_data['total_value'] = total_value
         widget_data['profit'] = profit
-        widget_data['free_funds'] = self._get_latest_values(portfolio_value['free_funds'])
+        widget_data['free_funds'] = free_funds
         widget_data['instruments_info'] = instruments_info
         widget_data['metrics'] = {'cagr': cagr, 'wcagr': wcagr, 'twr': twr}
         widget_data['metrics_changes'] = periodic_metrics
