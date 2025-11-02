@@ -1,7 +1,8 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from .models import Position, CashOperation, Instrument, Dashboard, Widget, OverviewWidget, ChartWidget, DashboardWidget
+from .models import (Position, CashOperation, Instrument, Dashboard, Widget, OverviewWidget, ChartWidget,
+                     DashboardWidget, Account)
 
 
 @admin.register(Position)
@@ -42,6 +43,7 @@ class DashboardAdmin(admin.ModelAdmin):
         if not (field.many_to_many or field.one_to_many) and field.name != "created_at"
     ]
 
+
 @admin.register(Widget)
 class WidgetAdmin(admin.ModelAdmin):
     list_display = [
@@ -51,6 +53,7 @@ class WidgetAdmin(admin.ModelAdmin):
 
     ordering = ['row', 'column']  # ascending order
 
+
 @admin.register(OverviewWidget)
 class OverviewWidgetAdmin(admin.ModelAdmin):
     list_display = [
@@ -59,6 +62,7 @@ class OverviewWidgetAdmin(admin.ModelAdmin):
     ]
 
     # ordering = ['row', 'column']  # ascending order
+
 
 @admin.register(ChartWidget)
 class ChartWidgetAdmin(admin.ModelAdmin):
@@ -76,3 +80,8 @@ class DashboardWidgetAdmin(admin.ModelAdmin):
         field.name for field in DashboardWidget._meta.get_fields()
         if field.name not in ("created_at",)
     ]
+
+
+@admin.register(Account)
+class AccountAdmin(admin.ModelAdmin):
+    list_display = [field.name for field in Account._meta.get_fields()]

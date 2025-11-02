@@ -135,7 +135,7 @@ class ChartWidget(BaseWidget):
 
 
 class OverviewWidget(BaseWidget):
-    widget_type = 'overview'
+    widget_type = models.CharField(max_length=50, default='overview')
 
     def update_widget_data(self):
         self.data = {} if not self.data else self.data
@@ -219,6 +219,7 @@ class OverviewWidget(BaseWidget):
         portfolio_value['free_funds'] = self._get_cash_cumulative_df(self.account_type, '1h').reindex(portfolio_value.index, method='ffill').fillna(0)
         portfolio_value['total_portfolio_value'] = portfolio_value['portfolio_value'] + portfolio_value['free_funds']
         portfolio_value['total_portfolio_value'] = portfolio_value['total_portfolio_value']# * 0.995
+        self._save_account_data(portfolio_value, self.account_type)
 
         profit = result['gross_pl_pln'].sum()
         invested_value = result['open_price_total_pln'].sum()
@@ -265,6 +266,32 @@ class OverviewWidget(BaseWidget):
 
         self.data = widget_data
 
+    def update_allocation(self):
+        """
+        Fetches all OverviewWidget instances from the database,
+        calculates the total portfolio value, and updates this widget's
+        'allocation_perc' field inside self.data.
+        """
+        self.data = self.data or {}  # Ensure the widget's data exists
+
+        all_widgets = OverviewWidget.objects.filter(widget_type='overview')
+
+        total_all = 0.0
+        for w in all_widgets:
+            data = getattr(w, "data", {}) or {}
+            total_all += data.get("total_value", 0.0)
+
+        current_value = self.data.get("total_value", 0.0)
+        allocation_perc = current_value / total_all if total_all > 0 else 0.0
+
+        self.data["allocation_perc"] = allocation_perc
+
+        return allocation_perc
+
+    def _save_account_data(self, data_df, account_type):
+        file_path = Path(__file__).parent.parent.parent / "artifacts/market_data"
+        file_name = f"account_data_{account_type}"
+        DataStore(file_path).save(file_name, data_df, fmt='csv', prefix='', index=True)
 
     def _get_prices_df(self):
         file_path = Path(__file__).parent.parent.parent / "artifacts/market_data"
@@ -299,6 +326,7 @@ class OverviewWidget(BaseWidget):
         )
         progress_current_pct = progress_current / limit
         return progress_current, progress_current_pct
+
 
     # def save(self, *args, **kwargs):
     #     # compute/update before saving
@@ -417,3 +445,18 @@ class CashOperation(BaseModel):
 
     def __str__(self):
         return f"{self.id} ({self.xtb_id}) {self.time}, {self.symbol})"
+
+
+class Account(BaseModel):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=255, unique=True)
+    type = models.CharField(max_length=10, unique=True)
+    description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
