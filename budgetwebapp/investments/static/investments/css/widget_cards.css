@@ -130,6 +130,7 @@
     text-decoration: none;
     color: inherit;
 }
-.widget-card {
+
+.widget-card-cursor {
     cursor: pointer;
 }
