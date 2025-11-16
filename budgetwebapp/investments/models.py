@@ -1,20 +1,11 @@
-from pathlib import Path
-
-import numpy as np
-import pandas as pd
-from datetime import datetime
-
-from django.db import models
 import uuid
+from django.db import models
 from django.core.validators import MinLengthValidator
-from django.db.models import Sum
 from django.contrib.contenttypes.fields import GenericForeignKey
+from polymorphic.models import PolymorphicModel
 
-from core.datastore import DataStore
-from investments.services.valuation.datetime_utils import standardize_datetime_by_period
-from investments.services.valuation import metrics
+from investments.services.widgets.registry import get_widget_logic
 from core.logger import logger
-
 
 
 class BaseModel(models.Model):
@@ -34,42 +25,14 @@ class Dashboard(BaseModel):
     def __str__(self):
         return self.name
 
-    def get_widgets(self):
-        return self.dashboard_widgets.select_related('widget_content_type')
-
-
-class Widget(BaseModel):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    dashboard = models.ForeignKey('Dashboard', on_delete=models.CASCADE, related_name='widgets')
-    title = models.CharField(max_length=100)
-    widget_type = models.CharField(max_length=50, blank=True, null=True)  # optional reference
-
-    # Grid position
-    row = models.PositiveIntegerField(default=1)
-    column = models.PositiveIntegerField(default=1)
-    width_units = models.PositiveIntegerField(default=1)
-    height_units = models.PositiveIntegerField(default=1)
-
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    data = models.JSONField(default=dict, blank=True)
-
-    def __str__(self):
-        return self.title
+    # def get_widgets(self):
+    #     return self.dashboard_widgets.select_related('widget_content_type')
 
 
 class BaseWidget(BaseModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    # dashboard = models.ForeignKey('Dashboard', on_delete=models.CASCADE, related_name='base_widgets')
     title = models.CharField(max_length=100)
     widget_type = models.CharField(max_length=50, blank=True, null=True)  # optional reference
-
-    # Grid position
-    # row = models.PositiveIntegerField(default=1)
-    # column = models.PositiveIntegerField(default=1)
-    # width_units = models.PositiveIntegerField(default=1)
-    # height_units = models.PositiveIntegerField(default=1)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -77,15 +40,49 @@ class BaseWidget(BaseModel):
     data = models.JSONField(default=dict, blank=True)
     config = models.JSONField(default=dict, blank=True)
 
-    class Meta:
-        abstract = True
-
     def __str__(self):
         return self.title
 
     def update_widget_data(self):
-        """Override in each concrete widget class."""
-        raise NotImplementedError
+        """
+        Generic dispatcher for all widget subclasses.
+        Uses registry to find the appropriate logic class and run its update method.
+        """
+
+        widget_type = getattr(self, "widget_type", None)
+        if not widget_type:
+            raise ValueError(f"{self.__class__.__name__} has no 'widget_type' defined")
+
+        widget = self.get_real_instance()
+
+        # subtype = (
+        #     getattr(self, "chart_subtype", None)
+        #     # or self.config.get("chart_type")
+        #     # or self.config.get("subtype")
+        #     # or None
+        # )
+
+        subtype = getattr(widget, "chart_subtype", None)
+
+        logic_cls = get_widget_logic(widget_type, subtype)
+        if not logic_cls:
+            raise ValueError(f"No logic registered for ({widget_type}, {subtype})")
+
+        logic = logic_cls(self)
+        if not hasattr(logic, "update_data"):
+            raise TypeError(f"{logic_cls.__name__} must define an 'update_data()' method")
+
+        logic.update_data()
+
+        self.save(update_fields=["data"])
+
+    def get_real_instance(self):
+        # Downcast to the right subclass
+        # return the "most derived" instance
+        for attr in ["chartwidget", "overviewwidget"]:  # list all subclasses
+            if hasattr(self, attr):
+                return getattr(self, attr)
+        return self
 
 
 class DashboardWidget(BaseModel):
@@ -100,16 +97,13 @@ class DashboardWidget(BaseModel):
         └── widget → (OverviewWidget, PerformanceWidget, etc.)
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    dashboard = models.ForeignKey(
-        'Dashboard',
-        on_delete=models.CASCADE,
-        related_name='dashboard_widgets'
-    )
+    dashboard = models.ForeignKey(Dashboard, on_delete=models.CASCADE, related_name="dashboard_widgets")
+    widget = models.ForeignKey(BaseWidget, on_delete=models.CASCADE, null=True)
 
     # Generic FK lets you attach any widget type (OverviewWidget, etc.)
-    widget_content_type = models.ForeignKey('contenttypes.ContentType', on_delete=models.CASCADE)
-    widget_object_id = models.UUIDField()
-    widget = GenericForeignKey('widget_content_type', 'widget_object_id')
+    # widget_content_type = models.ForeignKey('contenttypes.ContentType', on_delete=models.CASCADE)
+    # widget_object_id = models.UUIDField()
+    # widget = GenericForeignKey('widget_content_type', 'widget_object_id')
 
     # Layout attributes
     row = models.PositiveIntegerField(default=1)
@@ -123,215 +117,29 @@ class DashboardWidget(BaseModel):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    class Meta:
-        unique_together = ('dashboard', 'widget_content_type', 'widget_object_id')
+    # class Meta:
+    #     unique_together = ('dashboard', 'widget_content_type', 'widget_object_id')
 
     def __str__(self):
         return f"{self.widget} on {self.dashboard.name}"
 
 
 class ChartWidget(BaseWidget):
+    # chart_subtype_choices =
     widget_type = 'chart'
+    chart_subtype = models.CharField(max_length=50, choices=[
+        ('timeseries', 'Time Series'),
+        ('pie', 'Pie Chart'),
+        ('sunburst', 'Sunburst'),
+        ('pareto', 'Pareto'),
+        ('bar', 'Bar Chart'),
+    ])
+    variant = models.CharField(max_length=50, blank=True, null=True)  # e.g. "portfolio_value", "sector_allocation"
 
 
 class OverviewWidget(BaseWidget):
-    widget_type = models.CharField(max_length=50, default='overview')
-
-    def update_widget_data(self):
-        self.data = {} if not self.data else self.data
-        widget_data = {}
-        adj = 0.995
-
-        self.account_type = self.config.get("account_type", "main")  # type: ignore
-        self.instrument_types = self.config.get("labels", {}).get("instrument_types", None)  # type: ignore
-        self.limit = self.config.get("limit", 0)  # type: ignore
-
-        positions = Position.objects.filter(account_type=self.account_type, status="open")
-        positions_df = self._get_positions_df(positions)
-
-        tickers = list(positions.values_list('symbol', flat=True).order_by('symbol').distinct())
-        self.instruments = Instrument.objects.filter(symbol__in=tickers)
-
-        instruments_info = {i.symbol: {'logo_url': i.logo_url} for i in self.instruments}
-        currency_map = {i.symbol: i.currency for i in self.instruments}
-
-        # currencies = list(set(self.instruments.values_list('currency', flat=True)))
-
-        df_prices = self._get_prices_df()
-
-        positions_df['open_time'] = standardize_datetime_by_period(positions_df['open_time'], '1h')
-        positions_df['open_time'] = positions_df['open_time'].dt.ceil('h')
-        positions_df = positions_df.set_index('open_time').sort_index()
-        positions_df = positions_df.reset_index().rename(columns={"open_time": "date"})
-        positions_df["open_price_total"] = positions_df["open_price"] * positions_df["volume"]
-
-        # Setup cumulation of volume in the next groupby
-        positions_df["volume_cumsum"] = positions_df.sort_index().groupby("symbol")["volume"].cumsum()
-
-        result = (positions_df.groupby(['date', 'symbol']).agg(
-            open_price_total=('open_price_total', 'sum'),
-            volume=('volume', 'sum'),
-            volume_cumulative=('volume_cumsum', 'last')
-        )).reset_index()
-
-        current_prices = self._get_latest_values(df_prices)
-
-        result["currency"] = result["symbol"].map(currency_map)
-        result["fx_symbol"] = result["currency"] + "PLN"
-        result['current_fx_rate'] = result["fx_symbol"].map(current_prices).fillna(1.0)
-
-        fx_cols = df_prices.filter(like='PLN').columns.tolist()
-        df_fx_rates = df_prices[fx_cols].copy()
-
-        # Build a dynamic currency -> FX mapping from column names
-        currency_to_fx = {fx[:-3]: fx for fx in fx_cols}  # 'USD' -> 'USDPLN', 'EUR' -> 'EURPLN'
-        currency_to_fx["PLN"] = None  # means "no conversion needed"
-
-        df_fx_melted = df_fx_rates.reset_index().rename(columns={'Date': 'date'}).melt(id_vars='date', var_name='fx_symbol', value_name='open_fx_rate')
-        result = result.merge(df_fx_melted, how='left', on=['date', 'fx_symbol'])
-
-        # gross_pl percentages require conversion to PLN, to include USDPLN volatility, but it might be useful
-        # to look at the performance of instrument in its base currency alone, todo
-        # result["current_price"] = result["symbol"].map(current_prices)
-        result["current_price_total"] = result["symbol"].map(current_prices) * result["volume"]
-        result["current_price_total_pln"] = result["current_price_total"] * result['current_fx_rate'] * adj  # total_value
-        result["open_price_total_pln"] = result["open_price_total"] * result["open_fx_rate"] * (1 / adj)  # invested_value
-        result['gross_pl_pln'] =  result["current_price_total_pln"] - result["open_price_total_pln"]  # profit
-        result['holding_years'] = (datetime.now() - result['date']).dt.total_seconds() / (365.25 * 24 * 3600)
-
-        # Use df_prices index as the reference for full time grid
-        full_index = df_prices.index.rename('date')  # hourly timestamps
-
-        # Reindex required data
-        # pivot_table with aggfunc ensures aggregation is explicit and reduces risk if duplicates exist
-        df_volumes_tickers = result.pivot_table(index='date', columns='symbol', values='volume_cumulative', aggfunc='last')
-        df_volumes_tickers = df_volumes_tickers.reindex(full_index).ffill().fillna(0)
-        df_prices_tickers = df_prices[df_volumes_tickers.columns]
-        df_prices_tickers = df_prices_tickers.reindex(full_index).ffill()
-        df_fx_rates = df_fx_rates.reindex(full_index).ffill()
-
-        df_fx_rates_tickers = pd.DataFrame({s: df_fx_rates[currency_to_fx.get(curr)] if currency_to_fx.get(curr) else 1.0
-                              for s, curr in currency_map.items()}, index=full_index)
-
-        portfolio_value = pd.DataFrame()
-        portfolio_value['invested_value'] = (result.groupby("date")["open_price_total_pln"].sum().reindex(full_index).fillna(0).cumsum())# * (1 / adj)
-        portfolio_value['portfolio_value'] = (df_volumes_tickers * df_prices_tickers * df_fx_rates_tickers).sum(axis=1) * adj
-        portfolio_value['free_funds'] = self._get_cash_cumulative_df(self.account_type, '1h').reindex(portfolio_value.index, method='ffill').fillna(0)
-        portfolio_value['total_portfolio_value'] = portfolio_value['portfolio_value'] + portfolio_value['free_funds']
-        portfolio_value['total_portfolio_value'] = portfolio_value['total_portfolio_value']# * 0.995
-        self._save_account_data(portfolio_value, self.account_type)
-
-        profit = result['gross_pl_pln'].sum()
-        invested_value = result['open_price_total_pln'].sum()
-        free_funds = self._get_latest_values(portfolio_value['free_funds'])
-        total_value = result['current_price_total_pln'].sum() + free_funds
-
-        # CAGR and CAGR
-        cagr = metrics.Metric.new_cagr_v3(invested_value, total_value, result['date'].iloc[0])
-        wcagr = metrics.Metric.new_weighted_cagr_v2(result["open_price_total_pln"], result["current_price_total_pln"],
-                                                    result['holding_years'])
-
-        # Global TWR
-        twr_data = portfolio_value[['invested_value', 'portfolio_value']]
-        twr = metrics.Metric.twr_v2(twr_data, time_period='total')
-
-        # Periodic TWR
-        periodic_metrics = {
-            'D': metrics.Metric.twr_v2(twr_data, time_period='today'),
-            'W': metrics.Metric.twr_v2(twr_data, time_period='last_week'),
-            'M': metrics.Metric.twr_v2(twr_data, time_period='last_month'),
-        }
-
-        # Global HPR per ticker
-        hpr_data = pd.DataFrame({
-            'start': result.groupby(['symbol'])["open_price_total_pln"].sum(),  # * (1 / 0.995),
-            'end': result.groupby(['symbol'])["current_price_total_pln"].sum()
-        })
-        hpr = hpr_data['end'] / hpr_data['start'] - 1
-
-        for ticker, info in instruments_info.items():
-            info['hpr'] = float(hpr[ticker])
-
-        widget_data['total_value'] = total_value
-        widget_data['profit'] = profit
-        widget_data['free_funds'] = free_funds
-        widget_data['instruments_info'] = instruments_info
-        widget_data['metrics'] = {'cagr': cagr, 'wcagr': wcagr, 'twr': twr}
-        widget_data['metrics_changes'] = periodic_metrics
-
-        if self.limit > 0:
-            progress_current, progress_current_pct = self._get_progress_amount(self.account_type, self.limit)
-            widget_data['progress_current'] = progress_current
-            widget_data['progress_current_pct'] = progress_current_pct
-
-        self.data = widget_data
-
-    def update_allocation(self):
-        """
-        Fetches all OverviewWidget instances from the database,
-        calculates the total portfolio value, and updates this widget's
-        'allocation_perc' field inside self.data.
-        """
-        self.data = self.data or {}  # Ensure the widget's data exists
-
-        all_widgets = OverviewWidget.objects.filter(widget_type='overview')
-
-        total_all = 0.0
-        for w in all_widgets:
-            data = getattr(w, "data", {}) or {}
-            total_all += data.get("total_value", 0.0)
-
-        current_value = self.data.get("total_value", 0.0)
-        allocation_perc = current_value / total_all if total_all > 0 else 0.0
-
-        self.data["allocation_perc"] = allocation_perc
-
-        return allocation_perc
-
-    def _save_account_data(self, data_df, account_type):
-        file_path = Path(__file__).parent.parent.parent / "artifacts/market_data"
-        file_name = f"account_data_{account_type}"
-        DataStore(file_path).save(file_name, data_df, fmt='csv', prefix='', index=True)
-
-    def _get_prices_df(self):
-        file_path = Path(__file__).parent.parent.parent / "artifacts/market_data"
-        file_name = "market_prices_1h"
-        df_prices = DataStore(file_path).load(file_name, fmt='parquet', prefix='')
-        return df_prices
-
-    def _get_latest_values(self, df_prices):
-        if isinstance(df_prices, pd.DataFrame):
-            return df_prices.iloc[-1].to_dict()#to_frame().T.reset_index(drop=True)
-        return df_prices.iloc[-1]
-
-    def _get_positions_df(self, positions):
-        df_positions = pd.DataFrame(list(positions.values('open_time', 'symbol', 'open_price', 'volume')))
-        return df_positions
-
-    def _get_cash_cumulative_df(self, account_type, period):
-        cash_ops = CashOperation.objects.filter(account_type=account_type)
-        df_cash_ops = pd.DataFrame(cash_ops.values('time', 'amount'))
-        df_cash_ops['time'] = standardize_datetime_by_period(df_cash_ops['time'], period)
-        cash_cumulative_df = (
-            df_cash_ops.groupby('time')['amount']
-            .sum()
-            .cumsum()
-        )
-        return cash_cumulative_df
-
-    def _get_progress_amount(self, account_type, limit):
-        progress_current = (
-                CashOperation.objects.filter(account_type=account_type, type=f"{account_type.upper()} Deposit")
-                .aggregate(total=Sum('amount'))['total'] or 0
-        )
-        progress_current_pct = progress_current / limit
-        return progress_current, progress_current_pct
-
-
-    # def save(self, *args, **kwargs):
-    #     # compute/update before saving
-    #     self.update_widget_data()
-    #     super().save(*args, **kwargs)
+    widget_type = 'overview'
+    # widget_type = models.CharField(max_length=50, default='overview')
 
 
 class Position(BaseModel):

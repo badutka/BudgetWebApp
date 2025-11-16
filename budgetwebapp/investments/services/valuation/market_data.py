@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 import yfinance as yf
 
 from core.datastore import DataStore
+from core.constants import MARKET_DATA_PATH
 from core.logger import logger
 
 
@@ -29,7 +30,7 @@ def fetch_market_data(
         period: str = "1h",
         start_date: str = "2024-07-22",
         end_date: str = None,
-        file_path: Path = Path("../artifacts/market_data"),
+        file_path: Path = Path(MARKET_DATA_PATH),
 ):
     file_dir = Path(file_path)
     file_dir.mkdir(parents=True, exist_ok=True)

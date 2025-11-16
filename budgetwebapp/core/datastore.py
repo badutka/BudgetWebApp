@@ -46,8 +46,8 @@ class DataStore:
         else:
             raise ValueError(f"Unsupported format: {fmt}")
 
-        if cache:
-            self._cache[name] = df
+        # if cache:
+        #     self._cache[name] = df
         logger.info(f"Saved {name} data as {fmt} at {path} {'(cached)' if cache else ''}")
 
     def load(self, name: str, fmt: str='parquet', prefix='dsb_', parse_dates=None, index_col=None) -> pd.DataFrame:

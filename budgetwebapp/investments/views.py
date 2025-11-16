@@ -1,8 +1,10 @@
 from django.shortcuts import render, get_object_or_404
 
 from .models import Position, Instrument, Dashboard, OverviewWidget, DashboardWidget, ChartWidget, Account
+from investments.services.widgets.registry import get_widget_logic
 from .processing import xtb_parser
 from .services.valuation import market_data
+from core.datastore import DataStore
 
 
 def home_view(request):
@@ -23,21 +25,24 @@ def home_view(request):
 def portfolio_view(request):
     dashboard_id = "e2293edc-1ecd-4fdb-9d75-ea1a58304acb"  # your dashboard UUID
     dashboard = get_object_or_404(Dashboard, id=dashboard_id)
-
-    # Fetch all DashboardWidget instances for this dashboard
-    # dashboard_widgets = dashboard.dashboard_widgets.select_related('widget_content_type').all()
-    dashboard_widgets = dashboard.get_widgets()
+    dashboard_widgets = dashboard.dashboard_widgets.filter(widget__widget_type='overview')
 
     # market_data.ENTRY_POINT()
 
-    # Update data for each widget
     for dw in dashboard_widgets:
         dw.widget.update_widget_data()
         dw.widget.save()
 
     for dw in dashboard_widgets:
-        dw.widget.update_allocation()
-        dw.widget.save(update_fields=["data"])
+        widget = dw.widget
+        logic_cls = get_widget_logic(widget.widget_type, getattr(widget, "chart_subtype", None))
+        if not logic_cls:
+            continue
+
+        logic = logic_cls(widget)
+        if hasattr(logic, "update_allocation"):
+            logic.update_allocation()
+            widget.save(update_fields=["data"])
 
     context = {
         "dashboard_widgets": dashboard_widgets,
@@ -49,31 +54,21 @@ def portfolio_view(request):
 
 def account_details(request, account_type):
     # todo: base widget data update on account id
-    account = Account.objects.filter(type=account_type).first()
-    widget = OverviewWidget.objects.filter(config__account_type=account_type).first()
-    # widget = get_object_or_404(OverviewWidget, id=widget_id)
-    widget2 = get_object_or_404(ChartWidget, id='558dd3e7-2cd7-4a04-b923-06ab8103e9f5')
-    temp_dw = DashboardWidget(
-        widget=widget,
-        row=1, column=1, width_units=4, height_units=8
-    )
-    temp_dw2 = DashboardWidget(
-        widget=widget2,
-        row=1, column=5, width_units=3, height_units=8
-    )
+    # account = Account.objects.filter(type=account_type).first()
 
-    temp_dw3 = DashboardWidget(
-        row=9, column=1, width_units=7, height_units=10
-    )
+    dashboard_id = "7c9d20c5-348a-4a2b-bad2-8483f45d54a6"  # your dashboard UUID
+    dashboard = get_object_or_404(Dashboard, id=dashboard_id)
+    dashboard_widgets = dashboard.dashboard_widgets.filter(widget__config__account_type=account_type)
+
+    print(dashboard_widgets)
+
+    for dw in dashboard_widgets:
+        print(dw.widget)
+        dw.widget.update_widget_data()
+        dw.widget.save()
 
     context = {
-        'dashboard_widget': temp_dw,
-        'widget': temp_dw.widget,
-        'dw2': temp_dw2,
-        'chart2': temp_dw2.widget,
-        'dw3': temp_dw3,
-        # 'chart3': temp_dw3.widget
+        'dashboard_widgets': dashboard_widgets
     }
-
 
     return render(request, 'investments/account_details.html', context)

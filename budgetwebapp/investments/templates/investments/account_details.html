@@ -4,10 +4,14 @@
 
 {% block content %}
 
-<div class="dashboard-grid" style="max-width: 1800px">
-    {% include 'investments/overview_widget_partial.html' with widget=widget dashboard_widget=dashboard_widget %}
-    {% include 'investments/generic_chart_widget_partial.html' with widget=chart2 dashboard_widget=dw2 %}
-    {% include 'investments/generic_chart_widget_partial.html' with widget=chart3 dashboard_widget=dw3 %}
+<div id='portfolio-details' class="dashboard-grid" style="max-width: 1800px">
+    {% for dw in dashboard_widgets %}
+        {% if dw.widget.widget_type == 'overview' %}
+            {% include 'investments/overview_widget_partial.html' with widget=dw.widget dashboard_widget=dw %}
+        {% else %}
+            {% include 'investments/generic_chart_widget_partial.html' with widget=dw.widget dashboard_widget=dw %}
+        {% endif %}
+    {% endfor %}
 </div>
 
 {% endblock content %}

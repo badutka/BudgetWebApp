@@ -1,7 +1,21 @@
 {% load static %}
 {% load template_filters %}
+{% load investments_filters %}
 
+{% with widget|real_widget as real_widget %}
+<div
+    id="{{ chart_id|default:widget.id }}"
+    class="widget chart-widget widget-card"
+    data-widget-type="chart"
+    data-widget-subtype="{{ real_widget.chart_subtype|default:'timeseries' }}"
+    data-widget-id="{{ widget.id }}"
+    style="--row:{{ dashboard_widget.row }}; --col:{{ dashboard_widget.column }}; --w:{{ dashboard_widget.width_units }}; --h:{{ dashboard_widget.height_units }};"
+>
+{% endwith %}
 
-<div class="widget-card"
-     style="--row:{{ dashboard_widget.row }}; --col:{{ dashboard_widget.column }}; --w:{{ dashboard_widget.width_units }}; --h:{{ dashboard_widget.height_units }};">
+    <div class="widget-title">{{ widget.title }}</div>
+    <div class="chart-container" style="height: 100%;"></div>
+    {% with "widget-data-"|addstr:widget.id as data_id %}
+        {{ widget.data|json_script:data_id }}
+    {% endwith %}
 </div>
