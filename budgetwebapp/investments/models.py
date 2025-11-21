@@ -141,6 +141,9 @@ class OverviewWidget(BaseWidget):
     widget_type = 'overview'
     # widget_type = models.CharField(max_length=50, default='overview')
 
+class TableWidget(BaseWidget):
+    widget_type = 'table'
+
 
 class Position(BaseModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

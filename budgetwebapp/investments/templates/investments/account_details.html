@@ -8,6 +8,8 @@
     {% for dw in dashboard_widgets %}
         {% if dw.widget.widget_type == 'overview' %}
             {% include 'investments/overview_widget_partial.html' with widget=dw.widget dashboard_widget=dw %}
+        {% elif dw.widget.widget_type == 'table' %}
+            {% include 'investments/table_widget_partial.html' with widget=dw.widget dashboard_widget=dw %}
         {% else %}
             {% include 'investments/generic_chart_widget_partial.html' with widget=dw.widget dashboard_widget=dw %}
         {% endif %}

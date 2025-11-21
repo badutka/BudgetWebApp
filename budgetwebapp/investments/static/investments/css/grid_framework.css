@@ -61,6 +61,8 @@
 
   grid-column: var(--col, auto) / span var(--w, auto);
   grid-row: var(--row, auto) / span var(--h, auto);
+
+  justify-content: flex-start; /* added for table widget; shouldn't break existing widgets */
 }
 
 .widget-card {

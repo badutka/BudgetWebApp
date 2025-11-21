@@ -1,0 +1,38 @@
+{% load static %}
+{% load template_filters %}
+{% load investments_filters %}
+
+<div class="widget-card"
+     style="--row:{{ dashboard_widget.row }}; --col:{{ dashboard_widget.column }}; --w:{{ dashboard_widget.width_units }}; --h:{{ dashboard_widget.height_units }};">
+
+    <div class="widget-header">
+        <div class="widget-title-section">
+            <div class="widget-title">{{ widget.title }}</div>
+        </div>
+    </div>
+
+    <div class="widget-table">
+        <div class="table-card-neon">
+            <table class="table-neon">
+                <thead>
+                <tr>
+                    {% for col in widget.data.columns %}
+                        <th>{{ col }}</th>
+                    {% endfor %}
+                </tr>
+                </thead>
+
+                <tbody>
+                {% for row in widget.data.rows %}
+                    <tr>
+                        {% for cell in row %}
+                            <td>{{ cell }}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>

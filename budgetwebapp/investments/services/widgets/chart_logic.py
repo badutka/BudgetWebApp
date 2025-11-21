@@ -131,6 +131,51 @@ class PieChartLogic(VariantWidgetLogic):
         account_allocation = last_vol * last_price * last_fx
         return account_allocation
 
+@register_widget("table")
+class PieChartLogic(VariantWidgetLogic):
+    def update_data(self):
+        self.widget.data = {
+            "columns": [
+                "Col 1", "Col 2", "Col 3", "Col 4", "Col 5",
+                "Col 6", "Col 7", "Col 8", "Col 9", "Col 10",
+                "Col 11", "Col 12", "Col 13", "Col 14", "Col 15"
+            ],
+            "rows": [
+                ["R1C1", "R1C2", "R1C3", "R1C4", "R1C5",
+                 "R1C6", "R1C7", "R1C8", "R1C9", "R1C10",
+                 "R1C11", "R1C12", "R1C13", "R1C14", "R1C15"],
+                ["R2C1", "R2C2", "R2C3", "R2C4", "R2C5",
+                 "R2C6", "R2C7", "R2C8", "R2C9", "R2C10",
+                 "R2C11", "R2C12", "R2C13", "R2C14", "R2C15"],
+                ["R2C1", "R2C2", "R2C3", "R2C4", "R2C5",
+                 "R2C6", "R2C7", "R2C8", "R2C9", "R2C10",
+                 "R2C11", "R2C12", "R2C13", "R2C14", "R2C15"],
+                ["R2C1", "R2C2", "R2C3", "R2C4", "R2C5",
+                 "R2C6", "R2C7", "R2C8", "R2C9", "R2C10",
+                 "R2C11", "R2C12", "R2C13", "R2C14", "R2C15"],
+                ["R2C1", "R2C2", "R2C3", "R2C4", "R2C5",
+                 "R2C6", "R2C7", "R2C8", "R2C9", "R2C10",
+                 "R2C11", "R2C12", "R2C13", "R2C14", "R2C15"],
+                ["R2C1", "R2C2", "R2C3", "R2C4", "R2C5",
+                 "R2C6", "R2C7", "R2C8", "R2C9", "R2C10",
+                 "R2C11", "R2C12", "R2C13", "R2C14", "R2C15"],
+                ["R2C1", "R2C2", "R2C3", "R2C4", "R2C5",
+                 "R2C6", "R2C7", "R2C8", "R2C9", "R2C10",
+                 "R2C11", "R2C12", "R2C13", "R2C14", "R2C15"],
+                ["R2C1", "R2C2", "R2C3", "R2C4", "R2C5",
+                 "R2C6", "R2C7", "R2C8", "R2C9", "R2C10",
+                 "R2C11", "R2C12", "R2C13", "R2C14", "R2C15"],
+                ["R2C1", "R2C2", "R2C3", "R2C4", "R2C5",
+                 "R2C6", "R2C7", "R2C8", "R2C9", "R2C10",
+                 "R2C11", "R2C12", "R2C13", "R2C14", "R2C15"],
+                ["R2C1", "R2C2", "R2C3", "R2C4", "R2C5",
+                 "R2C6", "R2C7", "R2C8", "R2C9", "R2C10",
+                 "R2C11", "R2C12", "R2C13", "R2C14", "R2C15"],
+                ["R2C1", "R2C2", "R2C3", "R2C4", "R2C5",
+                 "R2C6", "R2C7", "R2C8", "R2C9", "R2C10",
+                 "R2C11", "R2C12", "R2C13", "R2C14", "R2C15"],
+            ]
+        }
 
 @register_widget('overview')
 class OverviewLogic(BaseWidgetLogic):

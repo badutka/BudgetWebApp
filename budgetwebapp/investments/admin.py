@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from .models import (Position, CashOperation, Instrument, Dashboard, OverviewWidget, ChartWidget,
+from .models import (Position, CashOperation, Instrument, Dashboard, OverviewWidget, ChartWidget, TableWidget,
                      DashboardWidget, Account)
 
 
@@ -63,6 +63,14 @@ class ChartWidgetAdmin(admin.ModelAdmin):
 
     # ordering = ['row', 'column']  # ascending order
 
+@admin.register(TableWidget)
+class TableWidgetAdmin(admin.ModelAdmin):
+    list_display = [
+        field.name for field in TableWidget._meta.get_fields()
+        if field.name not in ("created_at", "dashboardwidget")
+    ]
+
+    # ordering = ['row', 'column']  # ascending order
 
 @admin.register(DashboardWidget)
 class DashboardWidgetAdmin(admin.ModelAdmin):
