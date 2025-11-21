@@ -1,0 +1,153 @@
+.widget-table {
+    padding: 0;
+    padding-right: 5px; /* creates the gap between table and scrollbar */
+    overflow-y: auto;
+    overflow-x: hidden; /* table handles its own horizontal scroll */
+
+    /*border-top: 1px solid rgba(0, 195, 255, 0.12);
+    border-bottom: 1px solid rgba(0, 195, 255, 0.12);
+    border-radius: 15px;*/
+}
+
+.widget-table .table-card-neon {
+    background: transparent;
+    box-shadow: 0 0 0;
+    padding: 0;
+
+    /*border: 1px solid rgba(0, 195, 255, 0.12);*/ /* faint neon border */
+    /*box-shadow: 0 0 6px rgba(0, 195, 255, 0.08);*/ /* soft glow */
+}
+
+/* Slightly lighter even-row striping inside widgets */
+.widget-table .table-neon tbody tr:nth-child(even) {
+    background-color: rgba(0, 195, 255, 0.1);  /* subtle cyan glow for even rows */
+}
+
+.widget-table .table-neon tbody tr:nth-child(odd) {
+    background-color: rgba(0, 195, 255, 0.05);  /* very faint cyan for odd rows */
+}
+
+.widget-table .table-neon th {
+    white-space: nowrap;          /* prevent wrapping */
+    overflow: hidden;             /* needed if you use ellipsis */
+    text-overflow: ellipsis;      /* optional: truncate long text with ... */
+}
+
+/* Slightly lighter hover color */
+.widget-table .table-neon tbody tr:hover {
+    background: rgba(0, 195, 255, 0.1); /* from 0.08 */
+}
+
+/* Lighten borders a tiny bit */
+.widget-table .table-neon td {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* from 0.05 */
+}
+
+/* Vertical scrollbar in widget tables */
+.widget-table::-webkit-scrollbar {
+    width: 6px;
+}
+
+.widget-table::-webkit-scrollbar-thumb {
+    background: #00c3ff;
+    border-radius: 10px;
+    /*box-shadow: 0 0 6px rgba(0, 195, 255, 0.6);*/
+}
+
+.widget-table::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(0, 195, 255, 0.12);
+    box-shadow: inset 0 0 4px rgba(0, 195, 255, 0.15);
+    border-radius: 10px;
+}
+
+/* REWORKED TABLE WIDGET CSS */
+
+.widget-table-new.table-card-neon {
+    background: transparent;
+    box-shadow: 0 0 0;
+    padding: 0;
+}
+
+.widget-table-new .table-neon th {
+    white-space: nowrap;          /* prevent wrapping */
+    overflow: hidden;             /* needed if you use ellipsis */
+    text-overflow: ellipsis;      /* optional: truncate long text with ... */
+}
+
+/* Slightly lighter even-row striping inside widgets */
+.widget-table-new .table-neon tbody tr:nth-child(even) {
+    background-color: rgba(0, 195, 255, 0.1);  /* subtle cyan glow for even rows */
+}
+
+.widget-table-new .table-neon tbody tr:nth-child(odd) {
+    background-color: rgba(0, 195, 255, 0.05);  /* very faint cyan for odd rows */
+}
+
+/* Slightly lighter hover color */
+.widget-table-new .table-neon tbody tr:hover {
+    background: rgba(0, 195, 255, 0.2); /* from 0.08 */
+}
+
+/* Lighten borders a tiny bit */
+.widget-table-new .table-neon td {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* from 0.05 */
+}
+
+.widget-table-new.table-responsive::-webkit-scrollbar {
+    width: 14px;      /* vertical scrollbar width */
+    height: 14px;     /* horizontal scrollbar height */
+}
+
+.widget-table-new.table-responsive::-webkit-scrollbar-thumb:vertical  {
+    /*background: #00c3ff;*/
+    background: linear-gradient(to right, transparent 0%, transparent 50%, #00c3ff 50%, #00c3ff 100%);
+    border-radius: 10px;
+    /*box-shadow: 0 0 6px rgba(0, 195, 255, 0.6);*/
+}
+
+.widget-table-new.table-responsive::-webkit-scrollbar-track:vertical  {
+    /*background: rgba(255, 255, 255, 0.03);*/
+    background: linear-gradient(
+        to right,
+        rgba(255, 255, 255, 0.0) 0%,       /* left half transparent */
+        rgba(255, 255, 255, 0.0) 50%,
+        rgba(255, 255, 255, 0.03) 50%,     /* right half normal */
+        rgba(255, 255, 255, 0.03) 100%
+    );
+
+    /*border: 1px solid rgba(0, 195, 255, 0.12);*/
+
+    /*box-shadow: inset -1px 0 0 #00c3ff;*/
+    box-shadow: inset -1px 0 0 rgba(0, 195, 255, 0.3);
+
+    border-radius: 10px;
+}
+
+.widget-table-new.table-responsive::-webkit-scrollbar-thumb:horizontal  {
+    /*background: #00c3ff;*/
+    background: linear-gradient(to bottom, transparent 0%, transparent 50%, #00c3ff 50%, #00c3ff 100%);
+    border-radius: 10px;
+    /*box-shadow: 0 0 6px rgba(0, 195, 255, 0.6);*/
+}
+
+.widget-table-new.table-responsive::-webkit-scrollbar-track:horizontal  {
+    /*background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(0, 195, 255, 0.12);
+    box-shadow: inset 0 0 4px rgba(0, 195, 255, 0.15);*/
+
+    background: linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0.0) 0%,
+        rgba(255, 255, 255, 0.0) 50%,
+        rgba(255, 255, 255, 0.03) 50%,
+        rgba(255, 255, 255, 0.03) 100%
+    );
+    box-shadow: inset 0 -1px 0 rgba(0, 195, 255, 0.3); /* bottom edge only */
+
+    border-radius: 10px;
+}
+
+.widget-table-new.table-responsive::-webkit-scrollbar-corner {
+    background: transparent;      /* remove grey square in bottom-right */
+}

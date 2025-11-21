@@ -20,7 +20,7 @@
 .table-card-neon {
     background: linear-gradient(145deg, #0e1633, #111a3c);
     box-shadow: 0 0 20px rgba(0, 200, 255, 0.15);
-    overflow-x: auto;
+    /*overflow-x: auto;*/
     padding: 1rem;
     border-radius: 15px;
 }
@@ -78,6 +78,7 @@
 }
 
 /* ==== SCROLLBAR ==== */
+/*
 .table-card-neon::-webkit-scrollbar {
     height: 6px;
 }
@@ -88,6 +89,7 @@
 .table-card-neon::-webkit-scrollbar-track {
     background: transparent;
 }
+*/
 
 /* ==== RESPONSIVE ==== */
 @media (max-width: 768px) {
@@ -99,68 +101,4 @@
     .table-title {
         font-size: 1.4rem;
     }
-}
-
-/* ==== WIDGET TABLE ==== */
-.widget-table {
-    padding: 0;
-    padding-right: 5px; /* creates the gap between table and scrollbar */
-    overflow-y: auto;
-    overflow-x: hidden; /* table handles its own horizontal scroll */
-
-    /*border-top: 1px solid rgba(0, 195, 255, 0.12);
-    border-bottom: 1px solid rgba(0, 195, 255, 0.12);
-    border-radius: 15px;*/
-}
-
-.widget-table .table-card-neon {
-    background: transparent;
-    box-shadow: 0 0 0;
-    padding: 0;
-
-    /*border: 1px solid rgba(0, 195, 255, 0.12);*/ /* faint neon border */
-    /*box-shadow: 0 0 6px rgba(0, 195, 255, 0.08);*/ /* soft glow */
-}
-
-/* Slightly lighter even-row striping inside widgets */
-.widget-table .table-neon tbody tr:nth-child(even) {
-    background-color: rgba(0, 195, 255, 0.1);  /* subtle cyan glow for even rows */
-}
-
-.widget-table .table-neon tbody tr:nth-child(odd) {
-    background-color: rgba(0, 195, 255, 0.05);  /* very faint cyan for odd rows */
-}
-
-/* Slightly lighter hover color */
-.widget-table .table-neon tbody tr:hover {
-    background: rgba(0, 195, 255, 0.1); /* from 0.08 */
-}
-
-/* Lighten borders a tiny bit */
-.widget-table .table-neon td {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* from 0.05 */
-}
-
-/* Vertical scrollbar in widget tables */
-.widget-table::-webkit-scrollbar {
-    width: 6px;
-}
-
-.widget-table::-webkit-scrollbar-thumb {
-    background: #00c3ff;
-    border-radius: 10px;
-    /*box-shadow: 0 0 6px rgba(0, 195, 255, 0.6);*/
-}
-
-.widget-table::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(0, 195, 255, 0.12);
-    box-shadow: inset 0 0 4px rgba(0, 195, 255, 0.15);
-    border-radius: 10px;
-}
-
-.widget-table .table-neon th {
-    white-space: nowrap;          /* prevent wrapping */
-    overflow: hidden;             /* needed if you use ellipsis */
-    text-overflow: ellipsis;      /* optional: truncate long text with ... */
 }
