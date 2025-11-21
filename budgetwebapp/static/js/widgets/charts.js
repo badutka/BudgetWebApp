@@ -125,8 +125,8 @@ export function renderPieChart(container, data) {
   const pieData = labels.map((label, i) => ({
     name: label,
     y: values[i],
-    color: chartOptions?.colors?.PIE?.[i] || undefined // optional if you define a PIE palette
-  }));
+    color: chartOptions.PIE_ALLOC_COLORS[label] || undefined   // fallback to Highcharts
+  }))//.sort((a, b) => b.y - a.y); // descending
 
   Highcharts.chart(container, {
     chart: {
@@ -139,7 +139,7 @@ export function renderPieChart(container, data) {
     title: { text: '' },
 
     tooltip: {
-      pointFormat: '<b>{point.percentage:.1f}%</b><br>Value: {point.y}',
+      pointFormat: '<b>Allocation: {point.percentage:.2f}%</b><br>Amount: {point.y:.0f} PLN',
       backgroundColor: chartOptions.colors.TOOLTIP_BG,
       borderColor: chartOptions.colors.WHITE,
       borderWidth: chartOptions.tooltip.BORDER_WIDTH,
@@ -161,16 +161,34 @@ export function renderPieChart(container, data) {
             color: chartOptions.colors.WHITE
           },
           formatter: function () {
-            return `${this.point.name}: ${this.percentage.toFixed(1)}%`;
+            return `${this.point.name}<br>${this.percentage.toFixed(2)}%<br>${this.point.y.toFixed(0)} PLN`;
           }
-        }
+        },
+        showInLegend: true,
       }
     },
+
+//    legend: {
+//        layout: 'vertical',
+//        align: 'left',
+//        verticalAlign: 'top',
+////        x: -40,
+////        y: 80,
+//        floating: true,
+//        color: 'white',
+//        borderWidth: 0.5,
+////        backgroundColor: 'var(--highcharts-background-color, #ffffff)',
+//        shadow: true
+//    },
 
     series: [
       {
         name: 'Value',
-        data: pieData
+        data: pieData,
+        dataSorting: {
+            enabled: true,
+            sortKey: 'y'
+        },
       }
     ],
 

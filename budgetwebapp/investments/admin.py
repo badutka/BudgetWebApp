@@ -58,7 +58,7 @@ class OverviewWidgetAdmin(admin.ModelAdmin):
 class ChartWidgetAdmin(admin.ModelAdmin):
     list_display = [
         field.name for field in ChartWidget._meta.get_fields()
-        if field.name not in ("created_at", 'dashboardwidget')
+        if field.name not in ("created_at", 'dashboardwidget', 'data')
     ]
 
     # ordering = ['row', 'column']  # ascending order

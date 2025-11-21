@@ -41,5 +41,13 @@ export const chartOptions = {
 
   tooltip: {
     BORDER_WIDTH: 0.1,
-  }
+  },
+
+  PIE_ALLOC_COLORS: {
+  "VUAA.UK": "#1f77b4",
+  "CNDX.UK": "#ff7f0e",
+  "SPYL.DE": "#2ca02c",
+  "IUIT.UK": "#d62728",
+  "IGLN.UK": "#9467bd",
+  },
 };

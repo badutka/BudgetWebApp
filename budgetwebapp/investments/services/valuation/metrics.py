@@ -121,7 +121,7 @@ class Metric:
         if df.index.name == 'date':
             df = df.reset_index()
         if not pd.api.types.is_datetime64_any_dtype(df['date']):
-            df['date'] = pd.to_datetime(df['date'])
+            df.loc[:,'date'] = pd.to_datetime(df.loc[:,'date'])
 
         df = df.sort_values('date')
         max_time = df['date'].max()

@@ -37,3 +37,4 @@ FMT_MAP = {
 KPI_COLS = ['income', 'expenses', 'inner', 'num_transactions', 'net_savings', 'accounts_balance']
 
 MARKET_DATA_PATH = r"D:\PycharmProjects\BudgetWebApp\artifacts\market_data"
+MARKET_DATA_FILENAME = r"market_prices_1h"

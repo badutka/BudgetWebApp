@@ -5,6 +5,7 @@ from investments.services.widgets.registry import get_widget_logic
 from .processing import xtb_parser
 from .services.valuation import market_data
 from core.datastore import DataStore
+from investments.services.valuation.portfolio_engine import PortfolioEngine
 
 
 def home_view(request):
@@ -29,20 +30,23 @@ def portfolio_view(request):
 
     # market_data.ENTRY_POINT()
 
-    for dw in dashboard_widgets:
-        dw.widget.update_widget_data()
-        dw.widget.save()
+    # engine = PortfolioEngine()
+    # engine.entry_point()
+    #
+    # for dw in dashboard_widgets:
+    #     dw.widget.update_widget_data()
+    #     dw.widget.save()
 
-    for dw in dashboard_widgets:
-        widget = dw.widget
-        logic_cls = get_widget_logic(widget.widget_type, getattr(widget, "chart_subtype", None))
-        if not logic_cls:
-            continue
-
-        logic = logic_cls(widget)
-        if hasattr(logic, "update_allocation"):
-            logic.update_allocation()
-            widget.save(update_fields=["data"])
+    # for dw in dashboard_widgets:
+    #     widget = dw.widget
+    #     logic_cls = get_widget_logic(widget.widget_type, getattr(widget, "chart_subtype", None))
+    #     if not logic_cls:
+    #         continue
+    #
+    #     logic = logic_cls(widget)
+    #     if hasattr(logic, "update_allocation"):
+    #         logic.update_allocation()
+    #         widget.save(update_fields=["data"])
 
     context = {
         "dashboard_widgets": dashboard_widgets,
@@ -60,12 +64,13 @@ def account_details(request, account_type):
     dashboard = get_object_or_404(Dashboard, id=dashboard_id)
     dashboard_widgets = dashboard.dashboard_widgets.filter(widget__config__account_type=account_type)
 
-    print(dashboard_widgets)
+    # todo: a view of cash inflows where unique numbers are shown, so small inflows are also visible as auxillary
+    # engine = PortfolioEngine()
+    # engine.entry_point()
 
-    for dw in dashboard_widgets:
-        print(dw.widget)
-        dw.widget.update_widget_data()
-        dw.widget.save()
+    # for dw in dashboard_widgets:
+    #     dw.widget.update_widget_data()
+    #     dw.widget.save()
 
     context = {
         'dashboard_widgets': dashboard_widgets
