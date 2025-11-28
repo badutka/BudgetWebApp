@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404
 
 from .models import Position, Instrument, Dashboard, OverviewWidget, DashboardWidget, ChartWidget, Account
 from investments.services.widgets.registry import get_widget_logic
+from investments import constants
 from .processing import xtb_parser
 from .services.valuation import market_data
 from core.datastore import DataStore
@@ -9,7 +10,9 @@ from investments.services.valuation.portfolio_engine import PortfolioEngine
 
 
 def home_view(request):
-    # xtb_parser.parse_data()
+    # extract_dir = constants.XTB_DATA_EXTRACT_DIR
+    # xtb_parser.parse_data(extract_dir)
+
     positions = Position.objects.all()
     instruments = Instrument.objects.all()
 

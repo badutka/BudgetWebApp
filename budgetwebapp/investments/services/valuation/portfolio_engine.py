@@ -4,8 +4,8 @@ from datetime import datetime
 
 from investments.models import Position, Instrument, CashOperation
 from investments.services.valuation.datetime_utils import standardize_datetime_by_period
+from investments.constants import MARKET_DATA_PATH, MARKET_DATA_FILENAME
 from core.datastore import DataStore
-from core.constants import MARKET_DATA_PATH, MARKET_DATA_FILENAME
 
 
 class PortfolioEngine:
@@ -14,7 +14,9 @@ class PortfolioEngine:
         df_prices: hourly price DataFrame with DateTimeIndex named 'date'
         columns include instrument symbols and FX columns like 'USDPLN', 'EURPLN', ...
         """
-        self.accounts = ['main', 'ike', 'ikze', 'xtb_combined']
+        self.market_data_path = MARKET_DATA_PATH
+        self.market_data_filename = MARKET_DATA_FILENAME
+        self.accounts = ['main', 'ike', 'ikze', 'xtb_combined', 'usd']
         self.df_prices = self._get_prices_df()
         self.adj = adj
         self.full_index = self.df_prices.index.rename("date")
@@ -74,14 +76,14 @@ class PortfolioEngine:
         account_positions['gross_pl_pln'] = account_positions["current_price_total_pln"] - account_positions["open_price_total_pln"]
         account_positions['holding_years'] = (datetime.now() - account_positions['date']).dt.total_seconds() / (365.25 * 24 * 3600)
 
-        DataStore(Path(MARKET_DATA_PATH)).save(f'account_positions_{account_type}', account_positions, fmt='parquet',prefix='')
+        DataStore(Path(self.market_data_path)).save(f'account_positions_{account_type}', account_positions, fmt='parquet',prefix='')
 
         # Build time matrices and save them for Widget Y (but DO NOT compute account_allocation here)
         df_volumes_tickers, df_prices_tickers, df_fx_rates_tickers = self._build_time_matrices(account_positions, currency_map)
 
-        DataStore(Path(MARKET_DATA_PATH)).save(f'volumes_tickers_{account_type}', df_volumes_tickers.reset_index(),fmt='csv', prefix='')
-        DataStore(Path(MARKET_DATA_PATH)).save(f'prices_tickers_{account_type}', df_prices_tickers.reset_index(), fmt='csv', prefix='')
-        DataStore(Path(MARKET_DATA_PATH)).save(f'fx_rates_tickers_{account_type}', df_fx_rates_tickers.reset_index(), fmt='csv', prefix='')
+        DataStore(Path(self.market_data_path)).save(f'volumes_tickers_{account_type}', df_volumes_tickers.reset_index(),fmt='csv', prefix='')
+        DataStore(Path(self.market_data_path)).save(f'prices_tickers_{account_type}', df_prices_tickers.reset_index(), fmt='csv', prefix='')
+        DataStore(Path(self.market_data_path)).save(f'fx_rates_tickers_{account_type}', df_fx_rates_tickers.reset_index(), fmt='csv', prefix='')
 
         portfolio_value = pd.DataFrame()
         portfolio_value['invested_value'] = account_positions.groupby("date")["open_price_total_pln"].sum().reindex(self.full_index).fillna(0).cumsum()
@@ -89,7 +91,7 @@ class PortfolioEngine:
         portfolio_value['free_funds'] = self._get_cash_cumulative_df(account_types, '1h').reindex(portfolio_value.index, method='ffill').fillna(0)
         portfolio_value['total_portfolio_value'] = portfolio_value['portfolio_value'] + portfolio_value['free_funds']
 
-        DataStore(Path(MARKET_DATA_PATH)).save(f'account_data_{account_type}', portfolio_value.reset_index(), fmt='csv', prefix='')
+        DataStore(Path(self.market_data_path)).save(f'account_data_{account_type}', portfolio_value.reset_index(), fmt='csv', prefix='')
 
     def _prepare_positions(self, df_positions):
         """Normalize and aggregate raw positions dataframe (open_time, symbol, open_price, volume)."""
@@ -149,7 +151,7 @@ class PortfolioEngine:
         return account_allocation
 
     def _get_prices_df(self):
-        df_prices = DataStore(Path(MARKET_DATA_PATH)).load(MARKET_DATA_FILENAME, fmt='parquet', prefix='')
+        df_prices = DataStore(Path(self.market_data_path)).load(self.market_data_filename, fmt='parquet', prefix='')
         return df_prices
 
     def _get_cash_cumulative_df(self, account_types, period):

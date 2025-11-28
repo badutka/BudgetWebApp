@@ -1,83 +1,20 @@
 from typing import List, Tuple, Dict
 import zipfile
 import os
+import re
 import pandas as pd
 import numpy as np
 from datetime import datetime
 
 from django.db import transaction
+from django.utils import timezone
 
 from investments.models import Position, CashOperation
 from investments import constants
 from core.logger import logger
 
-
-def get_xtb_file_paths(extract_dir):
-    """
-    Returns a dictionary with paths to main, IKE, and IKZE Excel files.
-    Example:
-    {
-        "main": "/path/to/account_50867007_....xlsx",
-        "ike": "/path/to/account_ike_....xlsx",
-        "ikze": "/path/to/account_ikze_....xlsx"
-    }
-    """
-    file_paths = {"main": '', "ike": '', "ikze": ''}
-
-    for file_name in os.listdir(extract_dir):
-        if not file_name.endswith('.xlsx'):
-            continue
-
-        file_path = os.path.join(extract_dir, file_name)
-        name_lower = file_name.lower()
-
-        if "ikze" in name_lower:
-            file_paths["ikze"] = file_path
-        elif "ike" in name_lower:
-            file_paths["ike"] = file_path
-        else:
-            file_paths["main"] = file_path
-
-    # Sanity check: ensure at least main file exists
-    if file_paths["main"] == '':
-        raise FileNotFoundError("No main XTB file found in the folder.")
-
-    return file_paths
-
-
-def extract_xtb_files(zip_path, extract_dir):
-    for file_name in os.listdir(extract_dir):
-        if file_name.endswith('.xlsx'):
-            file_path = os.path.join(extract_dir, file_name)
-            os.remove(file_path)
-            logger.debug(f"Deleted existing XTB file: {file_name}")
-
-    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-        zip_ref.extractall(extract_dir)
-        logger.debug(f"Extracted new files from {zip_path}")
-
-
-def get_open_position_sheet_name(extract_dir):
-    main_file = None
-    for file_name in os.listdir(extract_dir):
-        if file_name.endswith('.xlsx') and 'ike' not in file_name.lower() and 'ikze' not in file_name.lower():
-            main_file = file_name
-            break
-
-    if main_file is None:
-        raise FileNotFoundError("No main Excel file found in the folder.")
-
-    sheet_date = datetime.strptime(main_file[-15:-5], '%Y-%m-%d').strftime('%d%m%Y')
-    open_sheet_name = constants.OPEN_SHEET_TEMPLATE.format(sheet_date)
-
-    return open_sheet_name
-
-
-def parse_data():
-    zip_path = '../artifacts/xtb_files/account_50867007_pl_xlsx_2005-12-31_2025-11-07.zip'
-    extract_dir = '../artifacts/xtb_files'
-
-    extract_xtb_files(zip_path, extract_dir)
+def parse_data(extract_dir):
+    extract_xtb_files(extract_dir)
     open_sheet_name = get_open_position_sheet_name(extract_dir)
     xtb_file_paths = get_xtb_file_paths(extract_dir)
 
@@ -104,6 +41,102 @@ def parse_data():
     import_xtb_data(df_open, df_closed, df_cash)
 
 
+def extract_account_number(filename):
+    match = re.search(r"account_(.*?)_pl_xlsx_", filename.lower())
+    return match.group(1) if match else None
+
+
+def get_xtb_file_paths(extract_dir):
+    """
+    Returns a dictionary with paths to main, IKE, and IKZE Excel files.
+    Example:
+    {
+        "main": "/path/to/account_....xlsx",
+        "ike": "/path/to/account_ike_....xlsx",
+        "ikze": "/path/to/account_ikze_....xlsx"
+    }
+    """
+
+    # discover all account tokens
+    account_tokens = []
+
+    for file_name in os.listdir(extract_dir):
+        if file_name.endswith(".xlsx"):
+            token = extract_account_number(file_name)
+            if token:
+                account_tokens.append(token)
+
+    # sort tokens (account types are sorted via account number - ascending)
+    account_tokens = sorted(account_tokens)
+
+    # map tokens → types based on ordering
+    file_paths = {}
+
+    for i, token in enumerate(account_tokens):
+        if i < len(constants.ACCOUNT_TYPE_ORDER):
+            account_type = constants.ACCOUNT_TYPE_ORDER[i]
+        else:
+            account_type = f"extra_{i}"
+
+        # find the matching file again
+        for file_name in os.listdir(extract_dir):
+            if token in file_name.lower():
+                file_paths[account_type] = os.path.join(extract_dir, file_name)
+                break
+
+    # Sanity check: ensure at least main file exists
+    if file_paths["main"] == '':
+        raise FileNotFoundError("No main XTB file found in the folder.")
+
+    return file_paths
+
+
+def extract_xtb_files(extract_dir):
+    # Find the ZIP file in the directory
+    zip_files = [f for f in os.listdir(extract_dir) if f.lower().endswith(".zip")]
+
+    if not zip_files:
+        raise FileNotFoundError("No ZIP file found in extract_dir")
+
+    if len(zip_files) > 1:
+        raise RuntimeError(f"Multiple ZIP files found: {zip_files}. Expected exactly one.")
+
+    zip_path = os.path.join(extract_dir, zip_files[0])
+    logger.debug(f"Using ZIP file: {zip_path}")
+
+    # Get the list of files in the ZIP
+    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+        zip_xlsx_files = [os.path.basename(f) for f in zip_ref.namelist() if f.endswith('.xlsx')]
+
+    # Delete only these files from the extract_dir
+    for file_name in os.listdir(extract_dir):
+        if file_name in zip_xlsx_files:
+            file_path = os.path.join(extract_dir, file_name)
+            os.remove(file_path)
+            logger.debug(f"Deleted existing XTB ZIP file: {file_name}")
+
+    # Extract ZIP
+    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+        zip_ref.extractall(extract_dir)
+        logger.debug(f"Extracted new files from {zip_path}")
+
+
+def get_open_position_sheet_name(extract_dir):
+    main_file = None
+    for file_name in os.listdir(extract_dir):
+        if file_name.endswith('.xlsx') and 'ike' not in file_name.lower() and 'ikze' not in file_name.lower():
+            main_file = file_name
+            break
+
+    if main_file is None:
+        raise FileNotFoundError("No main Excel file found in the folder.")
+
+    sheet_date = datetime.strptime(main_file[-15:-5], '%Y-%m-%d').strftime('%d%m%Y')
+    open_sheet_name = constants.OPEN_SHEET_TEMPLATE.format(sheet_date)
+
+    return open_sheet_name
+
+
 def import_xtb_data(df_open_positions, df_closed_positions, df_cash_operations):
     """Import XTB dataframes into Django models."""
     # Combine open and closed positions
@@ -122,7 +155,7 @@ def import_xtb_data(df_open_positions, df_closed_positions, df_cash_operations):
             symbol=row["Symbol"],
             status=row["position_type"],
             account_type=row["account_type"],
-            open_time=row["Open time"],
+            open_time=timezone.make_aware(pd.to_datetime(row["Open time"])),
             close_price=row["Close price"] if "Close price" in row else None,
             open_price=row["Open price"] if "Open price" in row else None,
             market_price=row["Market price"] if "Market price" in row else None,
@@ -142,7 +175,7 @@ def import_xtb_data(df_open_positions, df_closed_positions, df_cash_operations):
     cash_objs = [
         CashOperation(
             xtb_id=str(row["ID"]),
-            time=row["Time"],
+            time=timezone.make_aware(pd.to_datetime(row["Time"])),
             symbol=row["Symbol"] if "Symbol" in row else None,
             type=row["Type"],
             amount=row["Amount"],
