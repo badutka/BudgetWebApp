@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 
 from .models import (Position, CashOperation, Instrument, Dashboard, OverviewWidget, ChartWidget, TableWidget,
-                     DashboardWidget, Account)
+                     DashboardWidget, Account, TransferOperation)
 
 
 @admin.register(Position)
@@ -22,6 +22,14 @@ class CashOperationAdmin(admin.ModelAdmin):
         if field.name not in ("created_at",)
     ]
     list_filter = ("account_type", "type")
+
+@admin.register(TransferOperation)
+class TransferOperationAdmin(admin.ModelAdmin):
+    list_display = [
+        field.name for field in TransferOperation._meta.get_fields()
+        if field.name not in ("created_at",)
+    ]
+    list_filter = ("account_out", "account_in", "currency_out", "currency_in")
 
 
 @admin.register(Instrument)

@@ -9,9 +9,10 @@ from datetime import datetime
 from django.db import transaction
 from django.utils import timezone
 
-from investments.models import Position, CashOperation
+from investments.models import Position, CashOperation, TransferOperation
 from investments import constants
 from core.logger import logger
+
 
 def parse_data(extract_dir):
     extract_xtb_files(extract_dir)
@@ -36,9 +37,12 @@ def parse_data(extract_dir):
     df_open = pd.read_csv(f"{extract_dir}/open_positions.csv")
     df_closed = pd.read_csv(f"{extract_dir}/closed_positions.csv")
     df_cash = pd.read_csv(f"{extract_dir}/cash_operations.csv")
+    df_transfers = pd.read_csv(f"{extract_dir}/transfer_operations.csv")
 
+    # df_cash = convert_ewallet_to_regular_transfer(df_cash)
+    # logger.warn(df_cash.sort_values(by='Time')[-20:])
     # todo: create a button for importing refreshed data
-    import_xtb_data(df_open, df_closed, df_cash)
+    import_xtb_data(df_open, df_closed, df_cash, df_transfers)
 
 
 def extract_account_number(filename):
@@ -137,7 +141,76 @@ def get_open_position_sheet_name(extract_dir):
     return open_sheet_name
 
 
-def import_xtb_data(df_open_positions, df_closed_positions, df_cash_operations):
+def convert_ewallet_to_regular_transfer(df_cash):
+    df = df_cash.copy()
+    df = df.sort_values(by='Time').reset_index(drop=True)
+
+    # Identify eWallet withdrawals and deposits
+    mask_w = (df["Type"] == "withdrawal") & df["Comment"].str.contains("eWallet OT", na=False)
+    mask_d = (df["Type"] == "deposit") & df["Comment"].str.contains("eWallet OT", na=False)
+
+    withdrawals = df[mask_w].sort_values("Time")
+    deposits = df[mask_d].sort_values("Time")
+
+    if len(withdrawals) != len(deposits):
+        raise ValueError("Unmatched eWallet deposits/withdrawals")
+
+    for (w_idx, w_row), (d_idx, d_row) in zip(withdrawals.iterrows(), deposits.iterrows()):
+        w_amt = abs(w_row["Amount"])
+        d_amt = d_row["Amount"]
+        rate = round(w_amt / d_amt, 6)
+
+        # Update withdrawal → transfer
+        df.at[w_idx, "Type"] = "transfer"
+        df.at[w_idx, "Comment"] = (
+            f"Currency conversion, PLN to USD from TA: {w_row.account_type} "
+            f"to: {d_row.account_type}, Exchange rate:{rate}"
+        )
+
+        # Update deposit → transfer
+        df.at[d_idx, "Type"] = "transfer"
+        df.at[d_idx, "Comment"] = (
+            f"Currency conversion, PLN to USD from TA: {w_row.account_type} "
+            f"to: {d_row.account_type}, Exchange rate:{rate}"
+        )
+
+    skip_ids = np.concatenate((deposits.ID.values, withdrawals.ID.values))
+    df = invert_transfer_exchange_rates(df, skip_ids)
+
+    return df
+
+
+def invert_transfer_exchange_rates(df_cash, skip_ids):
+    """
+    For all transfer rows (except those in skip_ids),
+    replace Exchange rate:x with Exchange rate:1/x .
+    """
+    df = df_cash.copy()
+
+    # All transfer rows except skipped
+    mask = (df["Type"] == "transfer") & (~df["ID"].isin(skip_ids))
+
+    # Regex to find "Exchange rate:0.123456"
+    rate_pattern = re.compile(r"Exchange rate:([0-9]*\.?[0-9]+)")
+
+    for idx, row in df[mask].iterrows():
+        comment = row["Comment"]
+        match = rate_pattern.search(comment)
+        if not match:
+            continue  # no exchange rate present → skip
+
+        old_rate = float(match.group(1))
+        new_rate = round(1 / old_rate, 6)  # more precision here; adjust if needed
+
+        # Replace only the first occurrence
+        new_comment = rate_pattern.sub(f"Exchange rate:{new_rate}", comment, count=1)
+
+        df.at[idx, "Comment"] = new_comment
+
+    return df
+
+
+def import_xtb_data(df_open_positions, df_closed_positions, df_cash_operations, df_transfers):
     """Import XTB dataframes into Django models."""
     # Combine open and closed positions
     df_open_positions["position_type"] = "open"
@@ -184,13 +257,32 @@ def import_xtb_data(df_open_positions, df_closed_positions, df_cash_operations):
         for _, row in df_cash_operations.iterrows()
     ]
 
+    transfer_objs = [
+        TransferOperation(
+            timestamp_out=timezone.make_aware(pd.to_datetime(row["timestamp_out"])),
+            timestamp_in=timezone.make_aware(pd.to_datetime(row["timestamp_in"])),
+            amount_out=row["amount_out"],
+            currency_out=row["currency_out"],
+            account_out=row["account_out"],
+            xtb_id_out=row["xtb_id_out"],
+            amount_in=row["amount_in"],
+            currency_in=row["currency_in"],
+            account_in=row["account_in"],
+            xtb_id_in=row["xtb_id_in"],
+            exchange_rate=row["exchange_rate"]
+        )
+        for _, row in df_transfers.iterrows()
+    ]
+
     # Bulk create within a transaction
     with transaction.atomic():
         Position.objects.all().delete()
         CashOperation.objects.all().delete()
+        TransferOperation.objects.all().delete()
 
         Position.objects.bulk_create(position_objs, ignore_conflicts=True)
         CashOperation.objects.bulk_create(cash_objs, ignore_conflicts=True)
+        TransferOperation.objects.bulk_create(transfer_objs, ignore_conflicts=True)
 
     print(f"Imported {len(position_objs)} positions and {len(cash_objs)} cash operations")
 
@@ -237,18 +329,23 @@ def get_data(
 
     # --- Cash operations ---
     cash_data = read_all_accounts(cash_sheet_name, columns_cash, totals_cols_cash, "Time", 10)
+
     df_cash_operations_joint = pd.concat([df for df, _ in cash_data])
+    df_cash_operations_joint = convert_ewallet_to_regular_transfer(df_cash_operations_joint)
+    df_transfers = get_transfers(df_cash_operations_joint)
 
     # --- Save to CSV ---
     open_path = f"{output_dir}/open_positions.csv"
     closed_path = f"{output_dir}/closed_positions.csv"
     cash_path = f"{output_dir}/cash_operations.csv"
-    # logger.critical(df_open_positions_joint)
+    transfer_path = f"{output_dir}/transfer_operations.csv"
+
     df_open_positions_joint.to_csv(open_path, index=False)
     df_closed_positions_joint.to_csv(closed_path, index=False)
     df_cash_operations_joint.to_csv(cash_path, index=False)
+    df_transfers.to_csv(transfer_path, index=False)
 
-    print(f"Data saved to CSV files in {output_dir}")
+    logger.debug(f"Data saved to CSV files in {output_dir}")
 
     # Return nothing (explicitly) — just log and save
     return None
@@ -319,3 +416,46 @@ def determine_instrument_type(symbol: str) -> str:
         else:
             return "ETF"
     return "CFD"
+
+
+def get_transfers(df_cash):
+    pairs = []
+
+    # Filter only transfers
+    df_transfers = df_cash.loc[df_cash.Type == 'transfer'].reset_index(drop=True)
+
+    # Iterate over every two rows
+    for i in range(0, len(df_transfers), 2):
+        r1 = df_transfers.iloc[i]
+        r2 = df_transfers.iloc[i+1]
+
+        # Determine which row is PLN out and which is FX in
+        out_row = r1 if r1.Amount < 0 else r2
+        in_row  = r1 if r1.Amount > 0 else r2
+
+        # Extract exchange rate from the comment of the "out" row
+        rate_match = re.search(r'Exchange rate:([\d.]+)', out_row.Comment)
+        exchange_rate = float(rate_match.group(1)) if rate_match else None
+
+        # Map account type to currency
+        currency_out = constants.ACCOUNT_CURRENCY_MAP.get(out_row.account_type.lower(), out_row.account_type.upper())
+        currency_in = constants.ACCOUNT_CURRENCY_MAP.get(in_row.account_type.lower(), in_row.account_type.upper())
+
+        pairs.append({
+            "timestamp_out": out_row.Time,
+            "timestamp_in": in_row.Time,
+            "amount_out": abs(out_row.Amount),
+            "currency_out": currency_out,
+            "account_out": out_row.account_type,
+            "xtb_id_out": out_row.ID,
+            "amount_in": in_row.Amount,
+            "currency_in": currency_in,
+            "account_in": in_row.account_type,
+            "xtb_id_in": in_row.ID,
+            "exchange_rate": exchange_rate
+        })
+
+    # Convert list of dicts to DataFrame
+    df_pairs = pd.DataFrame(pairs)
+
+    return df_pairs

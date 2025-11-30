@@ -234,6 +234,37 @@ class Instrument(BaseModel):
         display_name = self.name or self.symbol
         return f"{display_name} ({self.instrument_type or 'Unknown'})"
 
+class TransferOperation(BaseModel):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    timestamp_out = models.DateTimeField()
+    timestamp_in = models.DateTimeField()
+
+    amount_out = models.FloatField()
+    currency_out = models.CharField(max_length=10)
+    account_out = models.CharField(max_length=50)
+    xtb_id_out = models.BigIntegerField()
+
+    amount_in = models.FloatField()
+    currency_in = models.CharField(max_length=10)
+    account_in = models.CharField(max_length=50)
+    xtb_id_in = models.BigIntegerField()
+
+    exchange_rate = models.FloatField()
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["currency_out", "timestamp_in"]),
+        ]
+        verbose_name_plural = "TransferOperations"
+        ordering = ["-timestamp_in"]
+
+    def __str__(self):
+        return f"{self.account_out} ({self.amount_out}) -> {self.account_in} ({self.amount_in}))"
+
 
 class CashOperation(BaseModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

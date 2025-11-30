@@ -2,10 +2,11 @@ import pandas as pd
 from pathlib import Path
 from datetime import datetime
 
-from investments.models import Position, Instrument, CashOperation
+from investments.models import Position, Instrument, CashOperation, TransferOperation
 from investments.services.valuation.datetime_utils import standardize_datetime_by_period
 from investments.constants import MARKET_DATA_PATH, MARKET_DATA_FILENAME
 from core.datastore import DataStore
+from core.logger import logger
 
 
 class PortfolioEngine:
@@ -33,16 +34,14 @@ class PortfolioEngine:
     def entry_point(self):
         for account in self.accounts:
             self.get_account_data(account)
-        # self.df_prices = df_prices
 
-        # for account in accounts:
-        #     get_account_data(accounts)
+        # self.get_account_data('usd')
 
     def get_account_data(self, account_type):
         df_prices = self._get_prices_df()
 
         if account_type == 'xtb_combined':
-            account_types = ['main', 'ike', 'ikze']
+            account_types = ['main', 'ike', 'ikze', 'usd']
         else:
             account_types = [account_type]
 
@@ -69,6 +68,10 @@ class PortfolioEngine:
         )
 
         account_positions = account_positions.merge(df_fx_melted, how='left', on=['date', 'fx_symbol'])
+
+        if account_type == 'usd':
+            df_transfers = self._get_transfers_df()
+            account_positions['open_fx_rate'] = self._get_usd_lot_open_fx_rate(account_positions, df_transfers)
 
         account_positions["current_price_total"] = account_positions["symbol"].map(current_prices) * account_positions["volume"]
         account_positions["current_price_total_pln"] = account_positions["current_price_total"] * account_positions['current_fx_rate'] * self.adj
@@ -154,6 +157,13 @@ class PortfolioEngine:
         df_prices = DataStore(Path(self.market_data_path)).load(self.market_data_filename, fmt='parquet', prefix='')
         return df_prices
 
+    def _get_transfers_df(self):
+        transfers = TransferOperation.objects.filter(account_in='usd')
+        df_transfers = pd.DataFrame(transfers.values('timestamp_in', 'amount_out', 'amount_in', 'exchange_rate'))
+        df_transfers['amount_in_remaining'] = df_transfers['amount_in']
+        df_transfers = df_transfers.set_index("timestamp_in").sort_index().reset_index()
+        return df_transfers
+
     def _get_cash_cumulative_df(self, account_types, period):
         cash_ops = CashOperation.objects.filter(account_type__in=account_types)
         df_cash_ops = pd.DataFrame(cash_ops.values('time', 'amount'))
@@ -169,3 +179,45 @@ class PortfolioEngine:
         if isinstance(df_prices, pd.DataFrame):
             return df_prices.iloc[-1].to_dict()  # to_frame().T.reset_index(drop=True)
         return df_prices.iloc[-1]
+
+    def _get_usd_lot_open_fx_rate(self, account_positions, df_transfers):
+        # Compute open_price_total_pln and weighted FX
+        # pln_totals = []
+        fx_rates = []
+        df_transfers = df_transfers[df_transfers['timestamp_in'] != pd.Timestamp("2025-11-24 09:15:30.466000+00:00")]
+
+        for _, pos in account_positions.iterrows():
+            usd_needed = pos['open_price_total']
+            weighted_sum = 0
+            # pln_total = 0
+            usd_used_total = 0
+
+            # Iterate over transfers
+            for i, transfer in df_transfers.iterrows():
+                if usd_needed <= 0:
+                    break
+
+                usd_used = min(transfer['amount_in_remaining'], usd_needed)
+
+                weighted_sum += usd_used * transfer['exchange_rate']
+                usd_used_total += usd_used
+                usd_needed -= usd_used
+                # pln_total += usd_used * transfer['exchange_rate']
+
+                # Update transfer remaining
+                df_transfers.at[i, 'amount_in_remaining'] -= usd_used
+
+            if usd_used_total > 0:
+                fx_rate = weighted_sum / usd_used_total * self.adj
+                # weighted_fx = pln_total / usd_used_total
+            else:
+                fx_rate = None  # or 0
+                # weighted_fx = None
+
+            if usd_needed > 0:
+                print(f"Warning: Not enough USD to cover position {pos['open_price_total']}")
+
+            # pln_totals.append(pln_total)
+            fx_rates.append(fx_rate)
+
+        return fx_rates
