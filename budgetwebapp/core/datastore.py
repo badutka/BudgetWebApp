@@ -18,6 +18,7 @@ class DataStore:
             instance.base_dir = Path(base_dir)
             instance.base_dir.mkdir(parents=True, exist_ok=True)
             instance._cache = {}
+            instance._mtime_cache = {}
             cls._instances[base_dir] = instance
         return cls._instances[base_dir]
 
@@ -46,20 +47,28 @@ class DataStore:
         else:
             raise ValueError(f"Unsupported format: {fmt}")
 
-        # if cache:
-        #     self._cache[name] = df
+        # # update cache
+        if cache:
+            self._cache[name] = df
+            self._mtime_cache[name] = path.stat().st_mtime
+
         logger.info(f"Saved {name} data as {fmt} at {path} {'(cached)' if cache else ''}")
 
     def load(self, name: str, fmt: str='parquet', prefix='dsb_', parse_dates=None, index_col=None) -> pd.DataFrame:
         """Load a dataset from cache if available, otherwise from Parquet file."""
-        if name in self._cache:
-            logger.info(f"Using cached {name} data (in-memory)")
-            return self._cache[name]
 
         path = self._path(name, fmt, prefix)
         if not path.exists():
             raise FileNotFoundError(f"Data file for {name} not found at {path}")
 
+        mtime = path.stat().st_mtime
+
+        # Return cached value if fresh
+        if name in self._cache and self._mtime_cache.get(name) == mtime:
+            logger.info(f"Using cached {name} data")
+            return self._cache[name]
+
+        # Otherwise load from disk
         if fmt == "parquet":
             df = pd.read_parquet(path)
         elif fmt == "csv":
@@ -67,8 +76,11 @@ class DataStore:
         else:
             raise ValueError(f"Unsupported format: {fmt}")
 
+        # Update caches
         self._cache[name] = df
-        logger.info(f"Loaded {name} data from {path} (now cached)")
+        self._mtime_cache[name] = mtime
+
+        logger.info(f"Loaded {name} data from {path}") #  (cache refreshed)
         return df
 
     def exists(self, name: str, fmt: str = "parquet") -> bool:
@@ -78,6 +90,8 @@ class DataStore:
     def delete(self, name: str):
         """Remove dataset from disk and cache (only Parquet)."""
         self._cache.pop(name, None)
+        self._mtime_cache.pop(name, None)
+
         path = self._path(name, fmt="parquet")
         if path.exists():
             path.unlink()
@@ -86,4 +100,5 @@ class DataStore:
     def clear_cache(self):
         """Manually clear all in-memory cached DataFrames."""
         self._cache.clear()
-        logger.info("Cleared in-memory cache for all datasets.")
+        self._mtime_cache.clear()
+        logger.info(f"Cleared in-memory cache for all datasets @ {self.base_dir}.")
