@@ -13,15 +13,8 @@ export function initWidgets(container = document) {
 
     const type = el.dataset.widgetType;
     const subtype = el.dataset.widgetSubtype || 'default';
-    const variant = el.dataset.widgetVariant || 'default';
     const widgetId = el.dataset.widgetId;
     const scriptEl = document.getElementById(`widget-data-${widgetId}`);
-
-//    console.log(type)
-//    console.log(subtype)
-//    console.log(widgetId)
-//    console.log(scriptEl)
-//    console.log(variant)
 
     if (!type || !widgetId || !scriptEl) {
       console.warn('Skipping invalid widget:', el);
@@ -31,16 +24,6 @@ export function initWidgets(container = document) {
     const data = JSON.parse(scriptEl.textContent);
     // Resolve renderer
     let renderer = widgetRenderers?.[type]?.[subtype];
-
-    if (renderer) {
-      // If this subtype is a function, no variants exist → use directly
-      if (typeof renderer === 'function') {
-        // OK: timeseries, etc.
-      } else if (typeof renderer === 'object') {
-        // Subtype supports variants
-        renderer = renderer[variant] || renderer.default;
-      }
-    }
 
     if (typeof renderer === 'function') {
       const chartContainer = el.querySelector('.chart-container');

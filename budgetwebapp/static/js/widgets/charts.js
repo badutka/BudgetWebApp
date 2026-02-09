@@ -1,27 +1,53 @@
 import { chartOptions } from './charts_const.js';
 
 export function renderTimeSeriesChart(container, data) {
+//  const investedSeries = data.date.map((d, i) => [Date.parse(d), data.invested_value[i]]);
+//  const totalSeries = data.date.map((d, i) => [Date.parse(d), data.portfolio_value[i]]);
+//  const gainSeries = data.date.map((d, i) => [Date.parse(d), data.net_gain[i]]);
 
-  const investedSeries = data.date.map((d, i) => [Date.parse(d), data.invested_value[i]]);
-  const totalSeries = data.date.map((d, i) => [Date.parse(d), data.portfolio_value[i]]);
-//  Highcharts.chart(container, {
-//    chart: { type: 'areaspline', zoomType: 'xy', backgroundColor: 'transparent' },
-//    title: { text: '' },
-//    xAxis: { type: 'datetime', labels: { style: { color: chartOptions.colors.WHITE } } },
-//    yAxis: { title: { text: 'Amount (PLN)' }, labels: { style: { color: chartOptions.colors.WHITE } } },
-//    series: [
-//      { name: 'Invested', data: investedSeries, color: chartOptions.colors.PRIMARY },
-//      { name: 'Total', data: totalSeries, color: chartOptions.colors.SECONDARY },
-//    ],
-//  });
+    const COLOR_POOL = [
+      chartOptions.colors.PRIMARY,
+      chartOptions.colors.SECONDARY,
+      chartOptions.colors.TERT,
+      chartOptions.colors.QUAT,
+    ];
+
+    const dates = data.date;
+    const seriesData = data.series;
+    const meta = data.series_meta || {};
+
+  const series = Object.keys(seriesData).map((key, index) => {
+
+    const color = COLOR_POOL[index % COLOR_POOL.length];
+
+    const points = dates.map((d, i) => [
+      Date.parse(d),
+      seriesData[key][i]
+    ]);
+
+    const name =
+      meta[key]?.name ||
+      key; // defaultLabel(key)
+
+    return {
+      name,
+      data: points,
+      color,
+
+      fillColor: {
+        linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
+        stops: [
+          [0, Highcharts.color(color).setOpacity(0.15).get('rgba')],
+          [1, Highcharts.color(color).setOpacity(0).get('rgba')]
+        ]
+      }
+    };
+  });
 
 Highcharts.chart(container, {
     chart: {
       type: 'areaspline',            // smooth line chart
       zoomType: 'xy',            // allows horizontal zooming
-      // backgroundColor: '#111827', // match container
-      // backgroundColor: '#0c1833', // match container
-      // backgroundColor: '#091d4b', // match container
       backgroundColor: 'transparent', // match container
       style: { fontFamily: chartOptions.font.FAMILY },
     },
@@ -84,34 +110,8 @@ Highcharts.chart(container, {
     exporting: {
       enabled: false
     },
-      series: [
-        {
-          name: 'Invested Value',
-          data: investedSeries,
-          color: chartOptions.colors.QUAT,
-          fillColor: {
-            linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
-            stops: [
-                [0, Highcharts.color(chartOptions.colors.QUAT).setOpacity(0.15).get('rgba')], // top: semi-opaque red
-                [1, Highcharts.color(chartOptions.colors.QUAT).setOpacity(0).get('rgba')] // bottom: fully transparent
-            ]
-          }
-        },
-        {
-          name: 'Total Value',
-          data: totalSeries,
-          color: chartOptions.colors.PRIMARY,
-          fillColor: {
-            linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
-            stops: [
-                [0, Highcharts.color(chartOptions.colors.PRIMARY).setOpacity(0.15).get('rgba')], // top: semi-opaque red
-                [1, Highcharts.color(chartOptions.colors.PRIMARY).setOpacity(0).get('rgba')] // bottom: fully transparent
-            ]
-          }
-        }
-      ]
+      series: series
 });
-
 };
 
 export function renderPieChart(container, data) {
@@ -160,6 +160,11 @@ export function renderPieChart(container, data) {
           style: {
             color: chartOptions.colors.WHITE
           },
+//          distance: 20,           // move labels outside slices
+          crop: false,            // don’t hide labels outside plot area
+          alignTo: 'plotEdges',
+//          overflow: 'allow',      // allow labels to overflow outside chart
+//          connectorColor: chartOptions.colors.WHITE, // line connecting label to slice
           formatter: function () {
             return `${this.point.name}<br>${this.percentage.toFixed(2)}%<br>${this.point.y.toFixed(0)} PLN`;
           }

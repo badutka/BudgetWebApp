@@ -1,7 +1,7 @@
 from datetime import datetime
 import pandas as pd
 from pathlib import Path
-
+import time
 from django.db.models import F, Sum
 
 from investments.models import Position, Instrument, CashOperation, OverviewWidget
@@ -12,7 +12,63 @@ from investments.constants import MARKET_DATA_PATH
 from core.datastore import DataStore
 from core.logger import logger
 
-from .registry import register_widget
+from .registry import register_widget, register_dataset, load_dataset
+
+
+# cache_key = f"widget:{dw.id}:{hash(filters)}"
+
+@register_dataset("account_allocation")
+def load_account_allocation_data(account=None):
+    df_volumes_tickers = DataStore(Path(MARKET_DATA_PATH)).load(f'volumes_tickers_{account}', fmt='csv', prefix='')
+    df_prices_tickers = DataStore(Path(MARKET_DATA_PATH)).load(f'prices_tickers_{account}', fmt='csv', prefix='')
+    df_fx_rates_tickers = DataStore(Path(MARKET_DATA_PATH)).load(f'fx_rates_tickers_{account}', fmt='csv', prefix='')
+
+    last_vol = df_volumes_tickers.drop(columns=['date']).iloc[-1]
+    last_price = df_prices_tickers.drop(columns=['date']).iloc[-1]
+    last_fx = df_fx_rates_tickers.drop(columns=['date']).iloc[-1]
+    return last_vol * last_price * last_fx
+
+
+@register_dataset("pie_chart_default")
+def load_pie_chart_default_data(account=None):
+    return {
+        'labels': ['pie_chart_default'],
+        'values': [111]
+    }
+
+
+@register_dataset("account_over_time")
+def load_account_over_time_data(account=None):
+    df_account_over_time = DataStore(Path(MARKET_DATA_PATH)).load(f'account_data_{account}', fmt='csv', prefix='')
+    df_account_over_time = df_account_over_time.to_dict(orient='list')
+
+    sample = 6
+
+    if type(df_account_over_time['date'][0]) is not str:
+        logger.debug("Casting time series date to str")
+        df_account_over_time['date'] = [str(d) for d in df_account_over_time['date']]
+
+    return {
+        "date": df_account_over_time["date"][::sample],
+        "series": {
+            'invested_value': df_account_over_time['invested_value'][::sample],
+            'portfolio_value': df_account_over_time['portfolio_value'][::sample],
+            "net_gain": list(
+                pd.Series(df_account_over_time["portfolio_value"][::sample])
+                - pd.Series(df_account_over_time["invested_value"][::sample])
+            ),
+            "portfolio_value_2": list(pd.Series(df_account_over_time["portfolio_value"][::sample]) * 0.3),
+            "portfolio_value_3": list(pd.Series(df_account_over_time["portfolio_value"][::sample]) * 0.5)
+        },
+        # optional custom names (can add later)
+        "series_meta": {
+            "invested_value": {"name": "Invested Value"},
+            "portfolio_value": {"name": "Total Value"},
+            "portfolio_value_2": {"name": "Invested Value 2"},
+            "portfolio_value_3": {"name": "Invested Value 3"},
+            "net_gain": {"name": "Net Gain"},
+        }
+    }
 
 
 class BaseWidgetLogic:
@@ -23,116 +79,29 @@ class BaseWidgetLogic:
         raise NotImplementedError
 
 
-class VariantWidgetLogic(BaseWidgetLogic):
-
-    def update_data(self):
-        widget = self.widget.get_real_instance()
-        variant = getattr(widget, "variant", None) or widget.config.get("variant", "default")
-        handler = getattr(self, f"variant_{variant}", None)
-        if not handler:
-            raise NotImplementedError(
-                f"No handler defined for variant '{variant}' in {self.__class__.__name__}"
-            )
-        handler()
-
-    def variant_default(self):
-        raise NotImplementedError
-
-
 @register_widget("chart", 'timeseries')
-class TimeSeriesChartLogic(VariantWidgetLogic):
-    def variant_default(self):
-        self.widget.data = {
-            'date': ['2025-10-11', '2025-10-17'],
-            'invested_value': [1, 2],
-            'portfolio_value': [6, 7]
-        }
+class TimeSeriesChartLogic(BaseWidgetLogic):
+    def update_data(self):
+        account_type = self.widget.config.get("account_type", "main")
 
-    def variant_ike_account_over_time(self):
-        file_name = "account_data_ike"
-        df_account_over_time = DataStore(Path(MARKET_DATA_PATH)).load(file_name, fmt='csv', prefix='').to_dict(
-            orient='list')
-
-        self.widget.data = {
-            'date': df_account_over_time['date'][::12],
-            'invested_value': df_account_over_time['invested_value'][::12],
-            'portfolio_value': df_account_over_time['portfolio_value'][::12]
-        }
-
-    def variant_main_account_over_time(self):
-        file_name = "account_data_main"
-        df_account_over_time = DataStore(Path(MARKET_DATA_PATH)).load(file_name, fmt='csv', prefix='').to_dict(
-            orient='list')
-
-        self.widget.data = {
-            'date': df_account_over_time['date'][::12],
-            'invested_value': df_account_over_time['invested_value'][::12],
-            'portfolio_value': df_account_over_time['portfolio_value'][::12]
-        }
-
-    def variant_xtb_combined_account_over_time(self):
-        file_name = "account_data_xtb_combined"
-        df_account_over_time = DataStore(Path(MARKET_DATA_PATH)).load(file_name, fmt='csv', prefix='').to_dict(
-            orient='list')
-
-        self.widget.data = {
-            'date': df_account_over_time['date'][::12],
-            'invested_value': df_account_over_time['invested_value'][::12],
-            'portfolio_value': df_account_over_time['portfolio_value'][::12]
-        }
+        self.widget.data = load_account_over_time_data(account=account_type)
 
 
 @register_widget("chart", 'pie')
-class PieChartLogic(VariantWidgetLogic):
-    def variant_default(self):
-        self.widget.data = {
-            'labels': ['variant_default'],
-            'values': [111]
-        }
-
-    def variant_ike_account_allocation(self):
+class PieChartLogic(BaseWidgetLogic):
+    def update_data(self):
         account_type = self.widget.config.get("account_type", "main")
-        account_allocation = self._get_account_allocation(account_type)
+        dataset_name = self.widget.config.get("dataset")
+        data = load_dataset(name=dataset_name, account=account_type)
 
         self.widget.data = {
-            "labels": account_allocation.index.tolist(),
-            "values": account_allocation.values.round(2).tolist()
+            "labels": data.index.tolist(),
+            "values": data.values.round(2).tolist()
         }
 
-    def variant_main_account_allocation(self):
-        account_type = self.widget.config.get("account_type", "main")
-        account_allocation = self._get_account_allocation(account_type)
-
-        self.widget.data = {
-            "labels": account_allocation.index.tolist(),
-            "values": account_allocation.values.round(2).tolist()
-        }
-
-    def variant_xtb_combined_account_allocation(self):
-        account_type = self.widget.config.get("account_type", "main")
-        account_allocation = self._get_account_allocation(account_type)
-
-        self.widget.data = {
-            "labels": account_allocation.index.tolist(),
-            "values": account_allocation.values.round(2).tolist()
-        }
-
-    def _get_account_allocation(self, account_type):
-        df_volumes_tickers = DataStore(Path(MARKET_DATA_PATH)).load(f'volumes_tickers_{account_type}', fmt='csv',
-                                                                    prefix='')
-        df_prices_tickers = DataStore(Path(MARKET_DATA_PATH)).load(f'prices_tickers_{account_type}', fmt='csv',
-                                                                   prefix='')
-        df_fx_rates_tickers = DataStore(Path(MARKET_DATA_PATH)).load(f'fx_rates_tickers_{account_type}', fmt='csv',
-                                                                     prefix='')
-
-        last_vol = df_volumes_tickers.drop(columns=['date']).iloc[-1]
-        last_price = df_prices_tickers.drop(columns=['date']).iloc[-1]
-        last_fx = df_fx_rates_tickers.drop(columns=['date']).iloc[-1]
-        account_allocation = last_vol * last_price * last_fx
-        return account_allocation
 
 @register_widget("table")
-class PieChartLogic(VariantWidgetLogic):
+class TableLogic(BaseWidgetLogic):
     def update_data(self):
         self.widget.data = {
             "columns": [
@@ -147,6 +116,7 @@ class PieChartLogic(VariantWidgetLogic):
                 ["R1C1", "R1C2", "R1C3"],
             ]
         }
+
 
 @register_widget('overview')
 class OverviewLogic(BaseWidgetLogic):

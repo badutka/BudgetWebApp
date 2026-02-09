@@ -54,13 +54,7 @@ class BaseWidget(BaseModel):
             raise ValueError(f"{self.__class__.__name__} has no 'widget_type' defined")
 
         widget = self.get_real_instance()
-
-        # subtype = (
-        #     getattr(self, "chart_subtype", None)
-        #     # or self.config.get("chart_type")
-        #     # or self.config.get("subtype")
-        #     # or None
-        # )
+        # widget = BaseWidget.objects.first()  # todo: explore PolymorphicModel approach
 
         subtype = getattr(widget, "chart_subtype", None)
 
@@ -77,7 +71,7 @@ class BaseWidget(BaseModel):
         self.save(update_fields=["data"])
 
     def get_real_instance(self):
-        # Downcast to the right subclass
+        # polymorphic down-casting from Widget to the actual subclass (ChartWidget, OverviewWidget, etc.)
         # return the "most derived" instance
         for attr in ["chartwidget", "overviewwidget"]:  # list all subclasses
             if hasattr(self, attr):
@@ -134,12 +128,13 @@ class ChartWidget(BaseWidget):
         ('pareto', 'Pareto'),
         ('bar', 'Bar Chart'),
     ])
-    variant = models.CharField(max_length=50, blank=True, null=True)  # e.g. "portfolio_value", "sector_allocation"
+    # variant = models.CharField(max_length=50, blank=True, null=True)  # e.g. "portfolio_value", "sector_allocation"
 
 
 class OverviewWidget(BaseWidget):
     widget_type = 'overview'
     # widget_type = models.CharField(max_length=50, default='overview')
+
 
 class TableWidget(BaseWidget):
     widget_type = 'table'
@@ -233,6 +228,7 @@ class Instrument(BaseModel):
     def __str__(self):
         display_name = self.name or self.symbol
         return f"{display_name} ({self.instrument_type or 'Unknown'})"
+
 
 class TransferOperation(BaseModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
