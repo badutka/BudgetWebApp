@@ -33,6 +33,12 @@ class BaseWidget(BaseModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=100)
     widget_type = models.CharField(max_length=50, blank=True, null=True)  # optional reference
+    dashboard = models.ForeignKey(Dashboard, on_delete=models.CASCADE, related_name="dashboard_widgets", null=True)
+
+    row = models.PositiveIntegerField(default=1)
+    column = models.PositiveIntegerField(default=1)
+    width_units = models.PositiveIntegerField(default=1)
+    height_units = models.PositiveIntegerField(default=1)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -77,45 +83,6 @@ class BaseWidget(BaseModel):
             if hasattr(self, attr):
                 return getattr(self, attr)
         return self
-
-
-class DashboardWidget(BaseModel):
-    """
-    A link between a Dashboard and a reusable widget definition.
-    Stores layout attributes and optional config overrides.
-
-    Dashboard
-    └── DashboardWidget
-        ├── row, column, width_units, height_units
-        ├── overrides
-        └── widget → (OverviewWidget, PerformanceWidget, etc.)
-    """
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    dashboard = models.ForeignKey(Dashboard, on_delete=models.CASCADE, related_name="dashboard_widgets")
-    widget = models.ForeignKey(BaseWidget, on_delete=models.CASCADE, null=True)
-
-    # Generic FK lets you attach any widget type (OverviewWidget, etc.)
-    # widget_content_type = models.ForeignKey('contenttypes.ContentType', on_delete=models.CASCADE)
-    # widget_object_id = models.UUIDField()
-    # widget = GenericForeignKey('widget_content_type', 'widget_object_id')
-
-    # Layout attributes
-    row = models.PositiveIntegerField(default=1)
-    column = models.PositiveIntegerField(default=1)
-    width_units = models.PositiveIntegerField(default=1)
-    height_units = models.PositiveIntegerField(default=1)
-
-    # Dashboard-specific overrides
-    overrides = models.JSONField(default=dict, blank=True)
-
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    # class Meta:
-    #     unique_together = ('dashboard', 'widget_content_type', 'widget_object_id')
-
-    def __str__(self):
-        return f"{self.widget} on {self.dashboard.name}"
 
 
 class ChartWidget(BaseWidget):
