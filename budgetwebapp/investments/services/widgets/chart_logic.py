@@ -29,6 +29,19 @@ def load_account_allocation_data(account=None):
     return last_vol * last_price * last_fx
 
 
+@register_dataset("portfolio_total_value")
+def load_portfolio_total_value():
+    accounts = ['main', 'ike', 'ikze', 'usd']
+    grand_total = 0.0
+
+    for acc in accounts:
+        df = DataStore(Path(MARKET_DATA_PATH)).load(f'account_data_{acc}', fmt='csv', prefix='')
+        if not df.empty:
+            grand_total += df['portfolio_value'].iloc[-1]
+
+    return grand_total
+
+
 @register_dataset("pie_chart_default")
 def load_pie_chart_default_data(account=None):
     return {
@@ -84,7 +97,8 @@ class TimeSeriesChartLogic(BaseWidgetLogic):
     def update_data(self):
         account_type = self.widget.config.get("account_type", "main")
 
-        self.widget.data = load_account_over_time_data(account=account_type)
+        # self.widget.data = load_account_over_time_data(account=account_type)
+        return load_account_over_time_data(account=account_type)
 
 
 @register_widget("chart", 'pie')
@@ -94,7 +108,8 @@ class PieChartLogic(BaseWidgetLogic):
         dataset_name = self.widget.config.get("dataset")
         data = load_dataset(name=dataset_name, account=account_type)
 
-        self.widget.data = {
+        # self.widget.data = {
+        return {
             "labels": data.index.tolist(),
             "values": data.values.round(2).tolist()
         }
@@ -103,7 +118,7 @@ class PieChartLogic(BaseWidgetLogic):
 @register_widget("table")
 class TableLogic(BaseWidgetLogic):
     def update_data(self):
-        self.widget.data = {
+        return {
             "columns": [
                 "Col 1", "Col 2", "Col 3"
             ],
@@ -176,33 +191,28 @@ class OverviewLogic(BaseWidgetLogic):
             widget_data['progress_current'] = progress_current
             widget_data['progress_current_pct'] = progress_current_pct
 
-        self.widget.data = widget_data
+        widget_data["allocation_perc"] = self._update_allocation(widget_data, self.widget.config)
 
-        self.update_allocation()
+        return widget_data
+        # self.widget.data = widget_data
 
-    def update_allocation(self):
+        # self.update_allocation()
+
+    def _update_allocation(self, widget_data, widget_config):
         """
         Fetches all OverviewWidget instances from the database,
         calculates the total portfolio value, and updates this widget's
         'allocation_perc' field inside self.data.
         """
-        self.widget.data = self.widget.data or {}  # Ensure the widget's data exists
+        widget_data = widget_data or {}  # Ensure the widget's data exists
 
-        if self.widget.config['account_type'] == "xtb_combined":
-            self.widget.data["allocation_perc"] = 1.0
+        if widget_config['account_type'] == "xtb_combined":
             return 1.0
 
-        all_widgets = OverviewWidget.objects.filter(widget_type="overview").exclude(config__account_type="xtb_combined")
+        total_portfolio_value = load_dataset("portfolio_total_value")
+        current_value = widget_data.get("total_value", 0.0)
 
-        total_all = 0.0
-        for w in all_widgets:
-            data = getattr(w, "data", {}) or {}
-            total_all += data.get("total_value", 0.0)
-
-        current_value = self.widget.data.get("total_value", 0.0)
-        allocation_perc = current_value / total_all if total_all > 0 else 0.0
-
-        self.widget.data["allocation_perc"] = allocation_perc
+        allocation_perc = current_value / total_portfolio_value
 
         return allocation_perc
 

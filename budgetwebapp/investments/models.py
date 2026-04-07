@@ -1,11 +1,15 @@
 import uuid
 from django.db import models
 from django.core.validators import MinLengthValidator
+from django.core.cache import cache
+from django.utils.functional import cached_property
 from django.contrib.contenttypes.fields import GenericForeignKey
 from polymorphic.models import PolymorphicModel
 
 from investments.services.widgets.registry import get_widget_logic
 from core.logger import logger
+
+import traceback
 
 
 class BaseModel(models.Model):
@@ -29,59 +33,165 @@ class Dashboard(BaseModel):
     #     return self.dashboard_widgets.select_related('widget_content_type')
 
 
-class BaseWidget(BaseModel):
+class BaseWidget(models.Model):
+    """
+    BaseWidget serves as the core orchestrator for the dashboard system.
+    It implements a Multi-Level Caching strategy (L1-L2-L3).
+
+    ### I. The 3-Level Caching Architecture Diagram
+
+    ```mermaid
+    graph TD
+        A[Request: get_data] --> B{L1: Instance Cache}
+        B -- "Hit (RAM Reference)" --> C[Return immediately]
+        B -- "Miss (None)" --> D{L2: Django Cache}
+
+        D -- "Hit (Pickle/Redis)" --> E[Deserialize + Store in L1]
+        E --> F[Return Data]
+
+        D -- "Miss (Expired/None)" --> G{L3: DataStore/Logic}
+        G -- "DataStore HIT" --> H[Read from RAM-cached File]
+        G -- "DataStore MISS" --> I[Read from Disk - CSV/Parquet]
+
+        H & I --> J[Run Logic Calculations]
+        J --> K[Save to L2 Cache + Store in L1]
+        K --> L[Return Fresh Data]
+    ```
+
+    ### II. Caching Layers Breakdown
+
+    *   **L1 - Instance Cache (Local RAM):**
+        Lives for the duration of a single Python object in RAM.
+        *Problem solved:* Template Redundancy. Prevents expensive "Pickle" deserialization
+        when the same widget is called multiple times (8-16x) in one HTML template.
+
+    *   **L2 - Django Cache (Shared/Persistent):**
+        Cross-request and cross-user storage (e.g., Redis or LocMem).
+        *Problem solved:* Computational Load. Prevents re-calculating heavy financial
+        metrics like CAGR or TWR for every single page refresh.
+
+    *   **L3 - DataStore Cache (File RAM):**
+        Global singleton managing raw dataframes.
+        *Problem solved:* I/O Bottleneck. Prevents redundant disk reads of large
+        historical CSV/Parquet files when multiple widgets use the same source.
+    """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=100)
-    widget_type = models.CharField(max_length=50, blank=True, null=True)  # optional reference
-    dashboard = models.ForeignKey(Dashboard, on_delete=models.CASCADE, related_name="dashboard_widgets", null=True)
+    widget_type = models.CharField(max_length=50, blank=True, null=True)
+    dashboard = models.ForeignKey(
+        'Dashboard', on_delete=models.CASCADE,
+        related_name="dashboard_widgets", null=True
+    )
 
+    # Layout and Timestamp fields
     row = models.PositiveIntegerField(default=1)
     column = models.PositiveIntegerField(default=1)
     width_units = models.PositiveIntegerField(default=1)
     height_units = models.PositiveIntegerField(default=1)
-
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
-    data = models.JSONField(default=dict, blank=True)
     config = models.JSONField(default=dict, blank=True)
+
+    # Global Caching Configuration
+    CACHE_TIMEOUT = None  # Persistent in L2 until manual refresh or server restart
+
+    # Internal L1 Cache Storage
+    _instance_cache = None  # persist as long as the Python object exists during a single Request/Response cycle.
 
     def __str__(self):
         return self.title
 
-    def update_widget_data(self):
-        """
-        Generic dispatcher for all widget subclasses.
-        Uses registry to find the appropriate logic class and run its update method.
-        """
+    @property
+    def concrete(self):
+        """Returns the specific subclass instance (e.g., OverviewWidget, ChartWidget)."""
+        return self.get_concrete()
 
+    @property
+    def subtype(self):
+        """Helper to get chart_subtype from the concrete child model."""
+        return getattr(self.concrete, "chart_subtype", None)
+
+    @property
+    def widget_data(self):
+        """
+        The primary entry point for Templates.
+        Usage: {{ widget.widget_data }}
+        """
+        return self.get_data()
+
+    def get_data(self, force_refresh=False):
+        """
+        Retrieves widget data using the L1-L2-L3 caching pipeline.
+
+        Args:
+            force_refresh (bool): If True, bypasses L1 and L2 to recompute L3.
+                                  Useful for manual 'Update' actions.
+        """
+        cache_key = f"widget_data:{self.id}"
+
+        # --- LAYER 1: Instance Cache (Local RAM) ---
+        # CASE: Template calls the widget multiple times (e.g. for Desktop/Mobile views).
+        # We return the raw Python object immediately, avoiding L2 deserialization.
+        if not force_refresh and self._instance_cache is not None:
+            logger.debug(f"L1 HIT: Zero-latency return for {self.id}")
+            return self._instance_cache
+
+        # --- LAYER 2: Django Cache (Shared / Persistent) ---
+        # CASE: A user refreshes the page or a different user views the dashboard.
+        # We avoid running complex financial logic (_compute_data).
+        if not force_refresh:
+            cached = cache.get(cache_key)
+            if cached is not None:
+                self._instance_cache = cached  # Populate L1 for future calls in this request
+                logger.info(f"L2 HIT: Retrieved 'widget_data' cache for {self.id}")
+                return cached
+
+        # --- LAYER 3: Computation & DataStore (Source of Truth) ---
+        # CASE: Cache is empty or user clicked "Refresh".
+        # This triggers DataStore to load files (L3) and runs Logic classes.
+        data = self._compute_data()
+
+        # Update both layers
+        cache.set(cache_key, data, timeout=self.CACHE_TIMEOUT)
+        self._instance_cache = data  # Populate L1 to protect the rest of the template render
+        logger.info(f"L3 COMPUTE: Fresh data generated and cached for {self.id}")
+
+        return data
+
+    def _compute_data(self):
+        """
+        Internal dispatcher that finds the appropriate Logic class
+        based on widget_type and subtype.
+        """
         widget_type = getattr(self, "widget_type", None)
-        if not widget_type:
-            raise ValueError(f"{self.__class__.__name__} has no 'widget_type' defined")
-
-        widget = self.get_real_instance()
-        # widget = BaseWidget.objects.first()  # todo: explore PolymorphicModel approach
-
+        widget = self.get_concrete()
         subtype = getattr(widget, "chart_subtype", None)
 
         logic_cls = get_widget_logic(widget_type, subtype)
         if not logic_cls:
-            raise ValueError(f"No logic registered for ({widget_type}, {subtype})")
+            raise ValueError(f"No logic registered for {widget_type}:{subtype}")
 
-        logic = logic_cls(self)
+        # Instantiate logic with the CONCRETE widget (so logic has access to child fields)
+        logic = logic_cls(widget)
+
         if not hasattr(logic, "update_data"):
-            raise TypeError(f"{logic_cls.__name__} must define an 'update_data()' method")
+            raise TypeError(f"Logic {logic_cls} must implement update_data()")
 
-        logic.update_data()
+        return logic.update_data()
 
-        self.save(update_fields=["data"])
+    def get_concrete(self):
+        """
+        Down-casts (polymorphic down-casting) the BaseWidget instance to its actual subclass
+            (ChartWidget, OverviewWidget, etc.).
 
-    def get_real_instance(self):
-        # polymorphic down-casting from Widget to the actual subclass (ChartWidget, OverviewWidget, etc.)
-        # return the "most derived" instance
+        This is required because Django's multi-table inheritance
+        returns BaseWidget instances by default.
+        """
+
         for attr in ["chartwidget", "overviewwidget"]:  # list all subclasses
             if hasattr(self, attr):
                 return getattr(self, attr)
+
         return self
 
 

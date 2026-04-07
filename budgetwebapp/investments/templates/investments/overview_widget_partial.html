@@ -35,7 +35,7 @@
                 {% endfor %}
             </div>
             <div class="widget-changes">
-                {% for label, value in widget.data.metrics_changes.items %}
+                {% for label, value in widget.widget_data.metrics_changes.items %}
                 <span>{{ label }}:
                         <span class="change-number {% if value < 0 %}loss{% else %}profit{% endif %}">
                             {% if value >= 0 %}+{% endif %}{{ value|mul:100|floatformat:2 }}%
@@ -47,49 +47,49 @@
         </div>
         <div class="widget-right">
             <div class="widget-amount">
-                {{ widget.data.total_value|floatformat:2 }} PLN
+                {{ widget.widget_data.total_value|floatformat:2 }} PLN
             </div>
             <div class="widget-profit">
                 Profit:
-                <span class="profit-number {% if widget.data.profit < 0 %}loss{% else %}profit{% endif %}">
-                        {% if widget.data.profit >= 0 %}+{% endif %}
-                        {{ widget.data.profit|floatformat:2 }}
+                <span class="profit-number {% if widget.widget_data.profit < 0 %}loss{% else %}profit{% endif %}">
+                        {% if widget.widget_data.profit >= 0 %}+{% endif %}
+                        {{ widget.widget_data.profit|floatformat:2 }}
                     </span> PLN
             </div>
             <div class="widget-metrics">
-                CAGR: <span class="metric-number">{{ widget.data.metrics.cagr|mul:100|floatformat:2 }}%</span>
-                | WCAGR: <span class="metric-number">{{ widget.data.metrics.wcagr|mul:100|floatformat:2 }}%</span>
-                | TWR: <span class="metric-number">{{ widget.data.metrics.twr|mul:100|floatformat:2 }}%</span>
+                CAGR: <span class="metric-number">{{ widget.widget_data.metrics.cagr|mul:100|floatformat:2 }}%</span>
+                | WCAGR: <span class="metric-number">{{ widget.widget_data.metrics.wcagr|mul:100|floatformat:2 }}%</span>
+                | TWR: <span class="metric-number">{{ widget.widget_data.metrics.twr|mul:100|floatformat:2 }}%</span>
             </div>
             <div class="widget-free-funds">
-                Free funds: <span class="free-funds"> {{ widget.data.free_funds|floatformat:2 }} PLN</span>
+                Free funds: <span class="free-funds"> {{ widget.widget_data.free_funds|floatformat:2 }} PLN</span>
             </div>
             {% if widget.config.limit %}
             <div class="widget-progress">
-                {{ widget.data.progress_current|floatformat:2 }} /
+                {{ widget.widget_data.progress_current|floatformat:2 }} /
                 {{ widget.config.limit|floatformat:2 }}
-                PLN ({{ widget.data.progress_current_pct|mul:100|floatformat:2 }}%)
+                PLN ({{ widget.widget_data.progress_current_pct|mul:100|floatformat:2 }}%)
 
                 <div class="progress-bar">
                     <div class="progress-fill"
-                         style="width: {{ widget.data.progress_current_pct|mul:100|floatformat:2 }}%;"></div>
+                         style="width: {{ widget.widget_data.progress_current_pct|mul:100|floatformat:2 }}%;"></div>
                 </div>
             </div>
             {% endif %}
             <div class="widget-allocation">
-                Allocation: {{ widget.data.allocation_perc|mul:100|floatformat:2 }}%
+                Allocation: {{ widget.widget_data.allocation_perc|mul:100|floatformat:2 }}%
                 <div class="allocation-bar">
                     <div class="allocation-fill"
-                         style="width: {{ widget.data.allocation_perc|mul:100|floatformat:0 }}%;"></div>
+                         style="width: {{ widget.widget_data.allocation_perc|mul:100|floatformat:0 }}%;"></div>
                 </div>
             </div>
             <div class="widget-activity">
-                New today: {{ widget.data.new_today }}
+                New today: {{ widget.widget_data.new_today }}
             </div>
         </div>
     </div>
     <div class="widget-logos">
-        {% for symbol, info in widget.data.instruments_info.items %}
+        {% for symbol, info in widget.widget_data.instruments_info.items %}
         <div class="logo-container">
             {% if info.logo_url %}
             <div class="url-logo">

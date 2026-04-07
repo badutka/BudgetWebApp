@@ -16,14 +16,14 @@
             <table class="table-neon">
                 <thead>
                 <tr>
-                    {% for col in widget.data.columns %}
+                    {% for col in widget.widget_data.columns %}
                         <th>{{ col }}</th>
                     {% endfor %}
                 </tr>
                 </thead>
 
                 <tbody>
-                {% for row in widget.data.rows %}
+                {% for row in widget.widget_data.rows %}
                     <tr>
                         {% for cell in row %}
                             <td>{{ cell }}</td>
