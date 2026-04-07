@@ -2,6 +2,7 @@ import uuid
 from django.db import models
 from django.core.validators import MinLengthValidator
 from django.core.cache import cache
+from django.utils.text import slugify
 from django.utils.functional import cached_property
 from django.contrib.contenttypes.fields import GenericForeignKey
 from polymorphic.models import PolymorphicModel
@@ -23,11 +24,31 @@ class BaseModel(models.Model):
 class Dashboard(BaseModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
+    slug = models.SlugField(unique=True, blank=True)
+
+    grid_columns = models.PositiveIntegerField(default=32)
+    max_width_px = models.PositiveIntegerField(default=1400)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            base_slug = slugify(self.name)
+            slug = base_slug
+            counter = 1
+
+            # ensure uniqueness
+            while Dashboard.objects.filter(slug=slug).exclude(id=self.id).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+
+            self.slug = slug
+
+        super().save(*args, **kwargs)
 
     # def get_widgets(self):
     #     return self.dashboard_widgets.select_related('widget_content_type')

@@ -2,8 +2,10 @@
    DASHBOARD GRID LAYOUT
 ========================================================= */
 .dashboard-grid {
+  --grid-cols: 32;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  /*grid-template-columns: repeat(auto-fit, minmax(0, 1fr));*/
+  grid-template-columns: repeat(var(--grid-cols), 1fr);
   /*grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));*/
   grid-auto-rows: 16px;   /* base row height */
   /*grid-template-columns: repeat(6, 1fr);*/

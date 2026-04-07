@@ -4,7 +4,7 @@
 
 {% block content %}
 
-<div id='portfolio-details' class="dashboard-grid" style="--grid-cols: {{ dashboard.grid_columns|default:32 }}; max-width: 1800px">
+<div id='portfolio-details' class="dashboard-grid" style="--grid-cols: {{ dashboard.grid_columns|default:32 }}; max-width: {{ dashboard.max_width_px }}px">
     {% for widget in widgets %}
         {% if widget.widget_type == 'overview' %}
             {% include 'investments/overview_widget_partial.html' with widget=widget %}

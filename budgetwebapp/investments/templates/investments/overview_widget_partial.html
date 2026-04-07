@@ -4,9 +4,9 @@
 
 <div class="widget-card {% if enable_account_details_visit %} widget-card-cursor {% endif %}"
      style="--row:{{ widget.row }}; --col:{{ widget.column }}; --w:{{ widget.width_units }}; --h:{{ widget.height_units }};">
-    {% if enable_account_details_visit %}
+    {% if dashboard.slug == "portfolio-overview" %}
         {% with widget.config.account_type|account_by_type as account %}
-            <a href="{% url 'investments:account_details' account.type %}" class="widget-link">
+            <a href="{% url 'investments:dashboard' 'account-view-xtb' %}?account_type={{ account.type }}" class="widget-link">
         {% endwith %}
     {% endif %}
     <div class="sheen"></div>

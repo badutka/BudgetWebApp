@@ -5,7 +5,7 @@
 
 {% block content %}
 
-<div class="dashboard-grid" style="max-width: 1400px">
+<div class="dashboard-grid" style="--grid-cols: {{ dashboard.grid_columns|default:32 }}; max-width: 1400px;">
     {% for widget in widgets %}
         {% include 'investments/overview_widget_partial.html' with widget=widget %}
     {% empty %}
