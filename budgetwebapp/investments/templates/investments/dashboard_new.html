@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load static %}
+{% load template_filters %}
+
+{% block content %}
+
+<div id="portfolio-details" class="grid-stack" style="max-width: {{ dashboard.max_width_px }}px;">
+    {% for widget in widgets %}
+        <div class="grid-stack-item"
+             gs-x="{{ widget.column|add:'-1' }}"
+             gs-y="{{ widget.row|add:'-1' }}"
+             gs-w="{{ widget.width_units }}"
+             gs-h="{{ widget.height_units }}"
+             data-widget-id="{{ widget.id }}">
+            <div class="grid-stack-item-content">
+                {% if widget.widget_type == 'overview' %}
+                    {% include 'investments/widgets/widget_overview_partial.html' with widget=widget %}
+                {% elif widget.widget_type == 'table' %}
+                    {% include 'investments/widgets/widget_table_partial.html' with widget=widget %}
+                {% else %}
+                    {% include 'investments/widgets/widget_generic_chart_partial.html' with widget=widget %}
+                {% endif %}
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Initialize the grid
+    const grid = GridStack.init({float: true, column: 32});
+
+    document.querySelector('.grid-stack').style.visibility = 'visible';
+
+  });
+
+</script>
+
+{% endblock content %}

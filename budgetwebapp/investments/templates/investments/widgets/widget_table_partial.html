@@ -1,0 +1,39 @@
+{% load static %}
+{% load template_filters %}
+{% load investments_filters %}
+
+<div class="widget">
+
+    <div class="widget-inner">
+
+        <div class="widget-header">
+            <div class="widget-title-section">
+                <div class="widget-title">{{ widget.title }}</div>
+            </div>
+        </div>
+
+        <div class="widget-table-new table-card-neon table-responsive">
+            <table class="table-neon">
+                <thead>
+                <tr>
+                    {% for col in widget.widget_data.columns %}
+                        <th>{{ col }}</th>
+                    {% endfor %}
+                </tr>
+                </thead>
+
+                <tbody>
+                {% for row in widget.widget_data.rows %}
+                    <tr>
+                        {% for cell in row %}
+                            <td>{{ cell }}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+</div>

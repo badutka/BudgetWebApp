@@ -1,0 +1,118 @@
+/* ===========================
+   handles appear animation
+=========================== */
+@keyframes widgetAppear {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================================================
+   WIDGET CARD STRUCTURE (FIXED FOR GRIDSTACK)
+========================================================= */
+.widget {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.widget-inner {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+
+/* =========================================================
+   EDGE GLOW EFFECTS
+========================================================= */
+.grid-stack-item-content:before,
+.grid-stack-item-content::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 4px;
+  height: 100%;
+  pointer-events: none;
+}
+
+.grid-stack-item-content::before {
+  left: 0;
+  background: var(--gradient-widget-edge);
+  border-radius: 4px 0 0 4px;
+}
+
+.grid-stack-item-content::after {
+  right: 0;
+  background: var(--gradient-widget-edge);
+  border-radius: 0 4px 4px 0;
+}
+
+/* =========================================================
+   TITLE
+========================================================= */
+.widget-title {
+  flex-shrink: 0;
+}
+
+.widget-title::after {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 1px;
+  margin-top: 0.3rem;
+  background: var(--gradient-title-underline);
+  border-radius: 2px;
+}
+
+.widget-title:hover {
+  color: var(--color-text-highlight);
+  text-shadow: var(--text-glow);
+  transition: all var(--anim-fast);
+  cursor: default;
+}
+
+/* =========================================================
+   CHART CONTAINER (CRITICAL FIX)
+========================================================= */
+.chart-container {
+  flex: 1;
+  min-height: 0;
+}
+
+/* =========================================================
+   LINKS / HELPERS
+========================================================= */
+.widget-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.widget-card-cursor {
+  cursor: pointer;
+}
+
+.grid-stack {
+  transform: translateY(10px);
+  opacity: 0;
+  animation: widgetAppear var(--anim-appear) forwards;
+  will-change: transform, opacity;
+}
+
+.grid-stack {
+  visibility: hidden;
+}
+
+/* Appear animation (wrapper) */
+@keyframes widgetAppear {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

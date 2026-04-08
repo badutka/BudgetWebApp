@@ -33,20 +33,30 @@
     <link rel="stylesheet" type="text/css" href="{% static 'budget/css/dashboard_charts.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'budget/css/dashboard_cards.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'budget/css/dashboard_filters.css' %}">
+
+    <link rel="stylesheet" type="text/css" href="{% static 'investments/css/dashboard.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'investments/css/grid_items.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'investments/css/widget_base.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'investments/css/portfolio_new.css' %}">
+
     <link rel="stylesheet" type="text/css" href="{% static 'investments/css/table_neon.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'investments/css/widget_table_neon.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'investments/css/side_panel.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'investments/css/positions.css' %}">
-<!--    <link rel="stylesheet" type="text/css" href="{% static 'investments/css/portfolio_old.css' %}">-->
-    <link rel="stylesheet" type="text/css" href="{% static 'investments/css/grid_framework.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'investments/css/widget_cards.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'investments/css/portfolio.css' %}">
+
+<!--    <link rel="stylesheet" type="text/css" href="{% static 'investments/css/grid_framework.css' %}">-->
+<!--    <link rel="stylesheet" type="text/css" href="{% static 'investments/css/widget_cards.css' %}">-->
+<!--    <link rel="stylesheet" type="text/css" href="{% static 'investments/css/portfolio.css' %}">-->
+
 
     <!-- Include HTMX -->
     <script src="https://unpkg.com/htmx.org/dist/htmx.js"></script>
 
     <!-- Include jQuery -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <!-- Include GridStack.js-->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/12.3.3/gridstack.min.css"/>
 
     <link rel="shortcut icon" type="image/png" href="{% static 'images/favicon.png' %}" >
 
@@ -88,6 +98,8 @@
     <script type="module" src="{% static 'budget/js/main.js' %}"></script>
 <!--    <script type="module" src="{% static 'investments/js/investments.js' %}"></script>-->
     <script type="module" src="{% static 'js/dashboard.js' %}"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/12.3.3/gridstack-all.min.js"></script>
 
 </body>
 </html>
