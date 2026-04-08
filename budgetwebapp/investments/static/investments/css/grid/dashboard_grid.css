@@ -23,7 +23,6 @@
   justify-content: flex-start;
   align-items: stretch;
 
-  /*background: linear-gradient(145deg, #0e1633, #111a3c);*/
   background: var(--gradient-widget-bg);
   border-radius: 20px;
   box-shadow: 0 0 20px rgba(0, 195, 255, 0.15);
