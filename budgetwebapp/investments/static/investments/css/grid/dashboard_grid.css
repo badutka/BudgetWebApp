@@ -1,22 +1,42 @@
+/* dashboard_grid.css */
+
 /* =========================================================
    DASHBOARD GRID & FRAMEWORK
 ========================================================= */
 
-/* GridStack container background */
 .grid-stack {
-  background: rgba(255, 255, 255, 0.05);
+    background: #090d1e;
+    border-radius: 6px;
+
+    border: 1px solid rgba(0, 255, 255, 0.6);
+    /* positioning */
+    margin: 40px auto;   /* top spacing + horizontal centering */
+    width: 90%;          /* or fixed width like 800px */
+    max-width: 1000px;   /* keeps it nice on large screens */
 }
 
-/* GridStack item fixes */
+.grid-stack.edit-mode {
+  background-image:
+    /* thin lines */
+    linear-gradient(to right, rgba(180,190,210,0.1) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(180,190,210,0.1) 1px, transparent 1px);
+
+  background-size:
+    calc(100% / 32) 50px,
+    calc(100% / 32) 50px;
+
+  border: 1px solid rgba(180,190,210,0.3);
+}
+
 .grid-stack-item {
   display: flex;
 }
 
 .grid-stack-item-content {
-  --gs-item-margin-top: 10px;
+  /*--gs-item-margin-top: 10px;
   --gs-item-margin-bottom: 10px;
   --gs-item-margin-right: 10px;
-  --gs-item-margin-left: 10px;
+  --gs-item-margin-left: 10px;*/
 
   display: flex;
   flex-direction: column;
@@ -38,7 +58,6 @@
   max-width: 100%;
 }
 
-/* Hover effect for GridStack item */
 .grid-stack-item-content:hover {
   transform: translateY(var(--hover-translate)) scale(1.00);
   box-shadow:
@@ -47,9 +66,7 @@
   background: var(--gradient-widget-bg-hover);
 }
 
-/* =========================================================
-   SHEEN ANIMATION
-========================================================= */
+/* SHEEN */
 .grid-stack-item-content .sheen {
   position: absolute;
   top: 0;
@@ -65,55 +82,19 @@
 }
 
 @keyframes widgetSweep {
-  0% {
-    left: -40%;
-    opacity: 0;
-  }
+  0% { left: -40%; opacity: 0; }
   10% { opacity: 1; }
-  60% {
-    left: 60%;
-    opacity: 0.9;
-  }
-  100% {
-    left: 100%;
-    opacity: 0;
-  }
+  60% { left: 60%; opacity: 0.9; }
+  100% { left: 100%; opacity: 0; }
 }
 
-/* =========================================================
-   WIDGET TITLE
-========================================================= */
+/* ONLY context-specific title tweak */
 .grid-stack-item-content .widget-title {
-  font-size: 1.2rem;
-  color: #00c3ff;
-  font-weight: 700;
-  text-shadow: 0 0 8px rgba(0, 195, 255, 0.35);
-
   position: relative;
   padding-bottom: 0.4rem;
 }
 
-.grid-stack-item-content .widget-title::after {
-  content: "";
-  display: block;
-  width: 100%;
-  height: 1px;
-  margin-top: 0.3rem;
-  background: var(--gradient-title-underline);
-  border-radius: 2px;
-}
-
-/* Hover for titles */
-.grid-stack-item-content .widget-title:hover {
-  color: var(--color-text-highlight);
-  text-shadow: var(--text-glow);
-  transition: all var(--anim-fast);
-  cursor: default;
-}
-
-/* =========================================================
-   RESPONSIVE DASHBOARD GRID
-========================================================= */
+/* Responsive */
 @media (max-width: 1024px) {
   .dashboard-grid {
     margin: 1.5rem auto;

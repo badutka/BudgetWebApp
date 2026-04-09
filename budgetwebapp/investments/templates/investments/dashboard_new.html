@@ -28,11 +28,51 @@
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     // Initialize the grid
-    const grid = GridStack.init({float: true, column: 32});
+    const grid = GridStack.init({float: true, column: 32, cellHeight: 50});
 
     document.querySelector('.grid-stack').style.visibility = 'visible';
 
+    let timeout;
+
+    grid.on('change', function(event, items) {
+        clearTimeout(timeout);
+        const payload = items.map(item => ({
+            id: item.el.dataset.widgetId,
+            x: item.x,
+            y: item.y,
+            w: item.w,
+            h: item.h
+        }));
+
+        // send to backend
+        fetch('/investments/api/widgets/update-layout/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify({ widgets: payload })
+        });
+    }, 300);
+
+    function getCSRFToken() {
+        return document.cookie
+            .split('; ')
+            .find(row => row.startsWith('csrftoken'))
+            ?.split('=')[1];
+    }
+
+<!--    grid.disable(); // disables drag + resize-->
+    setEditMode(true);
   });
+
+function setEditMode(val) {
+    document.querySelector('.grid-stack').classList.toggle('edit-mode', val);
+
+    // enable/disable dragging/resizing
+    grid.enableMove(val);
+    grid.enableResize(val);
+}
 
 </script>
 
