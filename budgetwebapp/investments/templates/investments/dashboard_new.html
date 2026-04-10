@@ -131,15 +131,18 @@
 
 <script>
 
+let grid;
+let editMode = false;
+let autoSave = false;
 
 document.addEventListener('DOMContentLoaded', () => {
-    let grid;
-    let editMode = true;
+
     grid = GridStack.init({ float: true, column: 32, cellHeight: 50 });
 
     document.querySelector('.grid-stack').style.visibility = 'visible';
 
     grid.on('change', function(event, items) {
+
         const payload = items.map(item => ({
             id: item.el.dataset.widgetId,
             x: item.x,
@@ -148,18 +151,27 @@ document.addEventListener('DOMContentLoaded', () => {
             h: item.h
         }));
 
-        fetch('/investments/api/widgets/update-layout/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCSRFToken()
-            },
-            body: JSON.stringify({ widgets: payload })
-        });
+        // only save if autoSave is enabled
+        if (autoSave) {
+            fetch('/investments/api/widgets/update-layout/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: JSON.stringify({ widgets: payload })
+            });
+        }
     });
 
-    setEditMode(editMode);
+    setEditMode(grid, editMode);
 });
+
+function setEditMode(grid, val) {
+    document.querySelector('.grid-stack').classList.toggle('edit-mode', val);
+    grid.enableMove(val);
+    grid.enableResize(val);
+}
 
 function getCSRFToken() {
     return document.cookie
@@ -170,18 +182,33 @@ function getCSRFToken() {
 
 function toggleEditMode() {
     editMode = !editMode;
-    setEditMode(editMode);
+    setEditMode(grid, editMode);
 }
 
-function setEditMode(val) {
-    document.querySelector('.grid-stack').classList.toggle('edit-mode', val);
-    grid.enableMove(val);
-    grid.enableResize(val);
-}
-
+// manual save (used when autoSave = false)
 function saveDashboard() {
+
+    const items = grid.engine.nodes;
+
+    const payload = items.map(item => ({
+        id: item.el.dataset.widgetId,
+        x: item.x,
+        y: item.y,
+        w: item.w,
+        h: item.h
+    }));
+
+    fetch('/investments/api/widgets/update-layout/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()
+        },
+        body: JSON.stringify({ widgets: payload })
+    });
+
     alert('Dashboard layout saved!');
 }
-</script>
 
+</script>
 {% endblock content %}

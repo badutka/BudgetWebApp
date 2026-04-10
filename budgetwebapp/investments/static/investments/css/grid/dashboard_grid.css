@@ -58,7 +58,7 @@
   max-width: 100%;
 }
 
-.grid-stack-item-content:hover {
+.grid-stack:not(.edit-mode) .grid-stack-item-content:hover {
   transform: translateY(var(--hover-translate)) scale(1.00);
   box-shadow:
     var(--shadow-widget-hover),
