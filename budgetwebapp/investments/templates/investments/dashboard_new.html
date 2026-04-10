@@ -4,38 +4,142 @@
 
 {% block content %}
 
-<div id="portfolio-details" class="grid-stack" style="max-width: {{ dashboard.max_width_px }}px;">
-    {% for widget in widgets %}
-        <div class="grid-stack-item"
-             gs-x="{{ widget.column|add:'-1' }}"
-             gs-y="{{ widget.row|add:'-1' }}"
-             gs-w="{{ widget.width_units }}"
-             gs-h="{{ widget.height_units }}"
-             data-widget-id="{{ widget.id }}">
+<div class="dashboard-container">
+
+  <!-- TOP BAR -->
+  <div class="dashboard-topbar">
+    <div class="topbar-left">
+      <button class="btn-toggle-edit" onclick="toggleEditMode()">Edit Mode</button>
+      <button class="btn-save" onclick="saveDashboard()">Save</button>
+    </div>
+  </div>
+
+  <!-- GLOBAL FILTERS -->
+  <div class="dashboard-filters">
+    <h4>Global Filters</h4>
+    <div class="filter-list">
+      <div class="filter-pill">Portfolio: All <span class="remove">&times;</span></div>
+      <div class="filter-pill">Region: US <span class="remove">&times;</span></div>
+      <div class="filter-pill">Asset Type: Equity <span class="remove">&times;</span></div>
+      <button class="btn-add-filter">+ Add Filter</button>
+    </div>
+  </div>
+
+  <!-- MAIN LAYOUT -->
+  <div class="dashboard-content">
+
+    <!-- GRID -->
+    <div class="dashboard-main">
+      <div id="portfolio-details" class="grid-stack">
+        {% for widget in widgets %}
+          <div class="grid-stack-item"
+               gs-x="{{ widget.column|add:'-1' }}"
+               gs-y="{{ widget.row|add:'-1' }}"
+               gs-w="{{ widget.width_units }}"
+               gs-h="{{ widget.height_units }}"
+               data-widget-id="{{ widget.id }}">
+
             <div class="grid-stack-item-content">
-                {% if widget.widget_type == 'overview' %}
-                    {% include 'investments/widgets/widget_overview_partial.html' with widget=widget %}
-                {% elif widget.widget_type == 'table' %}
-                    {% include 'investments/widgets/widget_table_partial.html' with widget=widget %}
-                {% else %}
-                    {% include 'investments/widgets/widget_generic_chart_partial.html' with widget=widget %}
-                {% endif %}
+              {% if widget.widget_type == 'overview' %}
+                {% include 'investments/widgets/widget_overview_partial.html' with widget=widget %}
+              {% elif widget.widget_type == 'table' %}
+                {% include 'investments/widgets/widget_table_partial.html' with widget=widget %}
+              {% else %}
+                {% include 'investments/widgets/widget_generic_chart_partial.html' with widget=widget %}
+              {% endif %}
             </div>
-        </div>
-    {% endfor %}
+
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="dashboard-sidebar">
+      <h3>Widget Details</h3>
+
+      <div class="widget-properties">
+        <p>Select a widget to see details here</p>
+
+        <label>Title:</label>
+        <input type="text" placeholder="Widget title" disabled />
+
+        <label>Data source:</label>
+        <input type="text" placeholder="Data source" disabled />
+
+        <label>Refresh rate:</label>
+        <input type="text" placeholder="Refresh interval" disabled />
+
+        <label>Widget type:</label>
+        <input type="text" placeholder="Type" disabled />
+
+        <label>Portfolio:</label>
+        <input type="text" placeholder="Portfolio" disabled />
+
+        <label>Region:</label>
+        <input type="text" placeholder="Region" disabled />
+
+        <label>Asset class:</label>
+        <input type="text" placeholder="Asset class" disabled />
+
+        <label>Currency:</label>
+        <input type="text" placeholder="Currency" disabled />
+
+        <label>Last updated:</label>
+        <input type="text" placeholder="Timestamp" disabled />
+
+        <label>Status:</label>
+        <input type="text" placeholder="Active / Inactive" disabled />
+
+        <label>Owner:</label>
+        <input type="text" placeholder="Owner" disabled />
+
+        <label>Created at:</label>
+        <input type="text" placeholder="Creation date" disabled />
+
+        <label>Updated at:</label>
+        <input type="text" placeholder="Last update" disabled />
+
+        <label>Data frequency:</label>
+        <input type="text" placeholder="e.g. daily, hourly" disabled />
+
+        <label>Chart type:</label>
+        <input type="text" placeholder="Line / Bar / Pie" disabled />
+
+        <label>Threshold alert:</label>
+        <input type="text" placeholder="Alert rules" disabled />
+
+        <label>Tags:</label>
+        <input type="text" placeholder="Tags" disabled />
+
+        <label>Data latency:</label>
+        <input type="text" placeholder="Latency" disabled />
+
+        <label>API endpoint:</label>
+        <input type="text" placeholder="Endpoint URL" disabled />
+
+        <label>Permissions:</label>
+        <input type="text" placeholder="Access level" disabled />
+
+        <label>Notes:</label>
+        <input type="text" placeholder="Internal notes" disabled />
+      </div>
+    </div>
+
+  </div>
 </div>
 
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    // Initialize the grid
-    const grid = GridStack.init({float: true, column: 32, cellHeight: 50});
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    let grid;
+    let editMode = true;
+    grid = GridStack.init({ float: true, column: 32, cellHeight: 50 });
 
     document.querySelector('.grid-stack').style.visibility = 'visible';
 
-    let timeout;
-
     grid.on('change', function(event, items) {
-        clearTimeout(timeout);
         const payload = items.map(item => ({
             id: item.el.dataset.widgetId,
             x: item.x,
@@ -44,7 +148,6 @@
             h: item.h
         }));
 
-        // send to backend
         fetch('/investments/api/widgets/update-layout/', {
             method: 'POST',
             headers: {
@@ -53,27 +156,32 @@
             },
             body: JSON.stringify({ widgets: payload })
         });
-    }, 300);
+    });
 
-    function getCSRFToken() {
-        return document.cookie
-            .split('; ')
-            .find(row => row.startsWith('csrftoken'))
-            ?.split('=')[1];
-    }
+    setEditMode(editMode);
+});
 
-<!--    grid.disable(); // disables drag + resize-->
-    setEditMode(true);
-  });
+function getCSRFToken() {
+    return document.cookie
+        .split('; ')
+        .find(row => row.startsWith('csrftoken'))
+        ?.split('=')[1];
+}
+
+function toggleEditMode() {
+    editMode = !editMode;
+    setEditMode(editMode);
+}
 
 function setEditMode(val) {
     document.querySelector('.grid-stack').classList.toggle('edit-mode', val);
-
-    // enable/disable dragging/resizing
     grid.enableMove(val);
     grid.enableResize(val);
 }
 
+function saveDashboard() {
+    alert('Dashboard layout saved!');
+}
 </script>
 
 {% endblock content %}

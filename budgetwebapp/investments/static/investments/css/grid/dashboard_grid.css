@@ -9,10 +9,10 @@
     border-radius: 6px;
 
     border: 1px solid rgba(0, 255, 255, 0.6);
-    /* positioning */
-    margin: 40px auto;   /* top spacing + horizontal centering */
-    width: 90%;          /* or fixed width like 800px */
-    max-width: 1000px;   /* keeps it nice on large screens */
+
+    margin: 0;
+    width: 100%;
+    /*max-width: 1000px*/;
 }
 
 .grid-stack.edit-mode {
@@ -45,7 +45,7 @@
 
   background: var(--gradient-widget-bg);
   border-radius: 20px;
-  box-shadow: 0 0 20px rgba(0, 195, 255, 0.15);
+  box-shadow: 0 0 20px rgba(0, 195, 255, 0.2);
   color: #e0e3ff;
   text-shadow: 0 0 8px rgba(0, 195, 255, 0.35);
 
@@ -105,4 +105,19 @@
   .dashboard-grid {
     width: 95%;
   }
+}
+
+/* GRID PLACEHOLDER (drop preview) */
+.grid-stack-placeholder > .placeholder-content {
+  backdrop-filter: blur(3px);
+
+  border: 1px dashed rgba(220, 220, 220, 0.25);
+  border-radius: 6px;
+}
+
+/* force background on ALL layers inside placeholder */
+.grid-stack-placeholder,
+.grid-stack-placeholder > .placeholder-content,
+.grid-stack-placeholder .grid-stack-item-content {
+  background: rgba(140, 140, 140, 0.2) !important;
 }
