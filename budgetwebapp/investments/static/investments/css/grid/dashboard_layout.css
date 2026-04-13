@@ -21,6 +21,13 @@
   border-bottom: 1px solid rgba(0, 195, 255, 0.3);
 }
 
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Base button style (your original) */
 .dashboard-topbar .topbar-left button {
   background: rgba(0,195,255,0.15);
   color: #00c3ff;
@@ -35,6 +42,50 @@
 .dashboard-topbar .topbar-left button:hover {
   background: rgba(0,195,255,0.25);
   box-shadow: 0 0 6px rgba(0,195,255,0.35);
+}
+
+/* =========================================================
+   EDIT MODE BUTTONS
+========================================================= */
+
+/* Pencil button */
+.btn-edit {
+  padding: 0.5rem 0.8rem;
+  width: 102px
+}
+
+/* Container for cancel/save */
+.edit-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* Hidden helper */
+.hidden {
+  display: none;
+}
+
+/* Shared styles */
+.edit-actions button {
+  padding: 0.5rem 0;
+}
+
+/* CANCEL (left, smaller) */
+.btn-cancel {
+  width: 40px;
+  border-top-right-radius: 0px !important;
+  border-bottom-right-radius: 0px !important;
+  text-align: center;
+  border-right: none;
+  padding: 0.5rem 0.2rem !important;
+}
+
+/* SAVE (right, bigger) */
+.edit-actions .btn-save {
+  width: 60px;
+  border-top-left-radius: 0px !important;
+  border-bottom-left-radius: 0px !important;
 }
 
 /* =========================================================
@@ -82,10 +133,10 @@
 }
 
 /* =========================================================
-   GLOBAL FILTERS GLOW (TOP + BOTTOM)
+   GLOBAL FILTERS GLOW
 ========================================================= */
 
-/* TOP GLOW (strong, matches sidebar top edge) */
+/* TOP */
 .dashboard-filters::before {
   content: "";
   position: absolute;
@@ -106,8 +157,7 @@
   box-shadow: 0 0 12px rgba(0,195,255,0.6);
 }
 
-
-/* BOTTOM GLOW (softer, blends into sidebar top glow) */
+/* BOTTOM */
 .dashboard-filters::after {
   content: "";
   position: absolute;
@@ -153,18 +203,18 @@
 }
 
 /* =========================================================
-   SIDEBAR (TOP GLOW MATCHES FILTERS TOP GLOW)
+   SIDEBAR
 ========================================================= */
 .dashboard-sidebar {
   position: sticky;
-  top: 0px; /* match actual navbar height visually */
+  top: 0px;
   height: calc(100vh);
   width: var(--sidebar-width);
   flex-shrink: 0;
 
   background: #0c1223;
   border-left: 1px solid rgba(0,195,255,0.3);
-  border-bottom:  1px solid rgba(0,195,255,0.3);
+  border-bottom: 1px solid rgba(0,195,255,0.3);
 
   padding: 1.2rem;
 
@@ -175,8 +225,6 @@
   overflow-y: auto;
 
   box-shadow: -10px 0 25px rgba(0,0,0,0.4);
-
-  position: sticky;
 }
 
 /* SIDEBAR TOP GLOW */

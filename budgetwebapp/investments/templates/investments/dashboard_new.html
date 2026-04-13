@@ -9,8 +9,18 @@
   <!-- TOP BAR -->
   <div class="dashboard-topbar">
     <div class="topbar-left">
-      <button class="btn-toggle-edit" onclick="toggleEditMode()">Edit Mode</button>
-      <button class="btn-save" onclick="saveDashboard()">Save</button>
+
+      <!-- EDIT (default visible) -->
+      <button id="editBtn" class="btn-edit" onclick="toggleEditMode()">
+        <i class="fas fa-pen"></i>
+      </button>
+
+      <!-- EDIT MODE ACTIONS (hidden initially) -->
+      <div id="editActions" class="edit-actions hidden">
+        <button class="btn-cancel" onclick="cancelEdit()"><i class="fas fa-times"></i></button>
+        <button class="btn-save" onclick="saveDashboard()"><i class="fas fa-save"></i></button>
+      </div>
+
     </div>
   </div>
 
@@ -141,6 +151,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelector('.grid-stack').style.visibility = 'visible';
 
+grid.on('dragstart', () => {
+    document.body.style.cursor = 'grabbing';
+    document.body.classList.add('is-dragging');
+});
+
+grid.on('dragstop', () => {
+    document.body.style.cursor = '';
+    document.body.classList.remove('is-dragging');
+});
+
     grid.on('change', function(event, items) {
 
         const payload = items.map(item => ({
@@ -182,7 +202,19 @@ function getCSRFToken() {
 
 function toggleEditMode() {
     editMode = !editMode;
+
     setEditMode(grid, editMode);
+
+    document.getElementById('editBtn').classList.toggle('hidden', editMode);
+    document.getElementById('editActions').classList.toggle('hidden', !editMode);
+}
+
+function cancelEdit() {
+    editMode = false;
+    setEditMode(grid, false);
+
+    // reload layout from server (simple + safe)
+    location.reload();
 }
 
 // manual save (used when autoSave = false)

@@ -2,7 +2,7 @@
 {% load template_filters %}
 {% load investments_filters %}
 <!-- The wrapper MUST have w-full/h-full (or width/height 100%) -->
-<div class="widget widget-inner-wrapper {% if enable_account_details_visit %} widget-card-cursor {% endif %}">
+<div class="widget {% if enable_account_details_visit %} widget-card-cursor {% endif %}">
 
     {% if dashboard.slug == "portfolio-overview" %}
         {% with widget.config.account_type|account_by_type as account %}

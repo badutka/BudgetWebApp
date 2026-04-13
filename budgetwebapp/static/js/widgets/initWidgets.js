@@ -5,7 +5,7 @@ import { widgetRenderers } from './index.js';
  * This function is safe to call multiple times — it won’t re-initialize widgets.
  */
 export function initWidgets(container = document) {
-  const widgets = container.querySelectorAll('.widget');
+  const widgets = container.querySelectorAll('.chart-widget');
 
   widgets.forEach(el => {
     // Prevent re-initialization
@@ -30,7 +30,7 @@ export function initWidgets(container = document) {
       renderer(chartContainer, data);
       el.dataset.initialized = 'true';
     } else {
-      console.warn(`No renderer found for widget: ${type}:${subtype}:${variant}`);
+      console.warn(`No renderer found for widget: ${type}:${subtype}`);
     }
   });
 }

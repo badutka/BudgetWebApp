@@ -32,6 +32,10 @@
   display: flex;
 }
 
+body:not(.is-dragging) .grid-stack.edit-mode .grid-stack-item:hover {
+  cursor: grab;
+}
+
 .grid-stack-item-content {
   /*--gs-item-margin-top: 10px;
   --gs-item-margin-bottom: 10px;
