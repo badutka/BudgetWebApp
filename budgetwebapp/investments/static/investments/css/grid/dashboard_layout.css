@@ -283,3 +283,57 @@
   background: #090d1e;
   color: #e0e3ff;
 }
+
+/* =========================================================
+   GENERIC VIEWPORT AND SCROLL UTILITIES
+========================================================= */
+
+/* Use this class ONLY when the dashboard is active to prevent double scrolls */
+.body-dashboard-lock {
+  margin: 0;
+  padding: 0;
+  height: 100vh !important;
+  width: 100vw !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* NAVBAR: Standard behavior */
+.navbar {
+  flex-shrink: 0 !important;
+}
+
+/* Container: Fills space below navbar */
+.layout-viewport-flex {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+/* Content wrapper */
+.layout-flex-stretch {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: row !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+/* Inner Scroll: The ONLY scrollable area */
+.layout-scroll-y {
+  flex: 1 !important;
+  height: 100% !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+/* Sidebar Fix */
+.layout-sidebar-fix {
+  height: 100% !important;
+  max-height: 100% !important;
+  position: relative !important;
+  top: 0 !important;
+}

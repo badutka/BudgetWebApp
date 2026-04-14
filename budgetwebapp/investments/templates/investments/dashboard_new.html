@@ -4,7 +4,7 @@
 
 {% block content %}
 
-<div class="dashboard-container">
+<div class="dashboard-container layout-viewport-flex">
 
   <!-- TOP BAR -->
   <div class="dashboard-topbar">
@@ -36,10 +36,10 @@
   </div>
 
   <!-- MAIN LAYOUT -->
-  <div class="dashboard-content">
+  <div class="dashboard-content layout-flex-stretch">
 
     <!-- GRID -->
-    <div class="dashboard-main">
+    <div class="dashboard-main layout-scroll-y">
       <div id="portfolio-details" class="grid-stack">
         {% for widget in widgets %}
           <div class="grid-stack-item"
@@ -65,7 +65,7 @@
     </div>
 
     <!-- SIDEBAR -->
-    <div class="dashboard-sidebar sidebar-viewport-lock">
+    <div class="dashboard-sidebar sidebar-viewport-lock layout-sidebar-fix">
       <h3>Widget Details</h3>
 
       <div class="widget-properties">
@@ -146,6 +146,8 @@ let editMode = false;
 let autoSave = false;
 
 document.addEventListener('DOMContentLoaded', () => {
+
+    document.body.classList.add('body-dashboard-lock');
 
     grid = GridStack.init({ float: true, column: 32, cellHeight: 50 });
 
