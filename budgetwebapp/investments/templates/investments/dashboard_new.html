@@ -155,6 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
     grid = GridStack.init({ float: true, column: 32, cellHeight: 50 });
 
     document.querySelector('.grid-stack').style.visibility = 'visible';
+    document.querySelector('.layout-scroll-y').style.setProperty('overflow-y', 'auto', 'important');
 
     // SIDEBAR RESIZER LOGIC
     const resizer = document.getElementById('resizer');

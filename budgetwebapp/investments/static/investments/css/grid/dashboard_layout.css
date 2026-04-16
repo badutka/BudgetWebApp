@@ -2,7 +2,15 @@
 
 :root {
   --sidebar-width: 320px;   /* Default sidebar width */
-  --navbar-height: 60px;    /* Height of top navigation bar */
+  --navbar-height: 56px;      /* 40 + 2*8 */
+  --topbar-height: 74px;      /* 42 + 2*16 */
+  --filters-height: 98px;  /* 66.39 + 2*16 */
+
+    /* Sum of all headers */
+  --total-header-height: calc(var(--navbar-height) + var(--topbar-height) + var(--filters-height));
+
+  /* Your breakpoint/lock height */
+  --dashboard-min-lock: 700px;
 }
 
 /* =========================================================
@@ -18,6 +26,8 @@
    TOP BAR
 ========================================================= */
 .dashboard-topbar {
+  height: var(--topbar-height);
+  box-sizing: border-box; /* Ensures padding doesn't add to the height */
   padding: 1rem 2rem;       /* Spacing inside top bar */
   background: #0c1223;      /* Slightly lighter than main background */
   border-bottom: 1px solid rgba(0, 195, 255, 0.3); /* Neon separator */
@@ -96,6 +106,8 @@
 .dashboard-filters {
   padding: 1rem 2rem;
   position: relative; /* Needed for glow pseudo-elements */
+  height: var(--filters-height);
+  box-sizing: border-box; /* Ensures padding doesn't add to the height */
 }
 
 .dashboard-filters h4 {
@@ -324,7 +336,8 @@
 .layout-scroll-y {
   flex: 1 !important;
   height: 100% !important;
-  overflow-y: auto !important;
+  /*overflow-y: auto !important;*/
+  overflow-y: hidden !important; /* switched to auto via js after GS renders */
   overflow-x: hidden !important;
 }
 
@@ -340,33 +353,32 @@
    Switch to scrollable page instead of locked viewport
 ========================================================= */
 @media (max-height: 700px) {
-
-  .body-dashboard-lock {
-    display: block !important;
-    overflow-y: auto !important; /* Enable page scrolling */
-    height: 100% !important;
-  }
-
-  .layout-viewport-flex {
-    /*height: 700px !important;*/
-    height: 100vh !important;
-    overflow: visible !important;
-  }
-
-  /* Keep internal scroll areas working */
-  .layout-scroll-y,
-  .layout-sidebar-fix {
-    /*height: 700px !important;*/
+  /* Ensure the parent container is the scrollable "window" */
+  .dashboard-container.layout-viewport-flex {
     overflow-y: auto !important;
+    height: 100vh !important;
+    display: flex !important;
+    flex-direction: column !important;
   }
 
+  /* Adjust the main content area */
   .layout-flex-stretch {
-    /*height: 700px !important;*/
-    overflow: visible !important;
+    height: calc(var(--dashboard-min-lock) - var(--total-header-height)) !important;
+    min-height: calc(var(--dashboard-min-lock) - var(--total-header-height)) !important;
+    flex-shrink: 0 !important;
+    overflow: hidden !important;
   }
 
-  .sidebar-resizer {
-    /*background: red !important;*/
+  /* Match the Sidebar height to the calculated area */
+  .sidebar-viewport-lock,
+  .layout-sidebar-fix {
+    height: 100% !important;
+    position: relative !important;
+  }
+
+  /* Restore the internal scrollbars for the 540px (700-160) area */
+  .layout-scroll-y {
+    height: 100% !important;
   }
 }
 
