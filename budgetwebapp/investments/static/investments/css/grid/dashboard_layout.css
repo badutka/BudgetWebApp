@@ -296,7 +296,7 @@
   margin: 0;
   padding: 0;
   height: 100vh !important;
-  width: 100vw !important;
+  /*width: 100vw !important;*/
   overflow: hidden !important;
   display: flex !important;
   flex-direction: column !important;
@@ -344,11 +344,12 @@
   .body-dashboard-lock {
     display: block !important;
     overflow-y: auto !important; /* Enable page scrolling */
-    height: auto !important;
+    height: 100% !important;
   }
 
   .layout-viewport-flex {
-    height: 700px !important; /* Fixed working height */
+    /*height: 700px !important;*/
+    height: 100vh !important;
     overflow: visible !important;
   }
 
@@ -360,7 +361,7 @@
   }
 
   .layout-flex-stretch {
-    height: 700px !important;
+    /*height: 700px !important;*/
     overflow: visible !important;
   }
 
@@ -372,26 +373,26 @@
 /* =========================================================
    SCROLLBAR STYLING (WEBKIT)
 ========================================================= */
-::-webkit-scrollbar {
+/* Shared scrollbar styling utility */
+.custom-scrollbar::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
-::-webkit-scrollbar-track {
+.custom-scrollbar::-webkit-scrollbar-track {
   background: #090d1e;
 }
 
-::-webkit-scrollbar-thumb {
+.custom-scrollbar::-webkit-scrollbar-thumb {
   background: rgba(0, 195, 255, 0.2);
   border-radius: 4px;
   border: 1px solid rgba(0, 195, 255, 0.3);
 }
 
-::-webkit-scrollbar-thumb:hover {
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 195, 255, 0.4);
   box-shadow: 0 0 10px rgba(0, 195, 255, 0.5);
 }
-
 /* =========================================================
    SIDEBAR RESIZER (DRAG HANDLE)
 ========================================================= */
