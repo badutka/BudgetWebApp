@@ -342,6 +342,7 @@
 @media (max-height: 700px) {
 
   .body-dashboard-lock {
+    display: block !important;
     overflow-y: auto !important; /* Enable page scrolling */
     height: auto !important;
   }
@@ -354,13 +355,17 @@
   /* Keep internal scroll areas working */
   .layout-scroll-y,
   .layout-sidebar-fix {
-    height: 700px !important;
+    /*height: 700px !important;*/
     overflow-y: auto !important;
   }
 
   .layout-flex-stretch {
     height: 700px !important;
     overflow: visible !important;
+  }
+
+  .sidebar-resizer {
+    /*background: red !important;*/
   }
 }
 
