@@ -64,8 +64,11 @@
       </div>
     </div>
 
+    <!-- RESIZER HANDLE -->
+    <div id="resizer" class="sidebar-resizer"></div>
+
     <!-- SIDEBAR -->
-    <div class="dashboard-sidebar sidebar-viewport-lock layout-sidebar-fix">
+    <div id="sidebar" class="dashboard-sidebar sidebar-viewport-lock layout-sidebar-fix">
       <h3>Widget Details</h3>
 
       <div class="widget-properties">
@@ -152,6 +155,34 @@ document.addEventListener('DOMContentLoaded', () => {
     grid = GridStack.init({ float: true, column: 32, cellHeight: 50 });
 
     document.querySelector('.grid-stack').style.visibility = 'visible';
+
+    // SIDEBAR RESIZER LOGIC
+    const resizer = document.getElementById('resizer');
+    const sidebar = document.getElementById('sidebar');
+    let isResizing = false;
+
+    resizer.addEventListener('mousedown', (e) => {
+        isResizing = true;
+        resizer.classList.add('is-dragging');
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (!isResizing) return;
+        let newWidth = window.innerWidth - e.clientX;
+        if (newWidth > 200 && newWidth < 800) {
+            sidebar.style.width = `${newWidth}px`;
+            document.documentElement.style.setProperty('--sidebar-width', `${newWidth}px`);
+        }
+    });
+
+    document.addEventListener('mouseup', () => {
+        isResizing = false;
+        resizer.classList.remove('is-dragging');
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+    });
 
 grid.on('dragstart', () => {
     document.body.style.cursor = 'grabbing';
