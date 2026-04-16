@@ -61,7 +61,7 @@
     <link rel="shortcut icon" type="image/png" href="{% static 'images/favicon.png' %}" >
 
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}">
 
     {% include 'navbar.html' with page_obj=page_obj %}
 

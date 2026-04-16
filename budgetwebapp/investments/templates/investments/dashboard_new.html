@@ -2,6 +2,8 @@
 {% load static %}
 {% load template_filters %}
 
+{% block body_class %}body-dashboard-lock dashboard-page{% endblock %}
+
 {% block content %}
 
 <div class="dashboard-container layout-viewport-flex">
@@ -149,8 +151,6 @@ let editMode = false;
 let autoSave = false;
 
 document.addEventListener('DOMContentLoaded', () => {
-
-    document.body.classList.add('body-dashboard-lock');
 
     grid = GridStack.init({ float: true, column: 32, cellHeight: 50 });
 
