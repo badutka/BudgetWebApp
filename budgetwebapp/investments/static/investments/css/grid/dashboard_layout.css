@@ -376,7 +376,6 @@
     position: relative !important;
   }
 
-  /* Restore the internal scrollbars for the 540px (700-160) area */
   .layout-scroll-y {
     height: 100% !important;
   }
@@ -386,6 +385,11 @@
    SCROLLBAR STYLING (WEBKIT)
 ========================================================= */
 /* Shared scrollbar styling utility */
+
+.custom-scrollbar {
+  scrollbar-color: auto;
+}
+
 .custom-scrollbar::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -405,6 +409,12 @@
   background: rgba(0, 195, 255, 0.4);
   box-shadow: 0 0 10px rgba(0, 195, 255, 0.5);
 }
+
+.native-scrollbar {
+  scrollbar-width: auto;
+  scrollbar-color: #686868 #424242;
+}
+
 /* =========================================================
    SIDEBAR RESIZER (DRAG HANDLE)
 ========================================================= */
