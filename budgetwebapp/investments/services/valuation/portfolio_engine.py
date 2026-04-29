@@ -183,6 +183,8 @@ class PortfolioEngine:
     def _get_usd_lot_open_fx_rate(self, account_positions, df_transfers):
         # Compute open_price_total_pln and weighted FX
         # pln_totals = []
+        # todo: make sure main transfer is used first, then any spillover if needed
+        # todo: use the skipped transfer if necessary
         fx_rates = []
         df_transfers = df_transfers[df_transfers['timestamp_in'] != pd.Timestamp("2025-11-24 09:15:30.466000+00:00")]
 
