@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from budget.models import Transaction  # adjust if your model is in a different app
+from budgetwebapp.budget.models import Transaction  # adjust if your model is in a different app
 from core.summaries.reporting import update_all_summaries  # wherever your logic lives
 
 

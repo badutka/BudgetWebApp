@@ -9,8 +9,8 @@ from datetime import datetime
 from django.db import transaction
 from django.utils import timezone
 
-from investments.models import Position, CashOperation, TransferOperation
-from investments import constants
+from budgetwebapp.investments.models import Position, CashOperation, TransferOperation
+from budgetwebapp.investments import constants
 from core.logger import logger
 
 

@@ -1,7 +1,7 @@
 import csv
 from openpyxl import Workbook
 from django.core.management.base import BaseCommand
-from budget.models import Transaction
+from budgetwebapp.budget.models import Transaction
 
 
 class Command(BaseCommand):

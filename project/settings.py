@@ -36,8 +36,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'budget.apps.BudgetConfig',
-    'investments.apps.InvestmentsConfig',
+    'budgetwebapp.budget.apps.BudgetConfig',
+    'budgetwebapp.investments.apps.InvestmentsConfig',
 
     'crispy_forms',
     'crispy_bootstrap5',

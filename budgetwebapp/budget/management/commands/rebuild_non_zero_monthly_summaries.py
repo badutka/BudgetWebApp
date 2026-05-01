@@ -1,7 +1,7 @@
 # management/commands/rebuild_non_zero_monthly_summaries.py
 from django.core.management.base import BaseCommand
 from core.summaries.reporting import update_all_summaries
-from budget.models import Transaction
+from budgetwebapp.budget.models import Transaction
 
 
 class Command(BaseCommand):

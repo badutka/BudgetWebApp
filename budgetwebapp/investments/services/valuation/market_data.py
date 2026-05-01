@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import yfinance as yf
 
 from core.datastore import DataStore
-from investments.constants import MARKET_DATA_PATH
+from budgetwebapp.investments.constants import MARKET_DATA_PATH
 from core.logger import logger
 
 

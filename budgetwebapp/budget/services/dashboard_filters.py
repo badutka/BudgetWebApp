@@ -3,7 +3,7 @@ from datetime import datetime, date
 
 from django.http import HttpRequest, QueryDict
 
-from budget import models
+from budgetwebapp.budget import models
 from core.logger import logger
 
 DashboardRowFilters = dict[str, str | list[str] | bool | None]

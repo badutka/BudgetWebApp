@@ -1,7 +1,5 @@
-from budget.services.dashboard_filters import DashboardRowFilters
+from budgetwebapp.budget.services.dashboard_filters import DashboardRowFilters
 from core.dashboard import get_data, data_pipeline
-
-from core.logger import logger
 
 
 def get_kpi_data(filters_obj: DashboardRowFilters) -> tuple[dict, tuple | None]:

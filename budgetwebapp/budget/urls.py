@@ -5,7 +5,7 @@ from drf_yasg.views import get_schema_view
 # from rest_framework_swagger.views import get_swagger_view  # django-rest-swagger
 from drf_yasg import openapi
 
-from budget.views import transactions_views, summary_views, dashboard_views, balance_history_views
+from budgetwebapp.budget.views import transactions_views, summary_views, dashboard_views, balance_history_views
 import api.views as api_views
 
 schema_view = get_schema_view(

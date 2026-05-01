@@ -3,14 +3,9 @@ from django.db import models
 from django.core.validators import MinLengthValidator
 from django.core.cache import cache
 from django.utils.text import slugify
-from django.utils.functional import cached_property
-from django.contrib.contenttypes.fields import GenericForeignKey
-from polymorphic.models import PolymorphicModel
 
-from investments.services.widgets.registry import get_widget_logic
+from budgetwebapp.investments.services.widgets.registry import get_widget_logic
 from core.logger import logger
-
-import traceback
 
 
 class BaseModel(models.Model):

@@ -2,7 +2,6 @@ import pandas as pd
 
 from core.dashboard import data_handling, data_pipeline
 from core.constants import FREQ_MAP, KPI_COLS
-from core.logger import logger
 
 
 def get_kpis(date_unit='month', date_for=None, date_from=None, date_to=None,

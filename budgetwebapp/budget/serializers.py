@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.db.models import Q
 
-from budget import models
+from budgetwebapp.budget import models
 
 
 class ChartDataSerializer(serializers.Serializer):

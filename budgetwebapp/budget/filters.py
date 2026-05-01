@@ -1,7 +1,7 @@
 import django_filters
 from django import forms
 
-from budget import models
+from budgetwebapp.budget import models
 
 
 class TransactionFilter(django_filters.FilterSet):

@@ -2,7 +2,7 @@ from django.db.models import Sum, Q
 from decimal import Decimal
 from typing import Dict, List, Tuple
 
-from budget.models import (
+from budgetwebapp.budget.models import (
     Transaction,
     Category,
     ParentCategory,

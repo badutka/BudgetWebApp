@@ -2,11 +2,10 @@ import pandas as pd
 from pathlib import Path
 from datetime import datetime
 
-from investments.models import Position, Instrument, CashOperation, TransferOperation
-from investments.services.valuation.datetime_utils import standardize_datetime_by_period
-from investments.constants import MARKET_DATA_PATH, MARKET_DATA_FILENAME
+from budgetwebapp.investments.models import Position, Instrument, CashOperation, TransferOperation
+from budgetwebapp.investments.services.valuation.datetime_utils import standardize_datetime_by_period
+from budgetwebapp.investments.constants import MARKET_DATA_PATH, MARKET_DATA_FILENAME
 from core.datastore import DataStore
-from core.logger import logger
 
 
 class PortfolioEngine:

@@ -5,8 +5,8 @@ from django.http import HttpResponseBadRequest, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
 
-from budget.forms import BudgetExpenseEntryForm
-from budget import models
+from budgetwebapp.budget.forms import BudgetExpenseEntryForm
+from budgetwebapp.budget import models
 from core import utils
 
 

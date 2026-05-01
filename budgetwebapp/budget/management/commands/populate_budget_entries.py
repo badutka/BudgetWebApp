@@ -4,9 +4,9 @@ from django.utils import timezone
 
 import pandas as pd
 from datetime import datetime, time, timedelta
-from budget.models import Transaction
+from budgetwebapp.budget.models import Transaction
 
-from budget.models import Category, ParentCategory, MoneyAccount, Transaction
+from budgetwebapp.budget.models import Category, ParentCategory, MoneyAccount, Transaction
 
 
 def level_accounts_balances():

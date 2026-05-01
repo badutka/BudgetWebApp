@@ -1,12 +1,10 @@
 from django.shortcuts import render, get_object_or_404
 from django.views.decorators.http import require_POST
-from .models import Position, Instrument, Dashboard, OverviewWidget, ChartWidget, Account
-from investments import constants
+from .models import Position, Instrument, Dashboard
+from budgetwebapp.investments import constants
 from .processing import xtb_parser
 from .services.valuation import market_data
-from core.datastore import DataStore
-from investments.services.valuation.portfolio_engine import PortfolioEngine
-from django.views.decorators.csrf import csrf_exempt
+from budgetwebapp.investments.services.valuation.portfolio_engine import PortfolioEngine
 from django.http import JsonResponse
 import json
 from .models import BaseWidget
@@ -39,7 +37,6 @@ def portfolio_view(request):
 
     # import time
     # start = time.perf_counter()
-
     market_data.ENTRY_POINT()
     engine = PortfolioEngine()
     engine.entry_point()
@@ -123,11 +120,14 @@ def dashboard_view(request, slug):
         widgets = widgets.filter(config__account_type=account_type)
 
     # Optional: run engine only for specific dashboards
-    # if dashboard.slug == 'portfolio-overview':
-    #     engine = PortfolioEngine()
-    #     engine.entry_point()
-    #     for widget in widgets:
-    #         widget.get_data(force_refresh=0)
+
+    # market_data.ENTRY_POINT()
+
+    if dashboard.slug == 'portfolio-overview':
+        engine = PortfolioEngine()
+        engine.entry_point()
+        for widget in widgets:
+            widget.get_data(force_refresh=0)
 
     context = {
         'widgets': widgets,

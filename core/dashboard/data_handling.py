@@ -4,7 +4,7 @@ import numpy as np
 
 from django.db.models import Sum
 
-from budget import models
+from budgetwebapp.budget import models
 from core.constants import FMT_MAP, FREQ_MAP, KPI_COLS
 from core.logger import logger
 

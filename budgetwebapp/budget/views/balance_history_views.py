@@ -3,8 +3,8 @@ from django.shortcuts import render, redirect
 from rest_framework.exceptions import ValidationError
 
 from api.views import BalanceHistoryAPIView
-from budget import models
-from budget import serializers
+from budgetwebapp.budget import models
+from budgetwebapp.budget import serializers
 
 
 def refresh_balance_history(request, money_account_name):

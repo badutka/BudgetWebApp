@@ -1,11 +1,7 @@
 from django.template.defaulttags import register
-from django import template
 from django.utils.safestring import mark_safe
-from urllib.parse import urlencode
 import calendar
 from django.urls import reverse
-
-from core.logger import logger
 
 
 # Custom template filter to get data from a dictionary using key in template

@@ -12,7 +12,7 @@ CASH_SHEET_NAME = f'CASH OPERATION HISTORY'
 
 MARKET_DATA_PATH = r"D:\PycharmProjects\BudgetWebApp\artifacts\market_data"
 MARKET_DATA_FILENAME = r"market_prices_1h"
-XTB_DATA_EXTRACT_DIR = '../artifacts/xtb_files'
+XTB_DATA_EXTRACT_DIR = 'artifacts/xtb_files'
 
 ACCOUNT_TYPE_ORDER = [
     "main",

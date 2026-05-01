@@ -1,5 +1,5 @@
 from django import template
-from investments.models import Account
+from budgetwebapp.investments.models import Account
 
 register = template.Library()
 

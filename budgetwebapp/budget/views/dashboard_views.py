@@ -2,9 +2,9 @@ from django.views.decorators.http import require_http_methods
 from django.shortcuts import render
 from django.http import HttpRequest
 
-from budget.services.dashboard_filters import DashboardFilters
-from budget.services.dashboard_data import get_kpi_data, get_summary_data, get_categories_data
-from budget.services.data_fetcher import fetch_categories_and_summaries
+from budgetwebapp.budget.services.dashboard_filters import DashboardFilters
+from budgetwebapp.budget.services.dashboard_data import get_kpi_data, get_summary_data, get_categories_data
+from budgetwebapp.budget.services.data_fetcher import fetch_categories_and_summaries
 
 
 from core.logger import logger

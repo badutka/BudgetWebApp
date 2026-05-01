@@ -12,8 +12,8 @@ from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Sum
 
-from budget import models, serializers, filters
-from budget.forms import BudgetExpenseEntryForm
+from budgetwebapp.budget import models, serializers, filters
+from budgetwebapp.budget.forms import BudgetExpenseEntryForm
 from core.utils import update_request_data_for_transaction
 
 

@@ -1,9 +1,5 @@
-from datetime import timedelta, date
-from functools import reduce
 from datetime import datetime
 import pandas as pd
-
-from core.logger import logger
 
 
 class Metric:

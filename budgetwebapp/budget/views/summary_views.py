@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect
 from core import utils
 
-from core.summaries import monthly_summary, monthly_summary_detailed
+from core.summaries import monthly_summary_detailed, monthly_summary
+
 
 def monthly_summary_detailed_view(request):
     if request.method == 'GET':
@@ -15,7 +16,7 @@ def monthly_summary_detailed_view(request):
             return redirect(f"{request.path}?year={years[-1]}")
 
         parent_categories = utils.fetch_api_and_get_response(request, 'budget:parent_categories', 200, params)
-        monthly_parent_category_summaries = utils.fetch_api_and_get_response(request,'budget:monthly_parent_category_summaries', 200, params)
+        monthly_parent_category_summaries = utils.fetch_api_and_get_response(request, 'budget:monthly_parent_category_summaries', 200, params)
         monthly_category_summaries = utils.fetch_api_and_get_response(request, 'budget:monthly_category_summaries', 200, params)
 
         parent_categories_filtered = monthly_summary_detailed.get_filtered_parent_categories(request, parent_categories)
