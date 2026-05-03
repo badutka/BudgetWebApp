@@ -1,0 +1,25 @@
+{% load static %}
+{% load template_filters %}
+{% load investments_filters %}
+
+<div
+    id="{{ chart_id|default:widget.id }}"
+    class="widget chart-widget"
+    data-widget-type="chart"
+    data-widget-subtype="{{ widget.subtype|default:'invalid' }}"
+    data-widget-id="{{ widget.id }}"
+>
+    <div class="widget-inner">
+
+        <div class="widget-title">
+            {{ widget.title }}
+        </div>
+
+        <div class="chart-container"></div>
+
+        {% with "widget-data-"|addstr:widget.id as data_id %}
+            {{ widget.widget_data|json_script:data_id }}
+        {% endwith %}
+
+    </div>
+</div>

@@ -12,6 +12,7 @@ django-pandas
 
 pandas
 numpy
+pydantic
 
 colored-logs
 tabulate

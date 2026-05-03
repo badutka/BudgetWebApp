@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+{% load static %}
+{% load template_filters %}
+
+{% block body_class %}body-dashboard-lock dashboard-page{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-container layout-viewport-flex native-scrollbar">
+
+  <!-- TOP BAR -->
+  <div class="dashboard-topbar">
+    <div class="topbar-left">
+
+      <!-- EDIT (default visible) -->
+      <button id="editBtn" class="btn-edit" onclick="toggleEditMode()">
+        <i class="fas fa-pen"></i>
+      </button>
+
+      <!-- EDIT MODE ACTIONS (hidden initially) -->
+      <div id="editActions" class="edit-actions hidden">
+        <button class="btn-cancel" onclick="cancelEdit()"><i class="fas fa-times"></i></button>
+        <button class="btn-save" onclick="saveDashboard()"><i class="fas fa-save"></i></button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- GLOBAL FILTERS -->
+  <div class="dashboard-filters">
+    <h4>Global Filters</h4>
+    <div class="filter-list">
+      <div class="filter-pill">Portfolio: All <span class="remove">&times;</span></div>
+      <div class="filter-pill">Region: US <span class="remove">&times;</span></div>
+      <div class="filter-pill">Asset Type: Equity <span class="remove">&times;</span></div>
+      <button class="btn-add-filter">+ Add Filter</button>
+    </div>
+  </div>
+
+  <!-- MAIN LAYOUT -->
+  <div class="dashboard-content layout-flex-stretch">
+
+    <!-- GRID -->
+    <div class="dashboard-main custom-scrollbar layout-scroll-y">
+      <div id="portfolio-details" class="grid-stack">
+        {% for widget in widgets %}
+          <div class="grid-stack-item"
+               gs-x="{{ widget.column|add:'-1' }}"
+               gs-y="{{ widget.row|add:'-1' }}"
+               gs-w="{{ widget.width_units }}"
+               gs-h="{{ widget.height_units }}"
+               data-widget-id="{{ widget.id }}">
+
+            <div class="grid-stack-item-content">
+              {% if widget.widget_type == 'overview' %}
+                {% include 'dashboard/widgets/widget_overview_partial.html' with widget=widget %}
+              {% elif widget.widget_type == 'table' %}
+                {% include 'dashboard/widgets/widget_table_partial.html' with widget=widget %}
+              {% else %}
+                {% include 'dashboard/widgets/widget_generic_chart_partial.html' with widget=widget %}
+              {% endif %}
+            </div>
+
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- RESIZER HANDLE -->
+    <div id="resizer" class="sidebar-resizer"></div>
+
+    <!-- SIDEBAR -->
+    <div id="sidebar" class="dashboard-sidebar custom-scrollbar sidebar-viewport-lock layout-sidebar-fix">
+      <h3>Widget Details</h3>
+
+      <div class="widget-properties">
+        <p>Select a widget to see details here</p>
+
+        <label>Title:</label>
+        <input type="text" placeholder="Widget title" disabled />
+
+        <label>Data source:</label>
+        <input type="text" placeholder="Data source" disabled />
+
+        <label>Refresh rate:</label>
+        <input type="text" placeholder="Refresh interval" disabled />
+
+        <label>Widget type:</label>
+        <input type="text" placeholder="Type" disabled />
+
+        <label>Portfolio:</label>
+        <input type="text" placeholder="Portfolio" disabled />
+
+        <label>Region:</label>
+        <input type="text" placeholder="Region" disabled />
+
+        <label>Asset class:</label>
+        <input type="text" placeholder="Asset class" disabled />
+
+        <label>Currency:</label>
+        <input type="text" placeholder="Currency" disabled />
+
+        <label>Last updated:</label>
+        <input type="text" placeholder="Timestamp" disabled />
+
+        <label>Status:</label>
+        <input type="text" placeholder="Active / Inactive" disabled />
+
+        <label>Owner:</label>
+        <input type="text" placeholder="Owner" disabled />
+
+        <label>Created at:</label>
+        <input type="text" placeholder="Creation date" disabled />
+
+        <label>Updated at:</label>
+        <input type="text" placeholder="Last update" disabled />
+
+        <label>Data frequency:</label>
+        <input type="text" placeholder="e.g. daily, hourly" disabled />
+
+        <label>Chart type:</label>
+        <input type="text" placeholder="Line / Bar / Pie" disabled />
+
+        <label>Threshold alert:</label>
+        <input type="text" placeholder="Alert rules" disabled />
+
+        <label>Tags:</label>
+        <input type="text" placeholder="Tags" disabled />
+
+        <label>Data latency:</label>
+        <input type="text" placeholder="Latency" disabled />
+
+        <label>API endpoint:</label>
+        <input type="text" placeholder="Endpoint URL" disabled />
+
+        <label>Permissions:</label>
+        <input type="text" placeholder="Access level" disabled />
+
+        <label>Notes:</label>
+        <input type="text" placeholder="Internal notes" disabled />
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+
+let grid;
+let editMode = false;
+let autoSave = false;
+
+document.addEventListener('DOMContentLoaded', () => {
+
+    grid = GridStack.init({ float: true, column: 32, cellHeight: 50 });
+
+    document.querySelector('.grid-stack').style.visibility = 'visible';
+    document.querySelector('.layout-scroll-y').style.setProperty('overflow-y', 'auto', 'important');
+
+    // SIDEBAR RESIZER LOGIC
+    const resizer = document.getElementById('resizer');
+    const sidebar = document.getElementById('sidebar');
+    let isResizing = false;
+
+    resizer.addEventListener('mousedown', (e) => {
+        isResizing = true;
+        resizer.classList.add('is-dragging');
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (!isResizing) return;
+        let newWidth = window.innerWidth - e.clientX;
+        if (newWidth > 200 && newWidth < 800) {
+            sidebar.style.width = `${newWidth}px`;
+            document.documentElement.style.setProperty('--sidebar-width', `${newWidth}px`);
+        }
+    });
+
+    document.addEventListener('mouseup', () => {
+        isResizing = false;
+        resizer.classList.remove('is-dragging');
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+    });
+
+grid.on('dragstart', () => {
+    document.body.style.cursor = 'grabbing';
+    document.body.classList.add('is-dragging');
+});
+
+grid.on('dragstop', () => {
+    document.body.style.cursor = '';
+    document.body.classList.remove('is-dragging');
+});
+
+    grid.on('change', function(event, items) {
+
+        const payload = items.map(item => ({
+            id: item.el.dataset.widgetId,
+            x: item.x,
+            y: item.y,
+            w: item.w,
+            h: item.h
+        }));
+
+        // only save if autoSave is enabled
+        if (autoSave) {
+            fetch('/investments/api/widgets/update-layout/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: JSON.stringify({ widgets: payload })
+            });
+        }
+    });
+
+    setEditMode(grid, editMode);
+});
+
+function setEditMode(grid, val) {
+    document.querySelector('.grid-stack').classList.toggle('edit-mode', val);
+    grid.enableMove(val);
+    grid.enableResize(val);
+}
+
+function getCSRFToken() {
+    return document.cookie
+        .split('; ')
+        .find(row => row.startsWith('csrftoken'))
+        ?.split('=')[1];
+}
+
+function toggleEditMode() {
+    editMode = !editMode;
+
+    setEditMode(grid, editMode);
+
+    document.getElementById('editBtn').classList.toggle('hidden', editMode);
+    document.getElementById('editActions').classList.toggle('hidden', !editMode);
+}
+
+function cancelEdit() {
+    editMode = false;
+    setEditMode(grid, false);
+
+    // reload layout from server (simple + safe)
+    location.reload();
+}
+
+// manual save (used when autoSave = false)
+function saveDashboard() {
+
+    const items = grid.engine.nodes;
+
+    const payload = items.map(item => ({
+        id: item.el.dataset.widgetId,
+        x: item.x,
+        y: item.y,
+        w: item.w,
+        h: item.h
+    }));
+
+    fetch('/dashboard/api/widgets/update-layout/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()
+        },
+        body: JSON.stringify({ widgets: payload })
+    });
+
+    alert('Dashboard layout saved!');
+}
+
+</script>
+{% endblock content %}

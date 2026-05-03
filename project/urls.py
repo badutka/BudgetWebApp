@@ -21,4 +21,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include(('budgetwebapp.budget.urls', 'budget'), namespace='budget')),
     path('investments/', include(('budgetwebapp.investments.urls', 'investments'), namespace='investments')),
+    path('dashboard/', include(('budgetwebapp.dashboard.urls', 'investments'), namespace='investments')),
 ]

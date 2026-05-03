@@ -38,6 +38,7 @@ INSTALLED_APPS = [
 
     'budgetwebapp.budget.apps.BudgetConfig',
     'budgetwebapp.investments.apps.InvestmentsConfig',
+    'budgetwebapp.dashboard.apps.DashboardConfig',
 
     'crispy_forms',
     'crispy_bootstrap5',
