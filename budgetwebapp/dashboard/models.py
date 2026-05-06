@@ -3,6 +3,7 @@ import uuid
 from django.db import models
 from django.utils.text import slugify
 
+from budgetwebapp.dashboard.widgets.factory import create_default_config
 # from budgetwebapp.dashboard.core.services import WidgetService
 
 
@@ -70,6 +71,15 @@ class BaseWidget(BaseModel):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if not self.config:
+            self.config = create_default_config(
+                self.widget_type,
+                self.subtype
+            )
+
+        super().save(*args, **kwargs)
 
     # def get_data(self, force_refresh=False):
     #     return WidgetService(self).get_data(force_refresh)
