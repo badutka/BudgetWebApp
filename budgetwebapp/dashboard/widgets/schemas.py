@@ -41,3 +41,20 @@ class RangeFilterConfig(BaseModel):
     min_value: Optional[Any] = None
     max_value: Optional[Any] = None
     targets: Optional[list[str]] = None
+
+
+class DateFilterConfig(BaseModel):
+    field: str
+
+    # how the filter behaves
+    mode: Literal["absolute", "relative"]
+
+    # --- absolute ---
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+
+    # --- relative ---
+    last_n: Optional[int] = None
+    unit: Optional[Literal["day", "week", "month", "year"]] = None
+
+    targets: Optional[list[str]] = None
