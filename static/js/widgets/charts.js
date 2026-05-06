@@ -1,5 +1,127 @@
 import { chartOptions } from './charts_const.js';
 
+export function renderTimeSeriesChart2(container, data) {
+
+  const COLOR_POOL = [
+    chartOptions.colors.PRIMARY,
+    chartOptions.colors.SECONDARY,
+    chartOptions.colors.TERT,
+    chartOptions.colors.QUAT,
+  ];
+
+  const columns = data.columns;
+  const meta = data.meta || {};
+
+  // resolve fields by ROLE
+  const xField = Object.keys(meta).find(k => meta[k].role === "x");
+
+  const yFields = Object.keys(meta).filter(k => meta[k].role === "y");
+
+  // optional (not used yet)
+  const groupFields = Object.keys(meta).filter(k => meta[k].role === "group");
+
+  if (!xField) {
+    throw new Error("No x-axis field defined in meta (role: 'x')");
+  }
+
+  const xValues = columns[xField];
+
+  // build series
+  const series = yFields.map((key, index) => {
+
+    const color = COLOR_POOL[index % COLOR_POOL.length];
+
+    const points = xValues.map((x, i) => [
+      Date.parse(x),
+      columns[key][i]
+    ]);
+
+    const name =
+      meta[key]?.name ||
+      key;
+
+    return {
+      name,
+      data: points,
+      color,
+
+      fillColor: {
+        linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
+        stops: [
+          [0, Highcharts.color(color).setOpacity(0.15).get('rgba')],
+          [1, Highcharts.color(color).setOpacity(0).get('rgba')]
+        ]
+      }
+    };
+  });
+
+  // render chart
+  Highcharts.chart(container, {
+    chart: {
+      type: 'areaspline',
+      zoomType: 'xy',
+      backgroundColor: 'transparent',
+      style: { fontFamily: chartOptions.font.FAMILY },
+    },
+
+    title: {
+      text: '',
+      style: { color: chartOptions.colors.WHITE }
+    },
+
+    xAxis: {
+      type: 'datetime',
+      labels: {
+        style: { color: chartOptions.colors.WHITE },
+        rotation: chartOptions.axis.LABEL_ROTATION
+      },
+      tickWidth: chartOptions.axis.TICK_WIDTH,
+      crosshair: {
+        color: chartOptions.colors.CROSSHAIR,
+        width: chartOptions.axis.TICK_WIDTH
+      },
+      lineColor: chartOptions.colors.WHITE,
+      tickColor: chartOptions.colors.WHITE
+    },
+
+    yAxis: {
+      title: {
+        text: 'Amount (PLN)',
+        style: { color: chartOptions.colors.WHITE }
+      },
+      labels: {
+        style: { color: chartOptions.colors.WHITE }
+      },
+      tickWidth: 0.5,
+      lineWidth: chartOptions.axis.LINE_WIDTH,
+      gridLineColor: chartOptions.colors.GRID,
+      lineColor: chartOptions.colors.WHITE,
+      minorTickInterval: chartOptions.axis.MINOR_TICK_INTERVAL,
+      tickInterval: chartOptions.axis.TICK_INTERVAL_AMOUNT
+    },
+
+    legend: {
+      itemStyle: { color: chartOptions.colors.WHITE }
+    },
+
+    tooltip: {
+      shared: true,
+      valueDecimals: 2,
+      valueSuffix: ' PLN',
+      backgroundColor: chartOptions.colors.TOOLTIP_BG,
+      style: { color: chartOptions.colors.TEXT },
+      borderColor: chartOptions.colors.WHITE,
+      borderWidth: chartOptions.tooltip.BORDER_WIDTH
+    },
+
+    exporting: {
+      enabled: false
+    },
+
+    series: series
+  });
+}
+
 export function renderTimeSeriesChart(container, data) {
 //  const investedSeries = data.date.map((d, i) => [Date.parse(d), data.invested_value[i]]);
 //  const totalSeries = data.date.map((d, i) => [Date.parse(d), data.portfolio_value[i]]);

@@ -1,15 +1,14 @@
 # dashboard/widgets/schemas.py
 
 from pydantic import BaseModel, ConfigDict
-from typing import Dict, TypedDict, Literal, List
+from typing import Dict, TypedDict, Literal, List, Any, Optional
 
 
 class TimeSeriesConfig(BaseModel):
     # model_config = ConfigDict(extra="forbid")
 
-    account_type: str
-    # interval: Literal["1d", "1h", "1w"]
-    # moving_average: bool
+    query: Dict
+    field_config: Dict
 
 
 class TimeSeriesOutput(BaseModel):
@@ -18,11 +17,27 @@ class TimeSeriesOutput(BaseModel):
     class SeriesMetaItem(BaseModel):
         name: str
 
-    date: List[str]
-    series: Dict[str, List[float]]
-    series_meta: Dict[str, SeriesMetaItem]
+    columns: Dict[str, List]
+    meta: Dict[str, Dict[str, str]]
 
 
 class OverviewConfig(BaseModel):
     # model_config = ConfigDict(extra="forbid")
     pass
+
+
+class SelectFilterConfig(BaseModel):
+    field: str
+    operator: Literal["eq", "in"] = "eq"
+    value: Any
+    options: Optional[List[Any]] = []
+    targets: Optional[List[str]] = None
+
+
+class RangeFilterConfig(BaseModel):
+    field: str
+    operator: Literal["gt", "lt", "between"]
+    value: Optional[Any] = None
+    min_value: Optional[Any] = None
+    max_value: Optional[Any] = None
+    targets: Optional[list[str]] = None

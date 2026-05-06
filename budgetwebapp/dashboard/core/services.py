@@ -2,62 +2,91 @@
 
 from django.core.cache import cache
 from .registry import get_widget_handler, get_widget_metadata
+# from budgetwebapp.datahub.filters.filters import Filter
 from core.logger import logger
 
 
 class WidgetService:
+    """
+    Responsible for:
+    - orchestrating widget execution
+    - calling DataService
+    - returning final widget data
+
+    NO caching here (intentionally)
+    """
 
     def __init__(self, widget):
         self.widget = widget
-        self._memory_cache = None
 
-    def get_data(self, force_refresh=False):
-        """
-        Returns widget data using:
-        L1 (memory) → L2 (cache) → L3 (compute)
-        """
-
-        cache_key = (
-            f"widget:{self.widget.id}:"
-            f"{self.widget.updated_at.isoformat()}:data"
-        )
-
-        # --- L1 CACHE ---
-        if not force_refresh and self._memory_cache:
-            logger.debug(f"L1 HIT: Zero-latency return for {self.widget.id}")
-            return self._memory_cache
-
-        # --- L2 CACHE ---
-        if not force_refresh:
-            cached = cache.get(cache_key)
-            if cached is not None:
-                logger.info(f"L2 HIT: Retrieved 'widget_data' cache for {self.widget.id}")
-                self._memory_cache = cached
-                return cached
-
-        # subtype = self.widget.config.get("subtype")
-
-        # resolve handler
+    def get_data(self, filters=None):
         handler_cls = get_widget_handler(
             self.widget.widget_type,
             self.widget.subtype
         )
-        # metadata = get_widget_metadata()
-        # logger.debug(f'{metadata = }')
 
         if not handler_cls:
-            raise ValueError(f"No handler registered for {self.widget.widget_type}:{self.widget.subtype}")
+            raise ValueError(
+                f"No handler for {self.widget.widget_type}:{self.widget.subtype}"
+            )
 
-        # --- EXECUTION (L3) ---
         handler = handler_cls(self.widget)
 
-        # Use safe execution wrapper
-        data = handler.run()
+        data = handler.run(filters=filters)
 
-        # cache store
-        cache.set(cache_key, data, timeout=None)
-        self._memory_cache = data
-
-        logger.info(f"L3 COMPUTE: Fresh data generated and cached for {self.widget.id}")
+        # logger.debug(f"[WidgetService] widget={self.widget.id} data computed")
 
         return data
+
+
+def build_filters(widgets):
+    filters: list[Filter] = []
+
+    for widget in widgets:
+        if widget.widget_type != "filter":
+            continue
+
+        handler_cls = get_widget_handler(
+            widget.widget_type,
+            widget.subtype
+        )
+
+        if not handler_cls:
+            continue
+
+        handler = handler_cls(widget)
+
+        # validated config (cached, consistent)
+        config = handler.get_config()
+
+        # convert via widget logic
+        if hasattr(handler, "to_filter"):
+            filters.append(handler.to_filter(config))
+
+    return filters
+
+
+class DashboardService:
+
+    def __init__(self, dashboard):
+        self.dashboard = dashboard
+
+    def get_widgets_data(self):
+        widgets = list(self.dashboard.widgets.all())
+
+        # build filters once
+        filters = build_filters(widgets)
+
+        result = []
+
+        for widget in widgets:
+            data = WidgetService(widget).get_data(filters=filters)
+
+            result.append({
+                "id": str(widget.id),
+                "type": widget.widget_type,
+                "subtype": widget.subtype,
+                "data": data,
+            })
+
+        return result

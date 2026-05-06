@@ -10,7 +10,7 @@ class OverviewWidgetLogic(BaseWidgetLogic):
 
     CONFIG_SCHEMA = OverviewConfig
 
-    def update_data(self, config):
+    def update_data(self, config, filters=None):
         return {
             "metrics": [1, 2, 3],
             "compare": [1, 2, 3]

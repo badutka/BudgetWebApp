@@ -4,6 +4,7 @@ from django.views.decorators.http import require_POST
 import json
 
 from .models import Dashboard, BaseWidget
+from budgetwebapp.dashboard.core.services import build_filters
 from .core.services import WidgetService
 from core.logger import logger
 
@@ -16,23 +17,22 @@ def dashboard_view(request, slug):
     dashboard = get_object_or_404(Dashboard, slug=slug)
 
     widgets = BaseWidget.objects.filter(dashboard=dashboard)
+    # account_type = request.GET.get('account_type')
 
-    account_type = request.GET.get('account_type')
-    if account_type:
-        widgets = widgets.filter(config__account_type=account_type)
+    filters = build_filters(widgets)
+
+    # service = DashboardService(dashboard)
+    # widgets = service.get_widgets_data(request_params=request.GET)
+
+    # if account_type:
+    #     widgets = widgets.filter(config__account_type=account_type)
 
     widget_list = []
 
     for widget in widgets:
-        # try:
-        data = WidgetService(widget).get_data()
-        # except Exception as e:
-        #     data = {"error": str(e)}
-
+        data = WidgetService(widget).get_data(filters)
         widget.widget_data = data
         widget_list.append(widget)
-        logger.error(f'{data = }')
-        logger.error(f'{widget = }')
 
     context = {
         "widgets": widget_list,

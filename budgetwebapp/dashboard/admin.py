@@ -13,7 +13,7 @@ class DashboardAdmin(admin.ModelAdmin):
 
 
 @admin.register(BaseWidget)
-class OverviewWidgetAdmin(admin.ModelAdmin):
+class BaseWidgetAdmin(admin.ModelAdmin):
     list_display = [
         field.name for field in BaseWidget._meta.get_fields()
         if field.name not in ("created_at")

@@ -3,7 +3,7 @@ import uuid
 from django.db import models
 from django.utils.text import slugify
 
-from budgetwebapp.dashboard.core.services import WidgetService
+# from budgetwebapp.dashboard.core.services import WidgetService
 
 
 class BaseModel(models.Model):
