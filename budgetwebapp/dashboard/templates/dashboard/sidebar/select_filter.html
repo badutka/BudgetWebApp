@@ -1,0 +1,120 @@
+{% load static %}
+
+<div class="sidebar-section">
+  <div class="section-header">
+    <h5>Widget</h5>
+    <i class="fas fa-ellipsis-v section-menu"></i>
+  </div>
+  <div class="property-row">
+    <label class="checkbox-container">
+      <input type="checkbox" checked> <span class="checkmark"></span> Title
+    </label>
+    <label class="checkbox-container">
+      <input type="checkbox"> <span class="checkmark"></span> Description
+    </label>
+  </div>
+</div>
+
+<div class="sidebar-section">
+  <div class="section-header">
+    <h5>Filter</h5>
+  </div>
+    <div class="filter-dropdown dropdown">
+    <button class="filter-dropdown-btn" type="button" data-bs-toggle="dropdown">
+        <span class="left">
+            <i class="fas fa-dot-circle btn-icon"></i>
+            <span class="label">Single value</span>
+        </span>
+
+        <i class="fas fa-chevron-down caret"></i>
+    </button>
+
+    <div class="dropdown-menu filter-dropdown-menu">
+
+        <div class="dropdown-item">
+            <i class="fas fa-dot-circle item-icon"></i>Single value
+        </div>
+
+        <div class="dropdown-item">
+            <i class="fas fa-list item-icon"></i>
+            Multiple values
+        </div>
+
+        <div class="dropdown-item">
+            <i class="fas fa-calendar-alt item-icon"></i>
+            Date picker
+        </div>
+
+        <div class="dropdown-item">
+            <i class="fas fa-font item-icon"></i>
+            Text entry
+        </div>
+
+    </div>
+    </div>
+</div>
+
+<div class="sidebar-section">
+  <div class="section-header">
+    <h5>Fields</h5>
+    <div class="header-actions">
+      <i class="fas fa-ellipsis-v"></i>
+      <i class="fas fa-plus"></i>
+    </div>
+  </div>
+  <div class="field-pill">
+    <i class="fas fa-terminal field-icon"></i>
+    <span class="field-name">{{ widget.config.field|default:"field_name" }}</span>
+    <i class="fas fa-minus remove-field"></i>
+  </div>
+  
+</div>
+
+<div class="sidebar-section">
+  <div class="section-header">
+    <h5>Parameters</h5>
+    <i class="fas fa-plus"></i>
+  </div>
+</div>
+
+<div class="sidebar-section">
+  <div class="section-header">
+    <h5>Default Value</h5>
+  </div>
+  <select class="cyber-select">
+    <option>All</option>
+  </select>
+</div>
+
+<script>
+
+
+document.querySelectorAll('.filter-dropdown-menu .dropdown-item')
+  .forEach(item => {
+    item.addEventListener('click', function () {
+
+      const dropdown = this.closest('.filter-dropdown');
+
+      const label = dropdown.querySelector('.label');
+      const btnIcon = dropdown.querySelector('.btn-icon');
+
+      const itemLabel = this.textContent.trim();
+      const itemIconClass = this.querySelector('i')?.className;
+
+      // update label
+      label.textContent = itemLabel;
+
+      // update icon (swap class)
+      if (itemIconClass) {
+        btnIcon.className = itemIconClass + " btn-icon";
+      }
+
+      // active state handling
+      dropdown.querySelectorAll('.dropdown-item')
+        .forEach(i => i.classList.remove('active'));
+
+      this.classList.add('active');
+    });
+  });
+
+</script>

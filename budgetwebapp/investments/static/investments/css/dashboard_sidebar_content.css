@@ -1,0 +1,206 @@
+/* Sidebar Section Containers */
+.sidebar-section {
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(0, 195, 255, 0.1);
+  margin-bottom: 1rem;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.8rem;
+}
+
+.section-header h5 {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #e0e3ff;
+  font-weight: 600;
+  text-transform: none; /* Databricks style */
+}
+
+.section-header i {
+  color: #9eb3ff;
+  font-size: 0.8rem;
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+.section-header i:hover { opacity: 1; color: #00c3ff; }
+
+/* Property Row for Checkboxes */
+.property-row {
+  display: flex;
+  gap: 1rem;
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+  color: #c0c6ff;
+}
+
+/* Cyber Select & Input Styling */
+.cyber-select {
+  width: 100%;
+  background: #090d1e;
+  border: 1px solid rgba(0, 195, 255, 0.2);
+  color: #e0e3ff;
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  outline: none;
+}
+
+.input-with-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-with-icon i {
+  position: absolute;
+  left: 10px;
+  font-size: 0.8rem;
+  color: #00c3ff;
+}
+
+.input-with-icon select {
+  padding-left: 30px;
+}
+
+/* Field Pills (Databricks specific) */
+.field-pill {
+  display: flex;
+  align-items: center;
+  background: rgba(0, 195, 255, 0.05);
+  border: 1px solid rgba(0, 195, 255, 0.2);
+  padding: 0.4rem 0.6rem;
+  border-radius: 4px;
+  gap: 0.6rem;
+}
+
+.field-icon {
+  color: #a0b0ff;
+  font-size: 0.7rem;
+}
+
+.field-name {
+  flex: 1;
+  font-size: 0.75rem;
+  font-family: 'Monaco', 'Consolas', monospace;
+  color: #e0e3ff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.remove-field {
+  cursor: pointer;
+  font-size: 0.7rem;
+  color: #ff5c5c;
+  opacity: 0.6;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.8rem;
+}
+
+/* === FILTER DROPDOWN (Sidebar version) === */
+.filter-dropdown {
+  position: relative;
+  width: 100%;
+}
+
+/* Button */
+.filter-dropdown-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  /* justify-content: space-between; */
+
+  background: #090d1e;
+  border: 1px solid rgba(0, 195, 255, 0.2);
+  color: #e0e3ff;
+
+  padding: 0.5rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* LEFT SIDE (icon + text grouped) */
+.filter-dropdown-btn .left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.filter-dropdown-btn .left i {
+  color: #00c3ff;
+  font-size: 0.75rem;
+}
+
+/* PUSH CARET TO RIGHT */
+.filter-dropdown-btn .caret {
+  margin-left: auto;
+  font-size: 0.7rem;
+  opacity: 0.6;
+}
+
+.filter-dropdown-btn:hover {
+  border-color: #00c3ff;
+  box-shadow: 0 0 6px rgba(0, 195, 255, 0.3);
+}
+
+/* Dropdown menu */
+.filter-dropdown-menu {
+  width: 100%;
+  margin-top: 4px;
+
+  background: #0b1026;
+  border: 1px solid rgba(0, 195, 255, 0.2);
+  border-radius: 4px;
+
+  padding: 4px 0;
+}
+
+/* Items */
+.filter-dropdown-menu .dropdown-item {
+  font-size: 0.75rem;
+  color: #c0c6ff;
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.filter-dropdown-menu .dropdown-item:hover {
+  background: rgba(0, 195, 255, 0.08);
+  color: #ffffff;
+}
+
+/* Optional: active state */
+.filter-dropdown-menu .dropdown-item.active {
+  background: rgba(0, 195, 255, 0.15);
+  color: #00c3ff;
+}
+
+.filter-dropdown-menu .dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.item-icon {
+  width: 14px;
+  text-align: center;
+  color: #cdced6;
+  font-size: 0.75rem;
+}

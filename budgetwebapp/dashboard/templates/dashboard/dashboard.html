@@ -56,6 +56,8 @@
                 {% include 'dashboard/widgets/widget_overview_partial.html' with widget=widget %}
               {% elif widget.widget_type == 'table' %}
                 {% include 'dashboard/widgets/widget_table_partial.html' with widget=widget %}
+              {% elif widget.widget_type == 'filter' %}
+                {% include 'dashboard/widgets/select_filter_widget.html' with widget=widget %}
               {% else %}
                 {% include 'dashboard/widgets/widget_generic_chart_partial.html' with widget=widget %}
               {% endif %}
@@ -66,80 +68,8 @@
       </div>
     </div>
 
-    <!-- RESIZER HANDLE -->
-    <div id="resizer" class="sidebar-resizer"></div>
-
-    <!-- SIDEBAR -->
-    <div id="sidebar" class="dashboard-sidebar custom-scrollbar sidebar-viewport-lock layout-sidebar-fix">
-      <h3>Widget Details</h3>
-
-      <div class="widget-properties">
-        <p>Select a widget to see details here</p>
-
-        <label>Title:</label>
-        <input type="text" placeholder="Widget title" disabled />
-
-        <label>Data source:</label>
-        <input type="text" placeholder="Data source" disabled />
-
-        <label>Refresh rate:</label>
-        <input type="text" placeholder="Refresh interval" disabled />
-
-        <label>Widget type:</label>
-        <input type="text" placeholder="Type" disabled />
-
-        <label>Portfolio:</label>
-        <input type="text" placeholder="Portfolio" disabled />
-
-        <label>Region:</label>
-        <input type="text" placeholder="Region" disabled />
-
-        <label>Asset class:</label>
-        <input type="text" placeholder="Asset class" disabled />
-
-        <label>Currency:</label>
-        <input type="text" placeholder="Currency" disabled />
-
-        <label>Last updated:</label>
-        <input type="text" placeholder="Timestamp" disabled />
-
-        <label>Status:</label>
-        <input type="text" placeholder="Active / Inactive" disabled />
-
-        <label>Owner:</label>
-        <input type="text" placeholder="Owner" disabled />
-
-        <label>Created at:</label>
-        <input type="text" placeholder="Creation date" disabled />
-
-        <label>Updated at:</label>
-        <input type="text" placeholder="Last update" disabled />
-
-        <label>Data frequency:</label>
-        <input type="text" placeholder="e.g. daily, hourly" disabled />
-
-        <label>Chart type:</label>
-        <input type="text" placeholder="Line / Bar / Pie" disabled />
-
-        <label>Threshold alert:</label>
-        <input type="text" placeholder="Alert rules" disabled />
-
-        <label>Tags:</label>
-        <input type="text" placeholder="Tags" disabled />
-
-        <label>Data latency:</label>
-        <input type="text" placeholder="Latency" disabled />
-
-        <label>API endpoint:</label>
-        <input type="text" placeholder="Endpoint URL" disabled />
-
-        <label>Permissions:</label>
-        <input type="text" placeholder="Access level" disabled />
-
-        <label>Notes:</label>
-        <input type="text" placeholder="Internal notes" disabled />
-      </div>
-    </div>
+  <!-- SIDEBAR -->
+  {% include "dashboard/sidebar/sidebar.html" %}
 
   </div>
 </div>

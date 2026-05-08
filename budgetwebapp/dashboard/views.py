@@ -2,6 +2,8 @@ from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 import json
+from django.template.loader import render_to_string
+from django.http import HttpResponse
 
 from .models import Dashboard, BaseWidget
 from budgetwebapp.dashboard.core.services import build_filters
@@ -41,6 +43,21 @@ def dashboard_view(request, slug):
     }
 
     return render(request, "dashboard/dashboard.html", context)
+
+
+def dashboard_sidebar_content(request, widget_id):
+    widget = BaseWidget.objects.get(id=widget_id)
+
+    template_map = {
+        "filter:select": "dashboard/sidebar/select_filter.html",
+    }
+
+    key = f"{widget.widget_type}:{widget.subtype}"
+    template = template_map.get(key)
+    context = {
+        "widget": widget
+    }
+    return render(request, template, context)
 
 
 @require_POST

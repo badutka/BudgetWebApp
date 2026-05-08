@@ -1,0 +1,39 @@
+{% load static %}
+{% load template_filters %}
+{% load investments_filters %}
+
+<div class="widget filter-widget"
+     data-widget-id="{{ widget.id }}"
+     hx-get="/dashboard/api/widgets/{{ widget.id }}/sidebar/"
+     hx-target="#sidebar"
+     hx-swap="innerHTML"
+     hx-trigger="click">
+
+  <div class="widget-body">
+
+    <!-- FIELD LABEL -->
+    <div class="filter-field">
+      {{ widget.config.field }}
+    </div>
+
+    <!-- VALUE SELECTOR -->
+    <div class="filter-value">
+
+      <select name="{{ widget.config.field }}"
+              class="filter-select"
+              data-widget-id="{{ widget.id }}">
+
+        {% for option in widget.config.options %}
+          <option value="{{ option }}"
+            {% if option == widget.config.value %}selected{% endif %}>
+            {{ option }}
+          </option>
+        {% endfor %}
+
+      </select>
+
+    </div>
+
+  </div>
+
+</div>

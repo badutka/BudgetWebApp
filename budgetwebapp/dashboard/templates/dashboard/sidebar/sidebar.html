@@ -1,0 +1,16 @@
+{% load static %}
+
+<!-- RESIZER HANDLE -->
+<div id="resizer" class="sidebar-resizer"></div>
+
+<!-- SIDEBAR -->
+<div id="sidebar"
+     class="dashboard-sidebar custom-scrollbar sidebar-viewport-lock layout-sidebar-fix"
+     hx-target="this"
+     hx-swap="innerHTML">
+
+  <h3>Widget Details</h3>
+
+  {% include "dashboard/sidebar/dashboard_sidebar_content.html" %}
+
+</div>
