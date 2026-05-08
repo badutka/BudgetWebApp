@@ -143,8 +143,15 @@
   gap: 6px;
 }
 
-.filter-dropdown-btn .left i {
+/* .filter-dropdown-btn .left i {
   color: #00c3ff;
+  font-size: 0.75rem;
+} */
+
+.btn-icon {
+  width: 14px;
+  text-align: center;
+  color: #00c3ff;;
   font-size: 0.75rem;
 }
 

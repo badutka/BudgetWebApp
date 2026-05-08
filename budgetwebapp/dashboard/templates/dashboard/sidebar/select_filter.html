@@ -32,7 +32,8 @@
     <div class="dropdown-menu filter-dropdown-menu">
 
         <div class="dropdown-item">
-            <i class="fas fa-dot-circle item-icon"></i>Single value
+            <i class="fas fa-dot-circle item-icon"></i>
+            Single value
         </div>
 
         <div class="dropdown-item">
@@ -87,10 +88,9 @@
 </div>
 
 <script>
-
-
 document.querySelectorAll('.filter-dropdown-menu .dropdown-item')
   .forEach(item => {
+
     item.addEventListener('click', function () {
 
       const dropdown = this.closest('.filter-dropdown');
@@ -99,22 +99,27 @@ document.querySelectorAll('.filter-dropdown-menu .dropdown-item')
       const btnIcon = dropdown.querySelector('.btn-icon');
 
       const itemLabel = this.textContent.trim();
-      const itemIconClass = this.querySelector('i')?.className;
+      const itemIcon = this.querySelector('i');
 
       // update label
       label.textContent = itemLabel;
 
-      // update icon (swap class)
-      if (itemIconClass) {
-        btnIcon.className = itemIconClass + " btn-icon";
+      // update icon
+      if (itemIcon) {
+
+        const iconClass = [...itemIcon.classList]
+          .find(cls => cls.startsWith('fa-') && cls !== 'fas');
+
+        btnIcon.className = `fas ${iconClass} btn-icon`;
       }
 
-      // active state handling
+      // active state
       dropdown.querySelectorAll('.dropdown-item')
         .forEach(i => i.classList.remove('active'));
 
       this.classList.add('active');
-    });
-  });
 
+    });
+
+  });
 </script>
