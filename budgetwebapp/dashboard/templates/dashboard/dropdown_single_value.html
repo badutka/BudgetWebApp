@@ -1,0 +1,49 @@
+{% load static %}
+
+<div class="dropdown {{ wrapper_class|default:'' }}">
+
+  <!-- BUTTON -->
+  <button class="filter-dropdown-btn" type="button" data-bs-toggle="dropdown">
+    <span class="left">
+
+      {% for key, item in items.items %}
+        {% if key == current_value %}
+          
+          {% if show_icons and item.icon %}
+            <i class="fas {{ item.icon }} btn-icon"></i>
+          {% endif %}
+
+          <span class="label">
+            {{ item.label }}
+          </span>
+
+        {% endif %}
+      {% endfor %}
+
+    </span>
+
+    <i class="fas fa-chevron-down caret"></i>
+  </button>
+
+  <!-- OPTIONS -->
+  <div class="dropdown-menu filter-dropdown-menu">
+
+    {% for key, item in items.items %}
+      <div class="dropdown-item"
+           hx-post="{{ post_url }}"
+           hx-trigger="click"
+           hx-vals='{{ hx_values_base|default:"{}" }}'
+           hx-swap="none">
+
+        {% if show_icons and item.icon %}
+          <i class="fas {{ item.icon }} item-icon"></i>
+        {% endif %}
+
+        {{ item.label }}
+
+      </div>
+    {% endfor %}
+
+  </div>
+
+</div>

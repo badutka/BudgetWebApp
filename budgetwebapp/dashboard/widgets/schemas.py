@@ -28,6 +28,12 @@ class OverviewConfig(BaseModel):
 
 class SelectFilterConfig(BaseModel):
     field: str = ""
+    mode: Literal[
+        "single",
+        "multiple",
+        "date_picker",
+        "text_entry",
+    ] = "single"
     operator: Literal["eq", "in"] = "eq"
     value: Any = None
     options: List[Any] = Field(default_factory=list)

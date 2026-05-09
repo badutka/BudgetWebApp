@@ -6,7 +6,8 @@ from django.template.loader import render_to_string
 from django.http import HttpResponse
 
 from .models import Dashboard, BaseWidget
-from budgetwebapp.dashboard.core.services import build_filters
+from budgetwebapp.dashboard.core.services import build_filters, WidgetSidebarService
+
 from .core.services import WidgetService
 from core.logger import logger
 
@@ -47,16 +48,17 @@ def dashboard_view(request, slug):
 
 def dashboard_sidebar_content(request, widget_id):
     widget = BaseWidget.objects.get(id=widget_id)
+    service = WidgetSidebarService()
 
+    context = service.build_context(widget)
+
+    logger.info(context)
     template_map = {
         "filter:select": "dashboard/sidebar/select_filter.html",
     }
-
     key = f"{widget.widget_type}:{widget.subtype}"
     template = template_map.get(key)
-    context = {
-        "widget": widget
-    }
+
     return render(request, template, context)
 
 

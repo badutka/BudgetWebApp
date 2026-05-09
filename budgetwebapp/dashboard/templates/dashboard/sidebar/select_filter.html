@@ -19,40 +19,68 @@
   <div class="section-header">
     <h5>Filter</h5>
   </div>
-    <div class="filter-dropdown dropdown">
+
+  {% with control=ui.controls.mode %}
+  {% with current_mode=state.mode %}
+  <div class="filter-dropdown dropdown">
+    <!-- BUTTON -->
     <button class="filter-dropdown-btn" type="button" data-bs-toggle="dropdown">
         <span class="left">
-            <i class="fas fa-dot-circle btn-icon"></i>
-            <span class="label">Single value</span>
+
+            <!-- icon -->
+            <i class="fas 
+                {% for key, opt in control.options.items %}
+                    {% if key == current_mode %}
+                        {{ opt.icon }}
+                    {% endif %}
+                {% endfor %}
+            btn-icon"></i>
+
+            <!-- label -->
+            <span class="label">
+                {% for key, opt in control.options.items %}
+                    {% if key == current_mode %}
+                        {{ opt.label }}
+                    {% endif %}
+                {% endfor %}
+            </span>
+
         </span>
 
         <i class="fas fa-chevron-down caret"></i>
     </button>
 
+    <!-- OPTIONS -->
     <div class="dropdown-menu filter-dropdown-menu">
 
-        <div class="dropdown-item">
-            <i class="fas fa-dot-circle item-icon"></i>
-            Single value
-        </div>
+        {% for key, opt in control.options.items %}
+            <div class="dropdown-item"
+                 hx-post="/dashboard/api/widget/{{ widget.id }}/update-config/"
+                 hx-trigger="click"
+                 hx-vals='{"mode": "{{ opt.value }}"}'
+                 hx-swap="none">
 
-        <div class="dropdown-item">
-            <i class="fas fa-list item-icon"></i>
-            Multiple values
-        </div>
+                <i class="fas {{ opt.icon }} item-icon"></i>
+                {{ opt.label }}
 
-        <div class="dropdown-item">
-            <i class="fas fa-calendar-alt item-icon"></i>
-            Date picker
-        </div>
-
-        <div class="dropdown-item">
-            <i class="fas fa-font item-icon"></i>
-            Text entry
-        </div>
+            </div>
+        {% endfor %}
 
     </div>
-    </div>
+
+  </div>
+
+  {% endwith %}
+  {% endwith %}
+</div>
+
+<div class="sidebar-section">
+  <div class="section-header">
+    <h5>Filter 2</h5>
+  </div>
+
+  {% include "dashboard/dropdown_single_value.html" with items=ui.controls.mode.options current_value=state.mode post_url="/dashboard/api/widget/"|add:widget.id|add:"/update-config/" hx_values_base='{"mode": "REPLACE_ME"}' show_icons=True %}
+
 </div>
 
 <div class="sidebar-section">
