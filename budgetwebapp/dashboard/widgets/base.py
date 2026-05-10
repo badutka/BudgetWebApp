@@ -1,6 +1,6 @@
-# dashboard/widgets/base.py
 from django.core.cache import cache
 from abc import ABC, abstractmethod
+
 from core.logger import logger
 
 
@@ -8,75 +8,119 @@ class BaseWidgetLogic(ABC):
     """
     Pure widget execution layer:
     - validates config
+    - validates state
     - runs business logic
     - validates output
 
-    NO caching, NO versioning, NO hashing.
+    NO external orchestration, NO versioning logic outside cache boundaries.
     """
 
     CONFIG_SCHEMA = None
+    STATE_SCHEMA = None
     OUTPUT_SCHEMA = None
 
     def __init__(self, widget):
         self.widget = widget
 
-        # optional runtime cache ONLY for this instance
         self._validated_config = None
-        self._validated_at = None  # tied to widget.updated_at
+        self._validated_config_at = None
+
+        self._validated_state = None
+        self._validated_state_at = None
+
 
     def get_config(self):
-        if not self.CONFIG_SCHEMA:
-            return self.widget.config
-
         current_version = self.widget.updated_at
-        cache_key = f"widget_config:{self.widget.id}:{current_version.timestamp()}"
 
-        # cross-request cache
+        if (
+            self._validated_config is not None
+            and self._validated_config_at == current_version
+        ):
+            logger.debug(f"[{self.__class__.__name__}] using in-memory CONFIG cache for {self.widget}")
+            return self._validated_config
+
+        if not self.CONFIG_SCHEMA:
+            return self.widget.config or {}
+
+        cache_key = f"widget_config:{self.widget.id}:{current_version.timestamp()}"
         cached = cache.get(cache_key)
-        if cached:
-            logger.debug(f"[{self.__class__.__name__}] using cached CONFIG for {self.widget.id}")
+
+        if cached is not None:
+            logger.debug(f"[{self.__class__.__name__}] using Django CONFIG cache for {self.widget}")
+            self._validated_config = cached
+            self._validated_config_at = current_version
             return cached
 
         try:
-            validated = self.CONFIG_SCHEMA(**self.widget.config)
+            validated = self.CONFIG_SCHEMA(**(self.widget.config or {}))
 
-            # store in both:
             self._validated_config = validated
-            self._validated_at = current_version
+            self._validated_config_at = current_version
 
             cache.set(cache_key, validated, timeout=None)
 
-            logger.debug(f"[{self.__class__.__name__}] Config validated and cached @ {current_version}")
+            logger.debug(f"[{self.__class__.__name__}] config validated + cached for {self.widget}")
 
             return validated
 
         except Exception as e:
-            raise ValueError(
-                f"Invalid config for {self.__class__.__name__}: {e}"
-            )
+            raise ValueError(f"Invalid config for {self.__class__.__name__}: {e}")
+
+
+    def get_state(self):
+        current_version = self.widget.updated_at
+
+        if (
+            self._validated_state is not None
+            and self._validated_state_at == current_version
+        ):
+            logger.debug(f"[{self.__class__.__name__}] using in-memory STATE cache for {self.widget}")
+            return self._validated_state
+
+        if not self.STATE_SCHEMA:
+            return self.widget.state or {}
+
+        try:
+            validated = self.STATE_SCHEMA(**(self.widget.state or {}))
+
+            self._validated_state = validated
+            self._validated_state_at = current_version
+
+            logger.debug(f"[{self.__class__.__name__}] state validated for {self.widget}")
+
+            return validated
+
+        except Exception as e:
+            raise ValueError(f"Invalid state for {self.__class__.__name__}: {e}")
+
 
     def validate_output(self, data):
         if not self.OUTPUT_SCHEMA:
+            logger.debug(f"[{self.__class__.__name__}] no output schema for {self.widget}, returning raw data")
             return data
 
         try:
-            return self.OUTPUT_SCHEMA(**data).model_dump()
+            validated = self.OUTPUT_SCHEMA(**data).model_dump()
+            logger.debug(f"[{self.__class__.__name__}] output validated for {self.widget}")
+            return validated
+
         except Exception as e:
             raise ValueError(f"Invalid output for {self.__class__.__name__}: {e}")
 
+
     def run(self, filters=None):
         config = self.get_config()
-        data = self.update_data(config, filters=filters)
-        # todo: validate filters
+        state = self.get_state()
+
+        data = self.update_data(
+            config=config,
+            state=state,
+            filters=filters,
+        )
+
         return self.validate_output(data)
 
-    def extract(self):
-            """
-            Optional hook for widgets that produce domain objects
-            (e.g. filters, actions, etc.)
-            """
-            return None
 
     @abstractmethod
-    def update_data(self, config, filters=None):
+    def update_data(self, config, state, filters=None):
         pass

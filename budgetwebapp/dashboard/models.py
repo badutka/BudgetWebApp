@@ -4,8 +4,9 @@ from django.db import models
 from django.utils.text import slugify
 
 from budgetwebapp.dashboard.widgets.factory import create_default_config
+from budgetwebapp.dashboard.core.registry import get_widget_handler
 # from budgetwebapp.dashboard.core.services import WidgetService
-
+from core.logger import logger
 
 class BaseModel(models.Model):
     """Abstract base class to satisfy Pycharm type checking."""
@@ -63,6 +64,7 @@ class BaseWidget(BaseModel):
     subtype = models.CharField(max_length=50, null=True, blank=True)
 
     config = models.JSONField(default=dict, blank=True)
+    state = models.JSONField(default=dict, blank=True)
 
     row = models.PositiveIntegerField(default=1)
     column = models.PositiveIntegerField(default=1)
@@ -72,14 +74,31 @@ class BaseWidget(BaseModel):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def save(self, *args, **kwargs):
-        if not self.config:
-            self.config = create_default_config(
+    @property
+    def handler(self):
+        if not hasattr(self, "_handler"):
+            handler_cls = get_widget_handler(
                 self.widget_type,
-                self.subtype
+                self.subtype,
             )
 
+            if not handler_cls:
+                raise ValueError(f"No handler for {self.widget_type}:{self.subtype}")
+
+            self._handler = handler_cls(self)
+            logger.warn(f'Created new class for {str(self)}')
+
+        return self._handler
+
+    def save(self, *args, **kwargs):
+        
+        if not self.config:
+            self.config = create_default_config(self.handler)
+
         super().save(*args, **kwargs)
+    
+    def __str__(self):
+        return f'<{self.title}>:<{self.widget_type}>:<{self.subtype}>:<{self.id}>'
 
     # def get_data(self, force_refresh=False):
     #     return WidgetService(self).get_data(force_refresh)

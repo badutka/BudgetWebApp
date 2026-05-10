@@ -12,7 +12,7 @@ class TimeSeriesChartLogic(BaseWidgetLogic):
     CONFIG_SCHEMA = TimeSeriesConfig
     OUTPUT_SCHEMA = TimeSeriesOutput
 
-    def update_data(self, config, filters=None):
+    def update_data(self, config, state, filters=None):
         rows = data_service.get(
             source="timeseries",
             query=config.query,

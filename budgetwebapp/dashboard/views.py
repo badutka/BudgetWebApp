@@ -25,7 +25,10 @@ def dashboard_view(request, slug):
     widgets = BaseWidget.objects.filter(dashboard=dashboard)
     # account_type = request.GET.get('account_type')
 
-    filters = build_filters(widgets)
+    filter_widgets = [w for w in widgets if w.widget_type == "filter"]
+    data_widgets = [w for w in widgets if w.widget_type != "filter"]
+
+    filters = build_filters(filter_widgets)
 
     # service = DashboardService(dashboard)
     # widgets = service.get_widgets_data(request_params=request.GET)
@@ -35,10 +38,11 @@ def dashboard_view(request, slug):
 
     widget_list = []
 
-    for widget in widgets:
+    for widget in data_widgets:
         data = WidgetService(widget).get_data(filters)
         widget.widget_data = data
-        widget_list.append(widget)
+        # widget_list.append(widget)
+    widget_list = data_widgets + filter_widgets
 
     context = {
         "widgets": widget_list,
@@ -83,7 +87,7 @@ def update_config(request, widget_id):
         **current_config,
         **updates,
     }
-    logger.critical(merged)
+
     try:
         validated = SelectFilterConfig(**merged)
 
@@ -99,6 +103,48 @@ def update_config(request, widget_id):
     return JsonResponse({
         "ok": True,
         "config": widget.config,
+    })
+
+def update_state(request, widget_id):
+    widget = get_object_or_404(BaseWidget, id=widget_id)
+
+    handler_cls = get_widget_handler(
+        widget.widget_type,
+        widget.subtype,
+    )
+
+    state_schema = handler_cls.STATE_SCHEMA
+
+    current_state = widget.state or {}
+
+    updates = {}
+
+    for key, value in request.POST.items():
+        if key == "csrfmiddlewaretoken":
+            continue
+
+        updates[key] = value
+
+    merged = {
+        **current_state,
+        **updates,
+    }
+
+    try:
+        validated = state_schema(**merged)
+
+    except ValidationError as e:
+        return JsonResponse({
+            "ok": False,
+            "errors": e.errors(),
+        }, status=400)
+
+    widget.state = validated.model_dump()
+    widget.save(update_fields=["state"])
+
+    return JsonResponse({
+        "ok": True,
+        "state": widget.state,
     })
 
 @require_POST

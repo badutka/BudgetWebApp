@@ -1,18 +1,14 @@
-from budgetwebapp.dashboard.core.registry import get_widget_handler
 from core.logger import logger
 
-def create_default_config(widget_type: str, subtype: str):
+def create_default_config(handler):
     """
     Builds default config using Pydantic schema defaults.
     """
 
-    handler_cls = get_widget_handler(widget_type, subtype)
-    logger.warn(f'running create_default_config for {widget_type}:{subtype}')
-    if not handler_cls:
-        raise ValueError(f"No handler for {widget_type}:{subtype}")
+    logger.warn(f'Creating default config for {handler.__name__}')
 
-    schema = handler_cls.CONFIG_SCHEMA
-    logger.warn(f'{schema = }')
+    schema = handler.CONFIG_SCHEMA
+
     if not schema:
         return {}
 

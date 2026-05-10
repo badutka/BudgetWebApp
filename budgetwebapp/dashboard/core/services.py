@@ -21,22 +21,8 @@ class WidgetService:
         self.widget = widget
 
     def get_data(self, filters=None):
-        handler_cls = get_widget_handler(
-            self.widget.widget_type,
-            self.widget.subtype
-        )
-
-        if not handler_cls:
-            raise ValueError(
-                f"No handler for {self.widget.widget_type}:{self.widget.subtype}"
-            )
-
-        handler = handler_cls(self.widget)
-
+        handler = self.widget.handler
         data = handler.run(filters=filters)
-
-        # logger.debug(f"[WidgetService] widget={self.widget.id} data computed")
-
         return data
 
 
@@ -49,13 +35,10 @@ class WidgetSidebarService:
     """
 
     def build_context(self, widget):
-        config = widget.config or {}
-
         return {
             "widget": widget,
-            "state": config,
-
-            # IMPORTANT: dict, not list
+            "config": widget.handler.get_config(),
+            "state": widget.handler.get_config(),
             "ui": self._get_ui_definition(widget),
         }
 
@@ -96,22 +79,15 @@ def build_filters(widgets):
         if widget.widget_type != "filter":
             continue
 
-        handler_cls = get_widget_handler(
-            widget.widget_type,
-            widget.subtype
-        )
-
-        if not handler_cls:
-            continue
-
-        handler = handler_cls(widget)
+        handler = widget.handler
 
         # validated config (cached, consistent)
         config = handler.get_config()
+        state = handler.get_state()
 
         # convert via widget logic
         if hasattr(handler, "to_filter"):
-            filters.append(handler.to_filter(config))
+            filters.append(handler.to_filter(config, state))
 
     return filters
 

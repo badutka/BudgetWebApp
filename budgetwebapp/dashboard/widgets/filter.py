@@ -4,30 +4,27 @@ from datetime import datetime, timedelta
 from budgetwebapp.dashboard.core.registry import register_widget
 from budgetwebapp.dashboard.widgets.base import BaseWidgetLogic
 from budgetwebapp.datahub.filters.domain import Filter
-from budgetwebapp.dashboard.widgets.schemas import SelectFilterConfig, RangeFilterConfig, DateFilterConfig
-
+from budgetwebapp.dashboard.widgets.schemas import SelectFilterConfig, RangeFilterConfig, DateFilterConfig, SelectFilterState, RangeFilterState, DateFilterState
 
 @register_widget("filter", "select", label="Select Filter")
 class SelectFilterLogic(BaseWidgetLogic):
     CONFIG_SCHEMA = SelectFilterConfig
+    STATE_SCHEMA = SelectFilterState
 
-    def update_data(self, config, filters=None):
+    def update_data(self, config, state, filters=None):
         return {
             "field": config.field,
             "operator": config.operator,
-            "value": config.value,
+            "value": state.value,
             "options": config.options,
             "targets": config.targets,
         }
 
-    def to_filter(self, config: SelectFilterConfig) -> Filter:
-        # if not config.field or not config.value:
-        #     return None
-    
+    def to_filter(self, config, state):
         return Filter(
             field=config.field,
             operator=config.operator,
-            value=config.value,
+            value=state.value,
             targets=config.targets,
         )
 
@@ -35,8 +32,9 @@ class SelectFilterLogic(BaseWidgetLogic):
 @register_widget("filter", "range", label="Range Filter")
 class RangeFilterLogic(BaseWidgetLogic):
     CONFIG_SCHEMA = RangeFilterConfig
+    STATE_SCHEMA = RangeFilterState
 
-    def update_data(self, config, filters=None):
+    def update_data(self, config, state, filters=None):
         return {
             "field": config.field,
             "operator": config.operator,
@@ -46,7 +44,7 @@ class RangeFilterLogic(BaseWidgetLogic):
             "targets": config.targets,
         }
 
-    def to_filter(self, config: RangeFilterConfig) -> Filter:
+    def to_filter(self, config: RangeFilterConfig, state) -> Filter:
         return Filter(
             field=config.field,
             operator=config.operator,
@@ -60,8 +58,10 @@ class RangeFilterLogic(BaseWidgetLogic):
 @register_widget("filter", "date", label="Date Filter")
 class DateFilterLogic(BaseWidgetLogic):
     CONFIG_SCHEMA = DateFilterConfig
+    STATE_SCHEMA = DateFilterState
 
-    def update_data(self, config, filters=None):
+
+    def update_data(self, config, state, filters=None):
         return {
             "field": config.field,
             "mode": config.mode,
@@ -73,14 +73,14 @@ class DateFilterLogic(BaseWidgetLogic):
             "last_n": getattr(config, "last_n", None),
         }
 
-    def to_filter(self, config: DateFilterConfig) -> Filter:
+    def to_filter(self, config: DateFilterConfig, state) -> Filter:
 
         if config.mode == "absolute":
             return Filter(
                 field=config.field,
                 operator="between",
-                min_value=config.start_date,
-                max_value=config.end_date,
+                min_value=state.start_date,
+                max_value=state.end_date,
                 targets=config.targets,
             )
 

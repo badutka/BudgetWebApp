@@ -3,7 +3,7 @@
 from pydantic import BaseModel
 from typing import Any, Optional, List
 from .operators import OPERATOR_MAP
-
+from core.logger import logger
 
 class Filter:
     def __init__(
@@ -34,5 +34,17 @@ class Filter:
             min_value=self.min_value,
             max_value=self.max_value,
         )
-
-        raise ValueError(f"Unsupported operator: {self.operator}")
+    
+    def __repr__(self):
+        params = [f"field={self.field!r}", f"operator={self.operator!r}"]
+        
+        if self.value is not None:
+            params.append(f"value={self.value!r}")
+        if self.min_value is not None:
+            params.append(f"min_value={self.min_value!r}")
+        if self.max_value is not None:
+            params.append(f"max_value={self.max_value!r}")
+        if self.targets:
+            params.append(f"targets={self.targets!r}")
+            
+        return f"Filter({', '.join(params)})"
