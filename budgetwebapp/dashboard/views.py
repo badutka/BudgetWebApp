@@ -1,15 +1,18 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
-import json
 from django.template.loader import render_to_string
 from django.http import HttpResponse
+from pydantic import ValidationError
+import json
 
 from .models import Dashboard, BaseWidget
 from budgetwebapp.dashboard.core.services import build_filters, WidgetSidebarService
+from budgetwebapp.dashboard.widgets.schemas import SelectFilterConfig
 
 from .core.services import WidgetService
 from core.logger import logger
+
 
 
 def index(request):
@@ -61,6 +64,42 @@ def dashboard_sidebar_content(request, widget_id):
 
     return render(request, template, context)
 
+
+def update_config(request, widget_id):
+    widget = get_object_or_404(BaseWidget, id=widget_id)
+
+    current_config = widget.config or {}
+
+    updates = {}
+
+    for key, value in request.POST.items():
+        if key == "csrfmiddlewaretoken":
+            continue
+
+        updates[key] = value
+
+    # merge existing + incoming
+    merged = {
+        **current_config,
+        **updates,
+    }
+    logger.critical(merged)
+    try:
+        validated = SelectFilterConfig(**merged)
+
+    except ValidationError as e:
+        return JsonResponse({
+            "ok": False,
+            "errors": e.errors(),
+        }, status=400)
+
+    widget.config = validated.model_dump()
+    widget.save()
+
+    return JsonResponse({
+        "ok": True,
+        "config": widget.config,
+    })
 
 @require_POST
 def update_widget_layout(request):

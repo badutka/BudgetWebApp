@@ -1,7 +1,7 @@
 {% load static %}
+{% load investments_filters %}
 
 <div class="dropdown {{ wrapper_class|default:'' }}">
-
   <!-- BUTTON -->
   <button class="filter-dropdown-btn" type="button" data-bs-toggle="dropdown">
     <span class="left">
@@ -33,7 +33,7 @@
            hx-post="{{ post_url }}"
            hx-trigger="click"
            hx-vals='{{ hx_values_base|default:"{}" }}'
-           hx-swap="none">
+           hx-swap="outerHTML">
 
         {% if show_icons and item.icon %}
           <i class="fas {{ item.icon }} item-icon"></i>
@@ -47,3 +47,51 @@
   </div>
 
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+  document.querySelectorAll('.dropdown').forEach(dropdown => {
+
+    const items = dropdown.querySelectorAll('.dropdown-item');
+
+    items.forEach(item => {
+
+      item.addEventListener('click', function () {
+
+        const label = dropdown.querySelector('.label');
+        const btnIcon = dropdown.querySelector('.btn-icon');
+
+        const itemLabel = this.textContent.trim();
+        const itemIcon = this.querySelector('i');
+
+        // update label
+        label.textContent = itemLabel;
+
+        // update icon
+        if (itemIcon && btnIcon) {
+
+          const iconClass = [...itemIcon.classList]
+            .find(cls => cls.startsWith('fa-') && cls !== 'fas');
+
+          if (iconClass) {
+            btnIcon.className = `fas ${iconClass} btn-icon`;
+          }
+        }
+
+        // active state
+        items.forEach(i => i.classList.remove('active'));
+        this.classList.add('active');
+
+      });
+
+    });
+
+  });
+
+});
+
+document.body.addEventListener('htmx:configRequest', function (event) {
+    event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+});
+</script>

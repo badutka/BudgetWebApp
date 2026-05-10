@@ -1,0 +1,97 @@
+/* sidebar section containers */
+
+/* container for each sidebar section block */
+.sidebar-section {
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(0, 195, 255, 0.1);
+  margin-bottom: 1rem;
+}
+
+/* header row containing title + action buttons */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.8rem;
+}
+
+/* section title text */
+.section-header h5 {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #e0e3ff;
+  font-weight: 600;
+  text-transform: none; /* databricks style */
+}
+
+/* icon buttons inside section header */
+.section-header i {
+  color: #9eb3ff;
+  font-size: 0.8rem;
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+/* hover state for section header icons */
+.section-header i:hover {
+  opacity: 1;
+  color: #00c3ff;
+}
+
+/* horizontal row for grouped properties / checkboxes */
+.property-row {
+  display: flex;
+  gap: 1rem;
+}
+
+/* checkbox wrapper with label alignment */
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+  color: #c0c6ff;
+}
+
+/* selected field pill container */
+.field-pill {
+  display: flex;
+  align-items: center;
+  background: rgba(0, 195, 255, 0.05);
+  border: 1px solid rgba(0, 195, 255, 0.2);
+  padding: 0.4rem 0.6rem;
+  border-radius: 4px;
+  gap: 0.6rem;
+}
+
+/* icon displayed inside field pill */
+.field-icon {
+  color: #a0b0ff;
+  font-size: 0.7rem;
+}
+
+/* field name text inside pill */
+.field-name {
+  flex: 1;
+  font-size: 0.75rem;
+  font-family: 'Monaco', 'Consolas', monospace;
+  color: #e0e3ff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* remove/delete icon inside field pill */
+.remove-field {
+  cursor: pointer;
+  font-size: 0.7rem;
+  color: #ff5c5c;
+  opacity: 0.6;
+}
+
+/* container for header action icons/buttons */
+.header-actions {
+  display: flex;
+  gap: 0.8rem;
+}
