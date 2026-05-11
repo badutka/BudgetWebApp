@@ -1,95 +1,64 @@
 {% load static %}
 {% load investments_filters %}
 
-<div class="dropdown {{ wrapper_class|default:'' }}">
-  <!-- BUTTON -->
-  <button class="filter-dropdown-btn" type="button" data-bs-toggle="dropdown">
-    <span class="left">
+{% with selected=selected_value %}
 
-      {% for key, item in items.items %}
-        {% if key == current_value %}
-          
-          {% if show_icons and item.icon %}
-            <i class="fas {{ item.icon }} btn-icon"></i>
-          {% endif %}
+<div class="dropdown-single-value-generic dropdown" id="{{ dropdown_id }}">
 
-          <span class="label">
-            {{ item.label }}
-          </span>
+    <!-- BUTTON -->
+    <button class="dropdown-single-value-generic-btn" type="button" data-bs-toggle="dropdown">
+        <span class="left">
 
-        {% endif %}
-      {% endfor %}
+            <!-- icon -->
+            <i class="fas
+                {% for opt, value in options %}
+                    {% if opt == selected %}
+                        {{ value.icon }}
+                    {% endif %}
+                {% endfor %}
+            btn-icon"></i>
 
-    </span>
+            <!-- label -->
+            <span class="label">
+                {% for opt, value in options %}
+                    {% if opt == selected %}
+                        {{ value.label }}
+                    {% endif %}
+                {% endfor %}
+            </span>
 
-    <i class="fas fa-chevron-down caret"></i>
-  </button>
+        </span>
 
-  <!-- OPTIONS -->
-  <div class="dropdown-menu filter-dropdown-menu">
+        <i class="fas fa-chevron-down caret"></i>
+    </button>
 
-    {% for key, item in items.items %}
-      <div class="dropdown-item"
-           hx-post="{{ post_url }}"
-           hx-trigger="click"
-           hx-vals='{{ hx_values_base|default:"{}" }}'
-           hx-swap="outerHTML">
+    <!-- OPTIONS -->
+    <div class="dropdown-menu dropdown-single-value-generic-menu">
 
-        {% if show_icons and item.icon %}
-          <i class="fas {{ item.icon }} item-icon"></i>
-        {% endif %}
+        {% for opt, value in options %}
+            <div class="dropdown-item
+                {% if opt == selected %}active{% endif %}"
+                
+                 hx-post="{{ hx_url }}"
+                 hx-trigger="click"
+                 hx-vals='{"{{ hx_param_name }}": "{{ opt }}"}'
+                 hx-swap="none">
 
-        {{ item.label }}
+                <i class="fas {{ value.icon }} item-icon"></i>
+                {{ value.label }}
 
-      </div>
-    {% endfor %}
+            </div>
+        {% endfor %}
 
-  </div>
+    </div>
 
 </div>
 
+{% endwith %}
+
 <script>
-document.addEventListener('DOMContentLoaded', () => {
 
-  document.querySelectorAll('.dropdown').forEach(dropdown => {
-
-    const items = dropdown.querySelectorAll('.dropdown-item');
-
-    items.forEach(item => {
-
-      item.addEventListener('click', function () {
-
-        const label = dropdown.querySelector('.label');
-        const btnIcon = dropdown.querySelector('.btn-icon');
-
-        const itemLabel = this.textContent.trim();
-        const itemIcon = this.querySelector('i');
-
-        // update label
-        label.textContent = itemLabel;
-
-        // update icon
-        if (itemIcon && btnIcon) {
-
-          const iconClass = [...itemIcon.classList]
-            .find(cls => cls.startsWith('fa-') && cls !== 'fas');
-
-          if (iconClass) {
-            btnIcon.className = `fas ${iconClass} btn-icon`;
-          }
-        }
-
-        // active state
-        items.forEach(i => i.classList.remove('active'));
-        this.classList.add('active');
-
-      });
-
-    });
-
-  });
-
-});
+initSingleValueDropdown("{{ dropdown_id }}");
 
 document.body.addEventListener('htmx:configRequest', function (event) {
     event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';

@@ -1,13 +1,13 @@
 /* dashboard/css/dropdown_single_value.css */
 
 /* wrapper for the entire dropdown component */
-.filter-dropdown {
+.dropdown-single-value-generic {
   position: relative;
   width: 100%;
 }
 
 /* dropdown trigger button */
-.filter-dropdown-btn {
+.dropdown-single-value-generic-btn {
   width: 100%;
   display: flex;
   align-items: center;
@@ -26,14 +26,14 @@
 }
 
 /* left side container for icon + label */
-.filter-dropdown-btn .left {
+.dropdown-single-value-generic-btn .left {
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
 /* styles icon inside left section */
-/* .filter-dropdown-btn .left i {
+/* .dropdown-single-value-generic-btn .left i {
   color: #00c3ff;
   font-size: 0.75rem;
 } */
@@ -47,20 +47,20 @@
 }
 
 /* push caret to right */
-.filter-dropdown-btn .caret {
+.dropdown-single-value-generic-btn .caret {
   margin-left: auto;
   font-size: 0.7rem;
   opacity: 0.6;
 }
 
 /* hover effect for dropdown button */
-.filter-dropdown-btn:hover {
+.dropdown-single-value-generic-btn:hover {
   border-color: #00c3ff;
   box-shadow: 0 0 6px rgba(0, 195, 255, 0.3);
 }
 
 /* dropdown menu container */
-.filter-dropdown-menu {
+.dropdown-single-value-generic-menu {
   width: 100%;
   margin-top: 4px;
 
@@ -72,7 +72,7 @@
 }
 
 /* individual dropdown item */
-.filter-dropdown-menu .dropdown-item {
+.dropdown-single-value-generic-menu .dropdown-item {
   font-size: 0.75rem;
   color: #c0c6ff;
   padding: 6px 10px;
@@ -80,14 +80,20 @@
   transition: all 0.15s ease;
 }
 
-/* hover state for dropdown item */
-.filter-dropdown-menu .dropdown-item:hover {
-  background: rgba(0, 195, 255, 0.08);
-  color: #ffffff;
+/* active state for dropdown item */
+.dropdown-single-value-generic-menu .dropdown-item.active {
+  background-color: #122c52;
 }
 
+/* hover state for dropdown item */
+.dropdown-single-value-generic-menu .dropdown-item:hover {
+  background: rgba(0, 195, 255, 0.08);
+  color: #ffffff
+}
+
+
 /* align dropdown item icon + text */
-.filter-dropdown-menu .dropdown-item {
+.dropdown-single-value-generic-menu .dropdown-item {
   display: flex;
   align-items: center;
   gap: 8px;

@@ -21,58 +21,8 @@
     <h5>Filter</h5>
   </div>
   
-  {% with control=ui.controls.mode %}
-  {% with current_mode=config.mode %}
-  <div class="filter-dropdown dropdown">
-    <!-- BUTTON -->
-    <button class="filter-dropdown-btn" type="button" data-bs-toggle="dropdown">
-        <span class="left">
+   {% include "dashboard/dropdown_single_value.html" with dropdown_id="mode-dropdown-"|addstr:widget.id selected_value=config.mode options=ui.controls.mode.options.items hx_url="/dashboard/api/widgets/"|addstr:widget.id|addstr:"/update-config/" hx_param_name="mode" %}
 
-            <!-- icon -->
-            <i class="fas 
-                {% for key, opt in control.options.items %}
-                    {% if key == current_mode %}
-                        {{ opt.icon }}
-                    {% endif %}
-                {% endfor %}
-            btn-icon"></i>
-
-            <!-- label -->
-            <span class="label">
-                {% for key, opt in control.options.items %}
-                    {% if key == current_mode %}
-                        {{ opt.label }}
-                    {% endif %}
-                {% endfor %}
-            </span>
-
-        </span>
-
-        <i class="fas fa-chevron-down caret"></i>
-    </button>
-
-    <!-- OPTIONS -->
-    <div class="dropdown-menu filter-dropdown-menu">
-
-        {% for key, opt in control.options.items %}
-            <div class="dropdown-item"
-                 hx-post="/dashboard/api/widgets/{{ widget.id }}/update-config/"
-                 hx-trigger="click"
-                 hx-vals='{"mode": "{{ key }}"}'
-                 hx-swap="none">
-
-                <i class="fas {{ opt.icon }} item-icon"></i>
-                {{ opt.label }}
-            {% csrf_token %}
-            </div>
-        {% endfor %}
-
-    </div>
-
-  </div>
-
-  {% endwith %}
-  {% endwith %}
 </div>
 
 <div class="sidebar-section">
@@ -107,44 +57,7 @@
   </select>
 </div>
 
+
 <script>
-document.querySelectorAll('.filter-dropdown-menu .dropdown-item')
-  .forEach(item => {
 
-    item.addEventListener('click', function () {
-
-      const dropdown = this.closest('.filter-dropdown');
-
-      const label = dropdown.querySelector('.label');
-      const btnIcon = dropdown.querySelector('.btn-icon');
-
-      const itemLabel = this.textContent.trim();
-      const itemIcon = this.querySelector('i');
-
-      // update label
-      label.textContent = itemLabel;
-
-      // update icon
-      if (itemIcon) {
-
-        const iconClass = [...itemIcon.classList]
-          .find(cls => cls.startsWith('fa-') && cls !== 'fas');
-
-        btnIcon.className = `fas ${iconClass} btn-icon`;
-      }
-
-      // active state
-      dropdown.querySelectorAll('.dropdown-item')
-        .forEach(i => i.classList.remove('active'));
-
-      this.classList.add('active');
-
-    });
-
-  });
-
-
-    document.body.addEventListener('htmx:configRequest', function (event) {
-        event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
-    });
 </script>

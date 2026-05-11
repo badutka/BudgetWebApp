@@ -37,8 +37,8 @@ class WidgetSidebarService:
     def build_context(self, widget):
         return {
             "widget": widget,
-            "config": widget.handler.get_config(),
-            "state": widget.handler.get_config(),
+            "config": widget.handler.get_config().model_dump(),
+            "state": widget.handler.get_state().model_dump(),
             "ui": self._get_ui_definition(widget),
         }
 
