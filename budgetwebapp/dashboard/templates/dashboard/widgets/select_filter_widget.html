@@ -13,26 +13,10 @@
 
     <!-- FIELD LABEL -->
     <div class="filter-field">
-      {{ widget.config.field }}
+      {{ widget.widget_data.field }}
     </div>
-
-    <!-- VALUE SELECTOR -->
-    <div class="filter-value">
-
-      <select name="{{ widget.config.field }}"
-              class="filter-select"
-              data-widget-id="{{ widget.id }}">
-
-        {% for option in widget.config.options %}
-          <option value="{{ option }}"
-            {% if option == widget.config.value %}selected{% endif %}>
-            {{ option }}
-          </option>
-        {% endfor %}
-
-      </select>
-
-    </div>
+    
+      {% include "dashboard/dropdown_single_value.html" with dropdown_id="filter-dropdown-"|addstr:widget.id selected_value=widget.widget_data.value options=widget.widget_data.options hx_url="/dashboard/api/widgets/"|addstr:widget.id|addstr:"/update/" hx_param_name="value" %}
 
   </div>
 

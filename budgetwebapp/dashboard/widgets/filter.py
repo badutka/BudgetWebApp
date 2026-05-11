@@ -10,15 +10,47 @@ from budgetwebapp.dashboard.widgets.schemas import SelectFilterConfig, RangeFilt
 class SelectFilterLogic(BaseWidgetLogic):
     CONFIG_SCHEMA = SelectFilterConfig
     STATE_SCHEMA = SelectFilterState
+    
+    def get_ui_schema(self):
+        SELECT_FILTER_UI_MODES = [
+            {"value": "single", "label": "Single value", "icon": "fa-dot-circle"},
+            {"value": "multiple", "label": "Multiple values", "icon": "fa-list"},
+            {"value": "date_picker", "label": "Date picker", "icon": "fa-calendar-alt"},
+            {"value": "text_entry", "label": "Text entry", "icon": "fa-font"},
+        ]
 
-    def update_data(self, config, state, filters=None):
         return {
-            "field": config.field,
-            "operator": config.operator,
-            "value": state.value,
-            "options": config.options,
-            "targets": config.targets,
+            "controls": {
+                "mode": {
+                    "type": "select",
+                    "options": SELECT_FILTER_UI_MODES,
+                    "default": "single",
+                },
+                "value": {
+                    "type": "input",
+                },
+                "field": {
+                    "type": "input",
+                },
+            }
         }
+
+    def get_runtime_options(self, filters=None):
+        config = self.get_config()
+
+        field = config.field
+
+        # IMPORTANT: replace this with your real data layer
+        # values = self.widget.repository.get_distinct_values(
+        #     field=field,
+        #     filters=filters,
+        # )
+        values = ["main", "ike", "ikze", "xtb_combined"]
+
+        return [
+            {"value": v, "label": v}
+            for v in values
+        ]
 
     def to_filter(self, config, state):
         return Filter(
@@ -27,6 +59,16 @@ class SelectFilterLogic(BaseWidgetLogic):
             value=state.value,
             targets=config.targets,
         )
+
+
+    def update_data(self, config, state, filters=None):
+        return {
+            "field": config.field,
+            "operator": config.operator,
+            "value": state.value,
+            "targets": config.targets,
+            "options": self.get_runtime_options(filters),
+        }
 
 
 @register_widget("filter", "range", label="Range Filter")

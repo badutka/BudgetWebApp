@@ -65,7 +65,8 @@
 
 </head>
 <body class="{% block body_class %}{% endblock %}">
-
+    {% csrf_token %}
+    
     {% include 'navbar.html' with page_obj=page_obj %}
 
     {% block content %}{% endblock %}

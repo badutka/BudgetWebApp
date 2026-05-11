@@ -11,18 +11,18 @@
 
             <!-- icon -->
             <i class="fas
-                {% for opt, value in options %}
-                    {% if opt == selected %}
-                        {{ value.icon }}
+                {% for opt in options %}
+                    {% if opt.value == selected %}
+                        {{ opt.icon }}
                     {% endif %}
                 {% endfor %}
             btn-icon"></i>
 
             <!-- label -->
             <span class="label">
-                {% for opt, value in options %}
-                    {% if opt == selected %}
-                        {{ value.label }}
+                {% for opt in options %}
+                    {% if opt.value == selected %}
+                        {{ opt.label }}
                     {% endif %}
                 {% endfor %}
             </span>
@@ -35,17 +35,17 @@
     <!-- OPTIONS -->
     <div class="dropdown-menu dropdown-single-value-generic-menu">
 
-        {% for opt, value in options %}
+        {% for opt in options %}
             <div class="dropdown-item
-                {% if opt == selected %}active{% endif %}"
+                {% if opt.value == selected %}active{% endif %}"
                 
                  hx-post="{{ hx_url }}"
                  hx-trigger="click"
-                 hx-vals='{"{{ hx_param_name }}": "{{ opt }}"}'
+                 hx-vals='{"{{ hx_param_name }}": "{{ opt.value }}"}'
                  hx-swap="none">
 
-                <i class="fas {{ value.icon }} item-icon"></i>
-                {{ value.label }}
+                <i class="fas {{ opt.icon }} item-icon"></i>
+                {{ opt.label }}
 
             </div>
         {% endfor %}
@@ -58,9 +58,9 @@
 
 <script>
 
-initSingleValueDropdown("{{ dropdown_id }}");
+// initSingleValueDropdown("{{ dropdown_id }}");
 
-document.body.addEventListener('htmx:configRequest', function (event) {
-    event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
-});
+// document.body.addEventListener('htmx:configRequest', function (event) {
+//     event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+// });
 </script>

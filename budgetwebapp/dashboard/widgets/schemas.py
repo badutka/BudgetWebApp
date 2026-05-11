@@ -35,8 +35,6 @@ class SelectFilterConfig(BaseModel):
         "text_entry",
     ] = "single"
     operator: Literal["eq", "in"] = "eq"
-    value: Any = None
-    options: List[Any] = Field(default_factory=list)
     targets: Optional[List[str]] = Field(default_factory=list)
     active: bool = True
 

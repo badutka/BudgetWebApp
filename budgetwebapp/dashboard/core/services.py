@@ -3,7 +3,6 @@
 from django.core.cache import cache
 from .registry import get_widget_handler, get_widget_metadata
 # from budgetwebapp.datahub.filters.filters import Filter
-from budgetwebapp.dashboard.widgets.filter_registry import SELECT_FILTER_UI_MODES
 from core.logger import logger
 
 
@@ -25,52 +24,6 @@ class WidgetService:
         data = handler.run(filters=filters)
         return data
 
-
-class WidgetSidebarService:
-    """
-    Sidebar context builder.
-
-    Uses dict-based controls for direct access,
-    because widgets are domain-specific (not generic forms).
-    """
-
-    def build_context(self, widget):
-        return {
-            "widget": widget,
-            "config": widget.handler.get_config().model_dump(),
-            "state": widget.handler.get_state().model_dump(),
-            "ui": self._get_ui_definition(widget),
-        }
-
-    def _get_ui_definition(self, widget):
-        if widget.widget_type == "filter" and widget.subtype == "select":
-            return self._select_filter_ui()
-
-        return {
-            "controls": {},
-            "meta": {
-                "type": widget.widget_type,
-                "subtype": widget.subtype,
-            },
-        }
-
-    def _select_filter_ui(self):
-        return {
-            "controls": {
-                "mode": {
-                    "type": "select",
-                    "options": SELECT_FILTER_UI_MODES,
-                    "default": "single",
-                },
-                "value": {
-                    "type": "input",
-                },
-                "field": {
-                    "type": "input",
-                },
-            }
-        }
-    
     
 def build_filters(widgets):
     filters: list[Filter] = []

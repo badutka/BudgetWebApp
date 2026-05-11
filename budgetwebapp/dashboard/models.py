@@ -86,7 +86,7 @@ class BaseWidget(BaseModel):
                 raise ValueError(f"No handler for {self.widget_type}:{self.subtype}")
 
             self._handler = handler_cls(self)
-            logger.warn(f'Created new class for {str(self)}')
+            logger.warn(f'Created new handler instance for {str(self)}')
 
         return self._handler
 

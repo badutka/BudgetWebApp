@@ -52,15 +52,7 @@
                data-widget-id="{{ widget.id }}">
 
             <div class="grid-stack-item-content">
-              {% if widget.widget_type == 'overview' %}
-                {% include 'dashboard/widgets/widget_overview_partial.html' with widget=widget %}
-              {% elif widget.widget_type == 'table' %}
-                {% include 'dashboard/widgets/widget_table_partial.html' with widget=widget %}
-              {% elif widget.widget_type == 'filter' %}
-                {% include 'dashboard/widgets/select_filter_widget.html' with widget=widget %}
-              {% else %}
-                {% include 'dashboard/widgets/widget_generic_chart_partial.html' with widget=widget %}
-              {% endif %}
+              {% include widget.template with widget=widget %}
             </div>
 
           </div>

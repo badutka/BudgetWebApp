@@ -7,12 +7,11 @@ from pydantic import ValidationError
 import json
 
 from .models import Dashboard, BaseWidget
-from budgetwebapp.dashboard.core.services import build_filters, WidgetSidebarService
+from budgetwebapp.dashboard.core.services import build_filters
 from budgetwebapp.dashboard.widgets.schemas import SelectFilterConfig
 
 from .core.services import WidgetService
 from core.logger import logger
-
 
 
 def index(request):
@@ -26,8 +25,6 @@ def dashboard_view(request, slug):
     # account_type = request.GET.get('account_type')
 
     filter_widgets = [w for w in widgets if w.widget_type == "filter"]
-    data_widgets = [w for w in widgets if w.widget_type != "filter"]
-
     filters = build_filters(filter_widgets)
 
     # service = DashboardService(dashboard)
@@ -38,11 +35,15 @@ def dashboard_view(request, slug):
 
     widget_list = []
 
-    for widget in data_widgets:
-        data = WidgetService(widget).get_data(filters)
-        widget.widget_data = data
-        # widget_list.append(widget)
-    widget_list = data_widgets + filter_widgets
+    for widget in widgets:
+        widget.widget_data = widget.handler.run(filters=filters)
+        widget.ui_schema = widget.handler.get_ui_schema()
+        widget.template = widget.handler.get_template(context="dashboard")
+
+        widget_list.append(widget)
+        logger.error(widget.id)
+        logger.info(f'{widget.widget_data = }')
+        logger.info(f'{widget.ui_schema = }')
 
     context = {
         "widgets": widget_list,
@@ -55,97 +56,74 @@ def dashboard_view(request, slug):
 
 def dashboard_sidebar_content(request, widget_id):
     widget = BaseWidget.objects.get(id=widget_id)
-    service = WidgetSidebarService()
 
-    context = service.build_context(widget)
+    handler = widget.handler
 
-    logger.info(context)
+    context = {
+        "widget": widget,
+        "config": handler.get_config().model_dump(),
+        "state": handler.get_state().model_dump(),
+        "ui": handler.get_ui_schema(),
+    }
+
     template_map = {
         "filter:select": "dashboard/sidebar/select_filter.html",
     }
+
+    print(context)
     key = f"{widget.widget_type}:{widget.subtype}"
     template = template_map.get(key)
 
     return render(request, template, context)
 
 
-def update_config(request, widget_id):
+def update_widget(request, widget_id):
     widget = get_object_or_404(BaseWidget, id=widget_id)
-
-    current_config = widget.config or {}
-
-    updates = {}
+    handler = widget.handler
+    logger.debug('Updating widget: %s', widget_id)
+    config_updates = {}
+    state_updates = {}
 
     for key, value in request.POST.items():
         if key == "csrfmiddlewaretoken":
             continue
 
-        updates[key] = value
+        if hasattr(handler.CONFIG_SCHEMA, "model_fields") and key in handler.CONFIG_SCHEMA.model_fields:
+            config_updates[key] = value
+        else:
+            state_updates[key] = value
 
-    # merge existing + incoming
-    merged = {
-        **current_config,
-        **updates,
-    }
+    logger.debug(f'{state_updates = }')
+    logger.debug(f'{config_updates = }')
 
-    try:
-        validated = SelectFilterConfig(**merged)
+    # config
+    if config_updates:
+        merged = {**(widget.config or {}), **config_updates}
+        widget.config = handler.CONFIG_SCHEMA(**merged).model_dump()
 
-    except ValidationError as e:
-        return JsonResponse({
-            "ok": False,
-            "errors": e.errors(),
-        }, status=400)
+    # state
+    if state_updates:
+        merged = {**(widget.state or {}), **state_updates}
+        widget.state = handler.STATE_SCHEMA(**merged).model_dump()
 
-    widget.config = validated.model_dump()
     widget.save()
 
-    return JsonResponse({
-        "ok": True,
-        "config": widget.config,
-    })
+    # recompute filters
+    dashboard_widgets = BaseWidget.objects.filter(dashboard=widget.dashboard)
+    filters = build_filters([w for w in dashboard_widgets if w.widget_type == "filter"])
 
-def update_state(request, widget_id):
-    widget = get_object_or_404(BaseWidget, id=widget_id)
+    # recompute widget
+    widget.widget_data = handler.run(filters=filters)
+    widget.ui_schema = handler.get_ui_schema()
 
-    handler_cls = get_widget_handler(
-        widget.widget_type,
-        widget.subtype,
-    )
+    widget.template = handler.get_template(context="dashboard")
 
-    state_schema = handler_cls.STATE_SCHEMA
-
-    current_state = widget.state or {}
-
-    updates = {}
-
-    for key, value in request.POST.items():
-        if key == "csrfmiddlewaretoken":
-            continue
-
-        updates[key] = value
-
-    merged = {
-        **current_state,
-        **updates,
+    context = {
+        "widget": widget,
     }
 
-    try:
-        validated = state_schema(**merged)
+    return render(request, widget.template, context)
 
-    except ValidationError as e:
-        return JsonResponse({
-            "ok": False,
-            "errors": e.errors(),
-        }, status=400)
-
-    widget.state = validated.model_dump()
-    widget.save(update_fields=["state"])
-
-    return JsonResponse({
-        "ok": True,
-        "state": widget.state,
-    })
 
 @require_POST
 def update_widget_layout(request):
