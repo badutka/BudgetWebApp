@@ -9,6 +9,7 @@ from core.logger import logger
 
 @register_widget("chart", "timeseries2", label="Time Series")
 class TimeSeriesChartLogic(BaseWidgetLogic):
+    TEMPLATE = "dashboard/widgets/widget_generic_chart_partial.html"
     CONFIG_SCHEMA = TimeSeriesConfig
     OUTPUT_SCHEMA = TimeSeriesOutput
 

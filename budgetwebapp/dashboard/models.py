@@ -3,9 +3,8 @@ import uuid
 from django.db import models
 from django.utils.text import slugify
 
-from budgetwebapp.dashboard.widgets.factory import create_default_config
-from budgetwebapp.dashboard.core.registry import get_widget_handler
-# from budgetwebapp.dashboard.core.services import WidgetService
+from budgetwebapp.dashboard.core.registry import get_widget_definition, get_widget_executor
+from budgetwebapp.dashboard.widgets.base import BaseWidgetLogic
 from core.logger import logger
 
 class BaseModel(models.Model):
@@ -74,31 +73,19 @@ class BaseWidget(BaseModel):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    @property
-    def handler(self):
-        if not hasattr(self, "_handler"):
-            handler_cls = get_widget_handler(
-                self.widget_type,
-                self.subtype,
-            )
+    # single clean runtime entry point
+    def get_definition(self):
+        return get_widget_definition(self.widget_type, self.subtype)
 
-            if not handler_cls:
-                raise ValueError(f"No handler for {self.widget_type}:{self.subtype}")
-
-            self._handler = handler_cls(self)
-            logger.warn(f'Created new handler instance for {str(self)}')
-
-        return self._handler
+    def get_executor(self):
+        return get_widget_executor(self.widget_type, self.subtype)(self)
 
     def save(self, *args, **kwargs):
-        
         if not self.config:
-            self.config = create_default_config(self.handler)
+            definition = self.get_definition()
+            self.config = definition.build_default_config()
 
         super().save(*args, **kwargs)
-    
+
     def __str__(self):
         return f'<{self.title}>:<{self.widget_type}>:<{self.subtype}>:<{self.id}>'
-
-    # def get_data(self, force_refresh=False):
-    #     return WidgetService(self).get_data(force_refresh)

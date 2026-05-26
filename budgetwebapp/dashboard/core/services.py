@@ -1,7 +1,6 @@
 # dashboard/core/services.py
 
 from django.core.cache import cache
-from .registry import get_widget_handler, get_widget_metadata
 # from budgetwebapp.datahub.filters.filters import Filter
 from core.logger import logger
 
@@ -26,21 +25,19 @@ class WidgetService:
 
     
 def build_filters(widgets):
-    filters: list[Filter] = []
+    filters = []
 
     for widget in widgets:
         if widget.widget_type != "filter":
             continue
 
-        handler = widget.handler
+        executor = widget.get_executor()
 
-        # validated config (cached, consistent)
-        config = handler.get_config()
-        state = handler.get_state()
+        config = executor.get_config()
+        state = executor.get_state()
 
-        # convert via widget logic
-        if hasattr(handler, "to_filter"):
-            filters.append(handler.to_filter(config, state))
+        if hasattr(executor, "to_filter"):
+            filters.append(executor.to_filter(config, state))
 
     return filters
 
@@ -50,22 +47,33 @@ class DashboardService:
     def __init__(self, dashboard):
         self.dashboard = dashboard
 
-    def get_widgets_data(self):
+    def execute(self):
         widgets = list(self.dashboard.widgets.all())
 
-        # build filters once
-        filters = build_filters(widgets)
+        logger.warn(f"Loaded {len(widgets)} widgets for dashboard {self.dashboard.slug}")
 
-        result = []
+        # -----------------------------
+        # BUILD FILTERS FROM DB STATE
+        # -----------------------------
+        filter_widgets = [w for w in widgets if w.widget_type == "filter"]
+        active_filters = build_filters(filter_widgets)
 
+        logger.warn(f"Built {len(active_filters)} active filters")
+
+        # -----------------------------
+        # EXECUTE ALL WIDGETS
+        # -----------------------------
         for widget in widgets:
-            data = WidgetService(widget).get_data(filters=filters)
+            executor = widget.get_executor()
+            definition = widget.get_definition()
 
-            result.append({
-                "id": str(widget.id),
-                "type": widget.widget_type,
-                "subtype": widget.subtype,
-                "data": data,
-            })
+            logger.warn(f"Executing widget {widget.id} ({widget.widget_type}:{widget.subtype})")
 
-        return result
+            widget.widget_data = executor.run(filters=active_filters)
+            widget.ui_schema = definition.ui_schema
+            widget.template = definition.template
+
+            logger.info(f"{widget.widget_data = }")
+            logger.info(f"{widget.ui_schema = }")
+
+        return widgets

@@ -8,49 +8,41 @@ from budgetwebapp.dashboard.widgets.schemas import SelectFilterConfig, RangeFilt
 
 @register_widget("filter", "select", label="Select Filter")
 class SelectFilterLogic(BaseWidgetLogic):
+    TEMPLATE = "dashboard/widgets/select_filter_widget.html"
+
     CONFIG_SCHEMA = SelectFilterConfig
     STATE_SCHEMA = SelectFilterState
-    
-    def get_ui_schema(self):
-        SELECT_FILTER_UI_MODES = [
-            {"value": "single", "label": "Single value", "icon": "fa-dot-circle"},
-            {"value": "multiple", "label": "Multiple values", "icon": "fa-list"},
-            {"value": "date_picker", "label": "Date picker", "icon": "fa-calendar-alt"},
-            {"value": "text_entry", "label": "Text entry", "icon": "fa-font"},
-        ]
 
-        return {
-            "controls": {
-                "mode": {
-                    "type": "select",
-                    "options": SELECT_FILTER_UI_MODES,
-                    "default": "single",
-                },
-                "value": {
-                    "type": "input",
-                },
-                "field": {
-                    "type": "input",
-                },
-            }
+    # -----------------------------
+    # STATIC UI DEFINITION (HERE)
+    # -----------------------------
+    UI_SCHEMA = {
+        "controls": {
+            "mode": {
+                "type": "select",
+                "options": [
+                    {"value": "single", "label": "Single value", "icon": "fa-dot-circle"},
+                    {"value": "multiple", "label": "Multiple values", "icon": "fa-list"},
+                    {"value": "date_picker", "label": "Date picker", "icon": "fa-calendar-alt"},
+                    {"value": "text_entry", "label": "Text entry", "icon": "fa-font"},
+                ],
+                "default": "single",
+            },
+            "value": {"type": "input"},
+            "field": {"type": "input"},
         }
+    }
 
+    # -----------------------------
+    # RUNTIME ONLY
+    # -----------------------------
     def get_runtime_options(self, filters=None):
         config = self.get_config()
-
         field = config.field
 
-        # IMPORTANT: replace this with your real data layer
-        # values = self.widget.repository.get_distinct_values(
-        #     field=field,
-        #     filters=filters,
-        # )
         values = ["main", "ike", "ikze", "xtb_combined"]
 
-        return [
-            {"value": v, "label": v}
-            for v in values
-        ]
+        return [{"value": v, "label": v} for v in values]
 
     def to_filter(self, config, state):
         return Filter(
@@ -59,7 +51,6 @@ class SelectFilterLogic(BaseWidgetLogic):
             value=state.value,
             targets=config.targets,
         )
-
 
     def update_data(self, config, state, filters=None):
         return {
@@ -73,6 +64,7 @@ class SelectFilterLogic(BaseWidgetLogic):
 
 @register_widget("filter", "range", label="Range Filter")
 class RangeFilterLogic(BaseWidgetLogic):
+    TEMPLATE = "dashboard/widgets/select_filter_widget.html"
     CONFIG_SCHEMA = RangeFilterConfig
     STATE_SCHEMA = RangeFilterState
 
@@ -99,6 +91,7 @@ class RangeFilterLogic(BaseWidgetLogic):
 
 @register_widget("filter", "date", label="Date Filter")
 class DateFilterLogic(BaseWidgetLogic):
+    TEMPLATE = "dashboard/widgets/select_filter_widget.html"
     CONFIG_SCHEMA = DateFilterConfig
     STATE_SCHEMA = DateFilterState
 

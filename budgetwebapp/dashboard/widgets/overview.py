@@ -7,7 +7,7 @@ from budgetwebapp.dashboard.widgets.schemas import OverviewConfig
 
 @register_widget("overview", label='Overview')
 class OverviewWidgetLogic(BaseWidgetLogic):
-
+    TEMPLATE = "dashboard/widgets/widget_overview_partial.html"
     CONFIG_SCHEMA = OverviewConfig
 
     def update_data(self, config, state, filters=None):
