@@ -15,7 +15,7 @@ class TimeSeriesChartLogic(BaseWidgetLogic):
 
     def update_data(self, config, state, filters=None):
         rows = data_service.get(
-            source="timeseries",
+            source="dataset",
             query=config.query,
             filters=filters,
             widget_id=str(self.widget.id),

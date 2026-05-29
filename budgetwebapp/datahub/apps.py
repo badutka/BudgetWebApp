@@ -6,4 +6,5 @@ class DatahubConfig(AppConfig):
     name = 'budgetwebapp.datahub'
 
     def ready(self):
-        import budgetwebapp.datahub.sources.timeseries  # noqa
+        import budgetwebapp.datahub.sources.timeseries
+        import budgetwebapp.datahub.sources.dataset

@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'budgetwebapp.investments.apps.InvestmentsConfig',
     'budgetwebapp.dashboard.apps.DashboardConfig',
     'budgetwebapp.datahub.apps.DatahubConfig',
+    'budgetwebapp.workbench.apps.WorkbenchConfig',
 
     'crispy_forms',
     'crispy_bootstrap5',
@@ -89,6 +90,8 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+WAREHOUSE_DB_PATH = BASE_DIR / "warehouse.sqlite3"
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators

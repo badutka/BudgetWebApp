@@ -23,4 +23,5 @@ urlpatterns = [
     path('investments/', include(('budgetwebapp.investments.urls', 'investments'), namespace='investments')),
     path('dashboard/', include(('budgetwebapp.dashboard.urls', 'dashboard'), namespace='dashboard')),
     path('datahub/', include(('budgetwebapp.datahub.urls', 'datahub'), namespace='datahub')),
+    path('workbench/', include(('budgetwebapp.workbench.urls', 'workbench'), namespace='workbench')),
 ]
