@@ -1,0 +1,180 @@
+/* workbench/static/notebook.css */
+
+/* =========================
+   NOTEBOOK CONTAINER
+========================= */
+
+#notebook {
+    border: 2px solid #444;
+    border-radius: 10px;
+    margin: 10px;
+    padding: 10px;
+    background: #11171c;
+}
+
+#cells {
+    display: flex;
+    flex-direction: column;
+}
+
+/* =========================
+   GLOBAL TOOLBAR
+========================= */
+
+#toolbar {
+    margin-bottom: 10px;
+}
+
+/* =========================
+   CELL WRAPPER
+========================= */
+
+.cell-wrapper {
+    margin: 10px 0;
+}
+
+/* =========================
+   CELL
+========================= */
+
+.cell {
+    border: 1px solid #333;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #2a2a2a;
+}
+
+.cell-header {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 10px;
+    background: #1b1b1b;
+    color: white;
+    font-size: 13px;
+}
+
+/* =========================
+   EDITOR
+========================= */
+
+.editor {
+    height: 180px;
+}
+
+/* =========================
+   OUTPUT
+========================= */
+
+.output {
+    margin-top: 6px;
+    padding: 10px;
+    border-radius: 6px;
+    background: #111;
+    color: #0f0;
+    font-family: monospace;
+    white-space: pre-wrap;
+    border: 1px solid #222;
+}
+
+/* =========================
+   INSERT BAR (GAP ONLY)
+========================= */
+
+.insert-bar {
+    position: relative;
+
+    height: 16px; /* small gap like notebooks */
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* invisible hover hit-area (important) */
+.insert-bar::after {
+    content: "";
+    position: absolute;
+
+    left: 0;
+    right: 0;
+
+    top: -10px;
+    bottom: -10px;
+}
+
+/* divider line (hidden by default) */
+.insert-bar::before {
+    content: "";
+
+    position: absolute;
+
+    left: 0;
+    right: 0;
+    top: 50%;
+
+    height: 1px;
+
+    background: #555;
+
+    transform: translateY(-50%);
+
+    opacity: 0;
+    transition: opacity 0.15s ease;
+}
+
+/* floating buttons */
+.insert-buttons {
+    position: absolute;
+
+    left: 50%;
+    top: 50%;
+
+    transform: translate(-50%, -50%);
+
+    display: flex;
+    gap: 8px;
+
+    background: #2a2a2a;
+    padding: 4px 10px;
+
+    border-radius: 6px;
+    border: 1px solid #333;
+
+    z-index: 20;
+
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+
+    transition: opacity 0.15s ease, visibility 0.15s ease;
+}
+
+/* ONLY show when hovering the gap */
+.insert-bar:hover::before {
+    opacity: 1;
+}
+
+.insert-bar:hover .insert-buttons {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+/* =========================
+   BUTTONS
+========================= */
+
+button {
+    background: #333;
+    color: white;
+    border: 1px solid #444;
+    border-radius: 4px;
+
+    padding: 3px 8px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+button:hover {
+    background: #444;
+}

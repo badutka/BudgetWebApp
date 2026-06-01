@@ -51,6 +51,7 @@
 <!--    <link rel="stylesheet" type="text/css" href="{% static 'investments/css/widget_cards.css' %}">-->
 <!--    <link rel="stylesheet" type="text/css" href="{% static 'investments/css/portfolio.css' %}">-->
 
+    {% block extra_css %}{% endblock %}
 
     <!-- Include HTMX -->
     <script src="https://unpkg.com/htmx.org/dist/htmx.js"></script>
@@ -102,6 +103,8 @@
     <script type="module" src="{% static 'budget/js/main.js' %}"></script>
 <!--    <script type="module" src="{% static 'investments/js/investments.js' %}"></script>-->
     <script type="module" src="{% static 'js/dashboard.js' %}"></script>
+
+    {% block extra_js %}{% endblock %}
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/12.3.3/gridstack-all.min.js"></script>
 

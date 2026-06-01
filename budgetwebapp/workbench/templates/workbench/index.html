@@ -2,7 +2,25 @@
 {% load static %}
 {% load template_filters %}
 
+{% block extra_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'workbench/css/notebook.css' %}">
+{% endblock extra_css %}
+
 {% block content %}
 
+<div id="notebook">
+    <!-- GLOBAL INSERT BAR (same component as cell bars) -->
+    <div class="insert-bar" id="global-insert-bar">
+        <div class="insert-buttons">
+            <button onclick="insertAtTop('code')">+ Code</button>
+            <button onclick="insertAtTop('text')">+ Text</button>
+        </div>
+    </div>
+    <div id="cells"></div>
+</div>
 
 {% endblock content %}
+
+{% block extra_js %}
+<script src="{% static 'workbench/js/notebook.js' %}" defer></script>
+{% endblock extra_js %}
