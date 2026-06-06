@@ -206,6 +206,8 @@
 .dashboard-main {
   flex: 1;                 /* Take remaining space */
   padding: 0.5rem;
+  padding-bottom: 0;
+  box-sizing: border-box; 
 }
 
 /* =========================================================
@@ -213,7 +215,10 @@
 ========================================================= */
 .grid-stack {
   background: #090d1e;
-  border: 1px solid rgba(0, 255, 255, 0.6); /* Highlight grid boundary */
+  /* border: 1px solid rgba(0, 255, 255, 0.6); */
+  /* shadow instead of border to avoid 1px misalignment at the bottom */
+  /* box-shadow: inset 0 1px 0 0 rgba(0, 255, 255, 0.6), 
+              inset 0 -1px 0 0 rgba(0, 255, 255, 0.6); */
   margin: 0;
   width: 100%;
 }

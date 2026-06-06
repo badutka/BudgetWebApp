@@ -1,0 +1,147 @@
+/* ================================
+   GLOBAL APP SHELL
+================================ */
+
+.body-dashboard-lock {
+    height: 100dvh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* navbar stays on top (already behaves like this visually) */
+.navbar {
+    flex-shrink: 0;
+}
+
+/* MAIN SHELL UNDER NAVBAR */
+.app-shell {
+    height: calc(100dvh - 50px - 10px); 
+    max-height: calc(100dvh - 50px - 10px);
+
+    flex: 1;
+    display: flex;
+    min-height: 0; /* CRITICAL for nested scroll */
+    overflow: hidden;
+}
+
+/* ================================
+   LEFT SIDEBAR (MAIN MENU)
+================================ */
+
+.main-menu-sidebar {
+    width: 200px;
+    flex-shrink: 0;
+    /* position: relative !important; */
+
+    height: 100% !important;
+    max-height: 100% !important;
+
+    display: flex;
+    flex-direction: column;
+
+    background: #0c1223;
+    border: 1px solid rgba(0, 195, 255, 0.3);
+
+    overflow: hidden;     /* prevents outer scroll */
+}
+
+/* optional sticky header inside sidebar */
+.main-menu-sidebar-header {
+    flex-shrink: 0;
+    padding: 1rem;
+    border-bottom: 1px solid rgba(0,195,255,0.15);
+    color: #e0e3ff;
+}
+
+/* menu scroll area */
+.main-menu-sidebar-content {
+    flex: 1;
+    min-height: 0;        /* 🔥 critical for flex scroll */
+    overflow-y: auto;    /* actual scrolling happens here */
+    
+    padding: 0px 12px;
+    /* padding: 1rem; */
+}
+
+.menu-section {
+    margin-bottom: 1.5rem;
+}
+
+.menu-section-title {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+
+    color: rgba(0, 195, 255, 0.6);
+
+    margin: 0.75rem 0 0.5rem 0.75rem;
+}
+
+/* menu item */
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+
+    /* padding: 0.55rem 0.75rem;
+    margin: 0.15rem 0.5rem; */
+    padding: 4px 12px;
+    margin: 2px 0px;
+
+    /* border-radius: 8px; */
+
+    color: #e0e3ff;
+    text-decoration: none;
+
+    /* font-size: 0.85rem; */
+    font-size: 13px;
+
+    transition: all 0.2s ease;
+}
+
+/* hover */
+.menu-item:hover {
+    background: rgba(0, 195, 255, 0.12);
+    color: #00c3ff;
+
+    box-shadow: 0 0 8px rgba(0, 195, 255, 0.15);
+}
+
+/* active */
+.menu-item.active {
+    background: rgba(0, 195, 255, 0.18);
+    /* border: 1px solid rgba(0, 195, 255, 0.25); */
+    color: #00c3ff;
+}
+
+/* icon alignment */
+.menu-item i {
+    width: 16px;
+    text-align: center;
+    opacity: 0.9;
+}
+
+/* ================================
+   MAIN APP AREA
+================================ */
+
+.app-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden; /* IMPORTANT: no page scroll */
+}
+
+/* .dashboard-app {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+} */
+
+/* ================================
+   SIDEBAR MENU STYLE IMPROVEMENTS
+================================ */
