@@ -1,0 +1,137 @@
+/* dashboard/css/gridstack.css */
+
+.grid-stack {
+  background: #090d1e;
+  /*border-radius: 6px;*/
+
+  /* border: 1px solid rgba(0, 255, 255, 0.6); */
+  /* shadow instead of border to avoid 1px misalignment at the bottom */
+  /* box-shadow: inset 0 1px 0 0 rgba(0, 255, 255, 0.6), 
+              inset 0 -1px 0 0 rgba(0, 255, 255, 0.6); */
+
+  margin: 0;
+  width: 100%;
+  /*max-width: 1000px*/;
+}
+
+.grid-stack.edit-mode {
+  background-image:
+    /* thin lines */
+    linear-gradient(to right, rgba(180,190,210,0.1) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(180,190,210,0.1) 1px, transparent 1px);
+
+  background-size:
+    calc(100% / 32) 50px,
+    calc(100% / 32) 50px;
+
+  border: 1px solid rgba(180,190,210,0.3);
+}
+
+.grid-stack-item {
+  display: flex;
+}
+
+body:not(.is-dragging) .grid-stack.edit-mode .grid-stack-item:hover {
+  cursor: grab;
+}
+
+.grid-stack-item-content {
+  /*--gs-item-margin-top: 10px;
+  --gs-item-margin-bottom: 10px;
+  --gs-item-margin-right: 10px;
+  --gs-item-margin-left: 10px;*/
+
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+
+  background:
+    radial-gradient(circle at top left, rgba(0,195,255,0.08), transparent 70%),
+    linear-gradient(145deg, #0e1633, #111a3c);
+
+  border-radius: 20px;
+  box-shadow: 0 0 20px rgba(0, 195, 255, 0.2);
+  color: #e0e3ff;
+  text-shadow: 0 0 8px rgba(0, 195, 255, 0.35);
+
+  overflow: hidden;
+  padding: 1.5rem;
+  transition: transform 0.3s ease,
+              box-shadow 0.3s ease,
+              background 0.6s ease;
+  will-change: transform;
+  max-width: 100%;
+}
+
+.grid-stack:not(.edit-mode) .grid-stack-item-content:hover {
+  transform: translateY(-5px) scale(1.00);
+  box-shadow:
+    0 0 30px rgba(0,195,255,0.4),
+    inset 0 20px 30px -25px rgba(0,195,255,0.7);
+  background: linear-gradient(145deg, #101a3d, #14224a);
+}
+
+/* SHEEN */
+.grid-stack-item-content .sheen {
+  position: absolute;
+  top: 0;
+  left: -40%;
+  width: 40%;
+  height: 100%;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      120deg,
+      transparent 0%,
+      rgba(0,195,255,0.15) 45%,
+      rgba(255,255,255,0.35) 50%,
+      rgba(0,195,255,0.15) 55%,
+      transparent 100%
+    );
+  filter: blur(4px);
+  transform: skewX(-15deg);
+  opacity: 0;
+  animation: widgetSweep 0.5s linear forwards;
+}
+
+@keyframes widgetSweep {
+  0% { left: -40%; opacity: 0; }
+  10% { opacity: 1; }
+  60% { left: 60%; opacity: 0.9; }
+  100% { left: 100%; opacity: 0; }
+}
+
+/* ONLY context-specific title tweak */
+.grid-stack-item-content .widget-title {
+  position: relative;
+  padding-bottom: 0.4rem;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .dashboard-grid {
+    margin: 1.5rem auto;
+  }
+}
+
+@media (max-width: 760px) {
+  .dashboard-grid {
+    width: 95%;
+  }
+}
+
+/* GRID PLACEHOLDER (drop preview) */
+.grid-stack-placeholder > .placeholder-content {
+  backdrop-filter: blur(3px);
+
+  border: 1px dashed rgba(220, 220, 220, 0.25);
+  border-radius: 6px;
+}
+
+/* force background on ALL layers inside placeholder */
+.grid-stack-placeholder,
+.grid-stack-placeholder > .placeholder-content,
+.grid-stack-placeholder .grid-stack-item-content {
+  background: rgba(140, 140, 140, 0.2) !important;
+}
